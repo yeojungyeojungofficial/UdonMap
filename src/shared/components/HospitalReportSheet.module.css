@@ -1,0 +1,159 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  background: rgba(56, 56, 56, 0.52);
+  display: flex;
+  align-items: flex-end;
+}
+
+.sheet {
+  width: 100%;
+  max-height: min(86vh, 760px);
+  overflow: auto;
+  border-radius: 24px 24px 0 0;
+  background: #ffffff;
+  padding: 12px 18px 24px;
+  animation: slideUp 0.26s ease;
+}
+
+.handle {
+  width: 48px;
+  height: 5px;
+  border-radius: 999px;
+  background: #383838;
+  margin: 2px auto 14px;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.eyebrow {
+  margin: 0;
+  color: #e5792d;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.title {
+  margin: 4px 0 0;
+  font-size: 24px;
+  color: #383838;
+}
+
+.closeButton {
+  border: 0;
+  border-radius: 10px;
+  padding: 8px 12px;
+  height: fit-content;
+  background: #f5f5f5;
+  color: #383838;
+  cursor: pointer;
+}
+
+.form {
+  margin-top: 18px;
+  display: grid;
+  gap: 16px;
+}
+
+.field {
+  display: grid;
+  gap: 8px;
+}
+
+.field span,
+.fieldset legend {
+  color: #383838;
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.field input,
+.field textarea {
+  width: 100%;
+  border: 1px solid #ead8ca;
+  border-radius: 10px;
+  padding: 13px 14px;
+  background: #fffdfb;
+  color: #383838;
+}
+
+.field textarea {
+  resize: vertical;
+}
+
+.field input:focus,
+.field textarea:focus {
+  border-color: #ff9645;
+  outline: 2px solid rgba(255, 150, 69, 0.3);
+}
+
+.field input[type="file"] {
+  padding: 10px;
+}
+
+.fieldset {
+  min-width: 0;
+  border: 0;
+  padding: 0;
+  margin: 0;
+}
+
+.animalChoiceGrid {
+  margin-top: 8px;
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.animalChoiceButton {
+  border: 1px solid #ead8ca;
+  border-radius: 999px;
+  padding: 9px 14px;
+  background: #fff8f2;
+  color: #7d4b2a;
+  font-size: 14px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.animalChoiceButtonActive {
+  border-color: #ff9645;
+  background: #ff9645;
+  color: #ffffff;
+}
+
+.submitButton {
+  min-height: 48px;
+  border: 0;
+  border-radius: 10px;
+  background: #ff9645;
+  color: #ffffff;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.submitMessage {
+  margin: 0;
+  border-radius: 10px;
+  padding: 12px;
+  background: #fff1e8;
+  color: #8a4a1d;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(26px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

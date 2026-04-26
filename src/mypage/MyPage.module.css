@@ -1,0 +1,181 @@
+.page {
+  min-height: 100vh;
+  padding: 20px;
+  padding-top: 84px;
+  background: linear-gradient(180deg, #fff0e5 0%, #f7f7f7 100%);
+  color: #383838;
+}
+
+.authSection {
+  width: min(1120px, 100%);
+  min-height: calc(100vh - 120px);
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 420px;
+  align-items: center;
+  gap: 42px;
+}
+
+.copyWrap {
+  max-width: 620px;
+}
+
+.eyebrow {
+  margin: 0 0 14px;
+  color: #e5792d;
+  font-weight: 800;
+}
+
+.copyWrap h1 {
+  margin: 0;
+  max-width: 600px;
+  font-size: clamp(34px, 5vw, 58px);
+  line-height: 1.08;
+  letter-spacing: 0;
+}
+
+.description {
+  margin: 20px 0 0;
+  color: #383838;
+  font-size: 16px;
+  line-height: 1.8;
+}
+
+.benefitGrid {
+  margin-top: 28px;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.benefitGrid div {
+  min-height: 74px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #ead8ca;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.7);
+  color: #4a3f38;
+  font-weight: 800;
+}
+
+.authCard {
+  border: 1px solid #ead8ca;
+  border-radius: 8px;
+  padding: 28px;
+  background: #ffffff;
+  box-shadow: 0 22px 44px rgba(135, 75, 31, 0.16);
+}
+
+.cardHeader {
+  margin-bottom: 24px;
+}
+
+.cardHeader p {
+  margin: 0 0 6px;
+  color: #e5792d;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.cardHeader h2 {
+  margin: 0;
+  font-size: 28px;
+}
+
+.field {
+  display: grid;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.field span {
+  color: #383838;
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.field input {
+  width: 100%;
+  border: 1px solid #dcc8b8;
+  border-radius: 8px;
+  padding: 14px 15px;
+  color: #383838;
+  background: #fffdfb;
+  font-size: 15px;
+}
+
+.field input:focus {
+  outline: 2px solid rgba(255, 150, 69, 0.42);
+  border-color: #ff9645;
+}
+
+.submitButton,
+.secondaryButton {
+  width: 100%;
+  min-height: 48px;
+  border-radius: 8px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.submitButton {
+  margin-top: 24px;
+  border: 0;
+  background: #ff9645;
+  color: #ffffff;
+}
+
+.submitButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.46;
+}
+
+.secondaryButton {
+  margin-top: 10px;
+  border: 1px solid #ead8ca;
+  background: #fff8f2;
+  color: #7d4b2a;
+}
+
+.submitMessage {
+  margin: 14px 0 0;
+  border-radius: 8px;
+  padding: 12px;
+  background: #fff1e8;
+  color: #8a4a1d;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+@media (max-width: 860px) {
+  .page {
+    padding-top: 116px;
+  }
+
+  .authSection {
+    grid-template-columns: 1fr;
+    align-items: start;
+    gap: 24px;
+  }
+
+  .copyWrap {
+    max-width: none;
+  }
+}
+
+@media (max-width: 640px) {
+  .page {
+    padding: 14px;
+    padding-top: 112px;
+  }
+
+  .benefitGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .authCard {
+    padding: 22px;
+  }
+}

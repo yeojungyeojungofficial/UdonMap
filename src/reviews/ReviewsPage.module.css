@@ -1,0 +1,144 @@
+.page {
+  min-height: 100vh;
+  padding: 20px;
+  padding-top: 84px;
+  background: #ffffff;
+  color: #383838;
+}
+
+.content {
+  width: min(980px, 100%);
+  margin: 0 auto;
+  display: grid;
+  gap: 18px;
+}
+
+.pageHeader {
+  padding: 22px 0 4px;
+}
+
+.eyebrow {
+  margin: 0 0 8px;
+  color: #ff9645;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.pageHeader h1 {
+  margin: 0;
+  font-size: 34px;
+  letter-spacing: 0;
+}
+
+.boardSurface {
+  border: 1px solid #ead8ca;
+  border-radius: 8px;
+  padding: 18px;
+  background: #ffffff;
+  box-shadow: 0 16px 30px rgba(56, 56, 56, 0.08);
+}
+
+.tabBar {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.tabButton,
+.regionButton {
+  border: 1px solid #ead8ca;
+  border-radius: 999px;
+  background: #f5f5f5;
+  color: #383838;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.tabButton {
+  min-height: 44px;
+  padding: 0 14px;
+  font-size: 14px;
+}
+
+.tabButtonActive,
+.regionButtonActive {
+  border-color: #ff9645;
+  background: #ff9645;
+  color: #ffffff;
+}
+
+.regionFilter {
+  margin-top: 14px;
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.regionButton {
+  min-height: 36px;
+  padding: 0 13px;
+  font-size: 13px;
+}
+
+.postList {
+  list-style: none;
+  padding: 0;
+  margin: 18px 0 0;
+  display: grid;
+  gap: 10px;
+}
+
+.postItem {
+  width: 100%;
+  min-height: 58px;
+  border: 1px solid #ead8ca;
+  border-radius: 8px;
+  padding: 14px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  background: #fffdfb;
+  color: #383838;
+  text-align: left;
+  cursor: pointer;
+}
+
+.postItem:hover {
+  border-color: #ff9645;
+}
+
+.postTitle {
+  min-width: 0;
+  font-size: 15px;
+  font-weight: 800;
+}
+
+.postLikes {
+  flex: 0 0 auto;
+  color: #ff9645;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+@media (max-width: 960px) {
+  .page {
+    padding-top: 116px;
+  }
+}
+
+@media (max-width: 640px) {
+  .page {
+    padding: 12px;
+    padding-top: 112px;
+  }
+
+  .tabBar {
+    grid-template-columns: 1fr;
+  }
+
+  .postItem {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}

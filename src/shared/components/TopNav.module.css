@@ -1,0 +1,99 @@
+.topNav {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 20px;
+  background: #ffffff;
+  box-shadow: 0 1px 8px rgba(0, 0, 0, 0.08);
+}
+
+.logoWrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.logoMark {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  background: #383838;
+  color: #ffffff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.logoText {
+  margin: 0;
+  color: #e5792d;
+  font-size: 22px;
+  line-height: 1;
+  font-weight: 800;
+}
+
+.menuWrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.menuButton {
+  border: 0;
+  background: #f5f5f5;
+  color: #383838;
+  border-radius: 999px;
+  padding: 8px 14px;
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.menuButton:hover {
+  background: #ebebeb;
+}
+
+.menuButtonActive {
+  background: #ff9645;
+  color: #ffffff;
+}
+
+.menuButtonActive:hover {
+  background: #e5792d;
+}
+
+@media (max-width: 960px) {
+  .topNav {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 10px 20px 12px;
+  }
+
+  .menuWrap {
+    justify-content: flex-start;
+  }
+}
+
+@media (max-width: 640px) {
+  .logoText {
+    font-size: 19px;
+  }
+
+  .menuButton {
+    padding: 7px 11px;
+    font-size: 12px;
+  }
+}
