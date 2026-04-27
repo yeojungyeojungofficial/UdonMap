@@ -48,7 +48,6 @@ export default function MyPage() {
 
         <section className={styles.authSection}>
           <div className={styles.copyWrap}>
-            <p className={styles.eyebrow}>My Page</p>
             <h1>특수동물 병원 정보는 <br />우동에서 확인하세요</h1>
             <p className={styles.description}>
              우동은 특수동물 병원 정보를 한 곳에서 확인할 수 있는 서비스입니다. <br />
