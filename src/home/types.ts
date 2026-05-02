@@ -1,4 +1,4 @@
-export type Region = "전체" | "서울" | "경기" | "인천" | "부산";
+export type Region = string;
 
 export type HospitalComment = {
   id: string;
@@ -10,7 +10,7 @@ export type HospitalComment = {
 export type Hospital = {
   id: string;
   name: string;
-  region: Exclude<Region, "전체">;
+  region: string;
   address: string;
   summary: string;
   likes: number;
@@ -25,4 +25,10 @@ export type Hospital = {
     lat: number;
     lng: number;
   };
+  phone?: string;
+  homepage?: string;
+  instagram?: string;
+  hours?: string[];
+  isEmergency?: boolean;
+  isSpecialty?: boolean;
 };

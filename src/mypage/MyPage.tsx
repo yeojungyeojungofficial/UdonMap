@@ -1,25 +1,129 @@
 import Head from "next/head";
-import { FormEvent, useMemo, useState } from "react";
+import Link from "next/link";
+import { FormEvent, useEffect, useMemo, useState } from "react";
+import type { Session } from "@supabase/supabase-js";
 import HospitalReportSheet from "@/src/shared/components/HospitalReportSheet";
 import TopNav from "@/src/shared/components/TopNav";
+import {
+  getSupabaseBrowserClient,
+  supabase,
+} from "@/src/shared/lib/supabase";
 import styles from "@/src/mypage/MyPage.module.css";
 
 export default function MyPage() {
+  const isSupabaseConfigured = Boolean(supabase);
   const [activeMenu, setActiveMenu] = useState("마이페이지");
-  const [userId, setUserId] = useState("");
-  const [password, setPassword] = useState("");
-  const [submitted, setSubmitted] = useState(false);
+  const [email, setEmail] = useState("");
+  const [session, setSession] = useState<Session | null>(null);
+  const [isAuthReady, setIsAuthReady] = useState(!isSupabaseConfigured);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [authMessage, setAuthMessage] = useState("");
+  const [authError, setAuthError] = useState(() =>
+    isSupabaseConfigured
+      ? ""
+      : "Supabase 환경변수 NEXT_PUBLIC_SUPABASE_URL 또는 NEXT_PUBLIC_SUPABASE_ANON_KEY가 없습니다.",
+  );
   const [isReportSheetOpen, setIsReportSheetOpen] = useState(false);
 
-  const canSubmit = useMemo(
-    () => userId.trim().length > 0 && password.trim().length > 0,
-    [userId, password],
-  );
+  useEffect(() => {
+    if (!supabase) {
+      return;
+    }
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+    let isMounted = true;
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, nextSession) => {
+      if (isMounted) {
+        setSession(nextSession);
+      }
+    });
+
+    void supabase.auth
+      .getSession()
+      .then(({ data, error }) => {
+        if (!isMounted) return;
+        if (error) {
+          setAuthError(`Supabase 세션 조회 실패: ${error.message}`);
+          return;
+        }
+        setSession(data.session);
+      })
+      .finally(() => {
+        if (isMounted) {
+          setIsAuthReady(true);
+        }
+      });
+
+    return () => {
+      isMounted = false;
+      subscription.unsubscribe();
+    };
+  }, []);
+
+  const canSubmit = useMemo(() => email.trim().includes("@"), [email]);
+
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (!canSubmit) return;
-    setSubmitted(true);
+
+    setIsSubmitting(true);
+    setAuthMessage("");
+    setAuthError("");
+
+    try {
+      const supabase = getSupabaseBrowserClient();
+      const redirectTo =
+        typeof window !== "undefined"
+          ? `${window.location.origin}/mypage`
+          : undefined;
+      const { error } = await supabase.auth.signInWithOtp({
+        email: email.trim(),
+        options: {
+          emailRedirectTo: redirectTo,
+          shouldCreateUser: true,
+        },
+      });
+
+      if (error) {
+        setAuthError(`Supabase 이메일 로그인 실패: ${error.message}`);
+        return;
+      }
+
+      setAuthMessage("로그인 링크를 이메일로 보냈습니다.");
+    } catch (error) {
+      setAuthError(
+        error instanceof Error
+          ? error.message
+          : "이메일 로그인 요청 중 알 수 없는 오류가 발생했습니다.",
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleLogout = async () => {
+    setAuthMessage("");
+    setAuthError("");
+
+    try {
+      const supabase = getSupabaseBrowserClient();
+      const { error } = await supabase.auth.signOut();
+
+      if (error) {
+        setAuthError(`Supabase 로그아웃 실패: ${error.message}`);
+        return;
+      }
+
+      setSession(null);
+    } catch (error) {
+      setAuthError(
+        error instanceof Error
+          ? error.message
+          : "로그아웃 중 알 수 없는 오류가 발생했습니다.",
+      );
+    }
   };
 
   const closeReportSheet = () => {
@@ -33,7 +137,7 @@ export default function MyPage() {
         <title>마이페이지 | 우동</title>
         <meta
           name="description"
-          content="우동 마이페이지 로그인 및 회원가입 화면입니다."
+          content="우동 마이페이지 이메일 로그인 화면입니다."
         />
       </Head>
       <main className={styles.page}>
@@ -60,53 +164,72 @@ export default function MyPage() {
             </div>
           </div>
 
-          <form className={styles.authCard} onSubmit={handleSubmit}>
-            <div className={styles.cardHeader}>
-              <h2>우동 시작하기</h2>
-            </div>
+          {session ? (
+            <section className={styles.authCard}>
+              <div className={styles.cardHeader}>
+                <h2>마이페이지</h2>
+              </div>
+              <div className={styles.accountBox}>
+                <span>로그인 이메일</span>
+                <strong>{session.user.email}</strong>
+              </div>
+              <button
+                type="button"
+                className={styles.submitButton}
+                onClick={handleLogout}
+              >
+                로그아웃
+              </button>
+              <Link href="/" className={styles.secondaryButton}>
+                비회원으로 둘러보기
+              </Link>
+            </section>
+          ) : (
+            <form className={styles.authCard} onSubmit={handleSubmit}>
+              <div className={styles.cardHeader}>
+                <h2>우동 시작하기</h2>
+              </div>
 
-            <label className={styles.field}>
-              <span>아이디</span>
-              <input
-                type="text"
-                value={userId}
-                onChange={(event) => {
-                  setUserId(event.target.value);
-                  setSubmitted(false);
-                }}
-                placeholder="아이디를 입력하세요"
-                autoComplete="username"
-              />
-            </label>
+              <label className={styles.field}>
+                <span>이메일</span>
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(event) => {
+                    setEmail(event.target.value);
+                    setAuthMessage("");
+                    setAuthError("");
+                  }}
+                  placeholder="이메일을 입력하세요"
+                  autoComplete="email"
+                />
+              </label>
 
-            <label className={styles.field}>
-              <span>비밀번호</span>
-              <input
-                type="password"
-                value={password}
-                onChange={(event) => {
-                  setPassword(event.target.value);
-                  setSubmitted(false);
-                }}
-                placeholder="비밀번호를 입력하세요"
-                autoComplete="new-password"
-              />
-            </label>
+              <button
+                type="submit"
+                className={styles.submitButton}
+                disabled={!canSubmit || isSubmitting || !isAuthReady}
+              >
+                {isSubmitting ? "전송 중" : "이메일로 로그인 링크 받기"}
+              </button>
 
-            <button type="submit" className={styles.submitButton} disabled={!canSubmit}>
-              가입하고 마이페이지 보기
-            </button>
+              <Link href="/" className={styles.secondaryButton}>
+                비회원으로 둘러보기
+              </Link>
 
-            <button type="button" className={styles.secondaryButton}>
-              이미 계정이 있어요
-            </button>
+              {!isAuthReady ? (
+                <p className={styles.submitMessage}>로그인 상태 확인 중입니다.</p>
+              ) : null}
 
-            {submitted ? (
-              <p className={styles.submitMessage}>
-                입력값 확인 완료. 실제 인증 API가 연결되면 여기서 마이페이지로 전환됩니다.
-              </p>
-            ) : null}
-          </form>
+              {authMessage ? (
+                <p className={styles.submitMessage}>{authMessage}</p>
+              ) : null}
+
+              {authError ? (
+                <p className={styles.errorMessage}>{authError}</p>
+              ) : null}
+            </form>
+          )}
         </section>
         <HospitalReportSheet
           isOpen={isReportSheetOpen}

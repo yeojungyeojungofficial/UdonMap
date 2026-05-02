@@ -49,6 +49,18 @@
   outline-offset: 1px;
 }
 
+.statusBanner {
+  width: min(680px, 100%);
+  margin: 0 auto;
+  border: 1px solid #ead8ca;
+  border-radius: 8px;
+  padding: 10px 12px;
+  background: #fff8f2;
+  color: #7d4b2a;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
 .mapPanel {
   position: relative;
   margin-top: 0;
@@ -374,6 +386,35 @@
   color: #383838;
 }
 
+.sheetLinks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.sheetLink {
+  border-radius: 8px;
+  padding: 8px 11px;
+  background: #fff1e8;
+  color: #8a4a1d;
+  font-size: 13px;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.infoBlock {
+  margin-top: 16px;
+}
+
+.infoList {
+  margin: 10px 0 0;
+  padding-left: 18px;
+  color: #383838;
+  font-size: 13px;
+  line-height: 1.7;
+}
+
 .commentWrap {
   margin-top: 16px;
 }
@@ -414,6 +455,15 @@
   margin: 8px 0 0;
   color: #383838;
   font-size: 12px;
+}
+
+.emptyComment {
+  margin: 10px 0 0;
+  border: 1px dashed #ead8ca;
+  border-radius: 8px;
+  padding: 12px;
+  color: #6f6259;
+  font-size: 13px;
 }
 
 @keyframes markerReveal {

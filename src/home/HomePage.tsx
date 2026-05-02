@@ -1,16 +1,19 @@
 import Head from "next/head";
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import HospitalBottomSheet from "@/src/home/components/HospitalBottomSheet";
 import HospitalList from "@/src/home/components/HospitalList";
 import MapPanel from "@/src/home/components/MapPanel";
 import RegionFilter from "@/src/home/components/RegionFilter";
 import HospitalReportSheet from "@/src/shared/components/HospitalReportSheet";
 import TopNav from "@/src/shared/components/TopNav";
-import { HOSPITALS, REGION_OPTIONS } from "@/src/home/data";
-import type { Region } from "@/src/home/types";
+import { fetchHospitals } from "@/src/home/hospitalsApi";
+import type { Hospital, Region } from "@/src/home/types";
 import styles from "@/src/home/Home.module.css";
 
 export default function HomePage() {
+  const [hospitals, setHospitals] = useState<Hospital[]>([]);
+  const [isLoadingHospitals, setIsLoadingHospitals] = useState(true);
+  const [hasHospitalLoadError, setHasHospitalLoadError] = useState(false);
   const [query, setQuery] = useState("");
   const [selectedRegion, setSelectedRegion] = useState<Region>("전체");
   const [selectedHospitalId, setSelectedHospitalId] = useState<string | null>(
@@ -19,11 +22,54 @@ export default function HomePage() {
   const [activeMenu, setActiveMenu] = useState("병원찾기");
   const [isReportSheetOpen, setIsReportSheetOpen] = useState(false);
 
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadHospitals = async () => {
+      try {
+        const nextHospitals = await fetchHospitals();
+        if (!isMounted) return;
+        setHospitals(nextHospitals);
+        setHasHospitalLoadError(false);
+      } catch {
+        if (!isMounted) return;
+        setHospitals([]);
+        setHasHospitalLoadError(true);
+      } finally {
+        if (isMounted) {
+          setIsLoadingHospitals(false);
+        }
+      }
+    };
+
+    void loadHospitals();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const regionOptions = useMemo<Region[]>(() => {
+    const regions = Array.from(
+      new Set(hospitals.map((hospital) => hospital.region).filter(Boolean)),
+    ).sort((left, right) => left.localeCompare(right, "ko"));
+
+    return ["전체", ...regions];
+  }, [hospitals]);
+
+  const effectiveSelectedRegion =
+    selectedRegion === "전체" || regionOptions.includes(selectedRegion)
+      ? selectedRegion
+      : "전체";
+
   const filteredHospitals = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase();
 
-    return HOSPITALS.filter((hospital) => {
-      if (selectedRegion !== "전체" && hospital.region !== selectedRegion) {
+    return hospitals.filter((hospital) => {
+      if (
+        effectiveSelectedRegion !== "전체" &&
+        hospital.region !== effectiveSelectedRegion
+      ) {
         return false;
       }
 
@@ -42,7 +88,7 @@ export default function HomePage() {
 
       return searchableText.includes(normalizedQuery);
     });
-  }, [query, selectedRegion]);
+  }, [effectiveSelectedRegion, hospitals, query]);
 
   const selectedHospital = useMemo(
     () =>
@@ -55,6 +101,10 @@ export default function HomePage() {
     setIsReportSheetOpen(false);
     setActiveMenu("병원찾기");
   };
+
+  const handleSelectHospital = useCallback((hospital: Hospital) => {
+    setSelectedHospitalId(hospital.id);
+  }, []);
 
   return (
     <>
@@ -87,18 +137,23 @@ export default function HomePage() {
             className={styles.searchInput}
           />
         </div>
+        {isLoadingHospitals || hasHospitalLoadError ? (
+          <div className={styles.statusBanner}>
+            병원목록을 불러오는중입니다
+          </div>
+        ) : null}
         <div className={styles.heroSection}>
           <MapPanel
             hospitals={filteredHospitals}
             selectedHospitalId={selectedHospitalId}
-            onSelectHospital={(hospital) => setSelectedHospitalId(hospital.id)}
+            onSelectHospital={handleSelectHospital}
           />
         </div>
 
         <main className={styles.mainSection}>
           <RegionFilter
-            regions={REGION_OPTIONS}
-            selectedRegion={selectedRegion}
+            regions={regionOptions}
+            selectedRegion={effectiveSelectedRegion}
             onSelectRegion={setSelectedRegion}
           />
 
@@ -110,7 +165,7 @@ export default function HomePage() {
             <HospitalList
               hospitals={filteredHospitals}
               selectedHospitalId={selectedHospitalId}
-              onSelectHospital={(hospital) => setSelectedHospitalId(hospital.id)}
+              onSelectHospital={handleSelectHospital}
             />
           </section>
         </main>
