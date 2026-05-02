@@ -1,5 +1,3 @@
-create extension if not exists pgcrypto;
-
 create table if not exists public.hospitals (
   id uuid primary key default gen_random_uuid(),
   input_url text unique,
@@ -29,15 +27,7 @@ create index if not exists hospitals_region_idx on public.hospitals (region);
 create index if not exists hospitals_name_idx on public.hospitals (name);
 create index if not exists hospitals_coordinates_idx on public.hospitals (latitude, longitude);
 
-create or replace function public.set_updated_at()
-returns trigger
-language plpgsql
-as $$
-begin
-  new.updated_at = now();
-  return new;
-end;
-$$;
+alter table public.hospitals enable row level security;
 
 drop trigger if exists set_hospitals_updated_at on public.hospitals;
 
@@ -45,8 +35,6 @@ create trigger set_hospitals_updated_at
 before update on public.hospitals
 for each row
 execute function public.set_updated_at();
-
-alter table public.hospitals enable row level security;
 
 drop policy if exists "Hospitals are readable by everyone" on public.hospitals;
 

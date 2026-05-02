@@ -82,6 +82,66 @@ export type Database = {
           created_at?: string;
           updated_at?: string;
         };
+        Relationships: [];
+      };
+      hospital_reports: {
+        Row: {
+          id: string;
+          hospital_id: string | null;
+          hospital_name: string;
+          street_address: string;
+          animal_categories: string[];
+          animal_species: string | null;
+          details: string | null;
+          attachment_metadata: Json;
+          status: "pending" | "in_review" | "approved" | "rejected";
+          admin_notes: string | null;
+          reviewed_at: string | null;
+          reviewed_by: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          hospital_id?: string | null;
+          hospital_name: string;
+          street_address: string;
+          animal_categories?: string[];
+          animal_species?: string | null;
+          details?: string | null;
+          attachment_metadata?: Json;
+          status?: "pending" | "in_review" | "approved" | "rejected";
+          admin_notes?: string | null;
+          reviewed_at?: string | null;
+          reviewed_by?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          hospital_id?: string | null;
+          hospital_name?: string;
+          street_address?: string;
+          animal_categories?: string[];
+          animal_species?: string | null;
+          details?: string | null;
+          attachment_metadata?: Json;
+          status?: "pending" | "in_review" | "approved" | "rejected";
+          admin_notes?: string | null;
+          reviewed_at?: string | null;
+          reviewed_by?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "hospital_reports_hospital_id_fkey";
+            columns: ["hospital_id"];
+            isOneToOne: false;
+            referencedRelation: "hospitals";
+            referencedColumns: ["id"];
+          },
+        ];
       };
     };
     Views: Record<string, never>;

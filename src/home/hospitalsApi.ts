@@ -29,23 +29,8 @@ const KOREA_MAP_BOUNDS = {
   maxLng: 132,
 };
 
-const HOSPITAL_COLUMNS = [
-  "id",
-  "name",
-  "phone",
-  "street_address",
-  "region",
-  "latitude",
-  "longitude",
-  "homepage",
-  "instagram",
-  "specialty",
-  "emergency",
-  "hours",
-  "exotic_animals",
-  "likes",
-  "review_count",
-].join(",");
+const HOSPITAL_COLUMNS =
+  "id,name,phone,street_address,region,latitude,longitude,homepage,instagram,specialty,emergency,hours,exotic_animals,likes,review_count";
 
 function clamp(value: number, min: number, max: number) {
   return Math.min(Math.max(value, min), max);
