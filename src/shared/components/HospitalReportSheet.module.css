@@ -92,8 +92,108 @@
   outline: 2px solid rgba(255, 150, 69, 0.3);
 }
 
-.field input[type="file"] {
-  padding: 10px;
+.field .fileInput {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  border: 0;
+}
+
+.photoUploadRail {
+  width: 100%;
+  min-height: 142px;
+  border: 1px solid #ead8ca;
+  border-radius: 10px;
+  padding: 12px;
+  display: flex;
+  align-items: stretch;
+  gap: 10px;
+  overflow-x: auto;
+  background: #fffdfb;
+  color: #383838;
+}
+
+.photoAddTile,
+.photoPreviewCard {
+  position: relative;
+  flex: 0 0 118px;
+  height: 118px;
+  border-radius: 10px;
+}
+
+.photoAddTile {
+  border: 1px dashed #ff9645;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background: #fff8f2;
+  color: #e5792d;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.photoAddTile span {
+  font-size: 14px;
+}
+
+.photoAddTile small {
+  color: #7d4b2a;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.photoAddTileDisabled {
+  opacity: 0.48;
+  cursor: not-allowed;
+}
+
+.photoPreviewCard {
+  margin: 0;
+  overflow: hidden;
+  background: #f5f5f5;
+}
+
+.photoPreviewCard img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+}
+
+.photoRemoveButton {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 24px;
+  height: 24px;
+  border: 0;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(56, 56, 56, 0.82);
+  color: #ffffff;
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.fileLimitMessage {
+  margin: -2px 0 0;
+  color: #8a4a1d;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.field:focus-within .photoUploadRail {
+  border-color: #ff9645;
+  outline: 2px solid rgba(255, 150, 69, 0.3);
 }
 
 .fieldset {

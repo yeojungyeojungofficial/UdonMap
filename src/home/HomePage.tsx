@@ -74,20 +74,20 @@ export default function HomePage() {
             setIsReportSheetOpen(true);
           }}
         />
+        <div className={styles.searchWrap}>
+          <label htmlFor="hospital-search" className={styles.searchLabel}>
+            병원 검색
+          </label>
+          <input
+            id="hospital-search"
+            type="search"
+            placeholder="병원명, 주소, 진료동물 검색"
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+            className={styles.searchInput}
+          />
+        </div>
         <div className={styles.heroSection}>
-          <div className={styles.searchWrap}>
-            <label htmlFor="hospital-search" className={styles.searchLabel}>
-              병원 검색
-            </label>
-            <input
-              id="hospital-search"
-              type="search"
-              placeholder="병원명, 주소, 진료동물 검색"
-              value={query}
-              onChange={(event) => setQuery(event.target.value)}
-              className={styles.searchInput}
-            />
-          </div>
           <MapPanel
             hospitals={filteredHospitals}
             selectedHospitalId={selectedHospitalId}

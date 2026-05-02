@@ -21,4 +21,8 @@ export type Hospital = {
     x: number;
     y: number;
   };
+  mapCoordinate: {
+    lat: number;
+    lng: number;
+  };
 };

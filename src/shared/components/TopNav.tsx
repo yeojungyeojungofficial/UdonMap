@@ -3,6 +3,7 @@ import styles from "@/src/shared/components/TopNav.module.css";
 
 const MENUS = [
   { label: "병원찾기", href: "/" },
+  { label: "후원하기", href: "/support" },
   { label: "병원후기", href: "/reviews" },
   { label: "병원제보", action: "report" },
   { label: "마이페이지", href: "/mypage" },

@@ -27,6 +27,7 @@ export const HOSPITALS: Hospital[] = [
       },
     ],
     mapPosition: { x: 56, y: 38 },
+    mapCoordinate: { lat: 37.5003, lng: 127.0365 },
   },
   {
     id: "h-102",
@@ -52,6 +53,7 @@ export const HOSPITALS: Hospital[] = [
       },
     ],
     mapPosition: { x: 44, y: 35 },
+    mapCoordinate: { lat: 37.5484, lng: 126.9238 },
   },
   {
     id: "h-201",
@@ -77,6 +79,7 @@ export const HOSPITALS: Hospital[] = [
       },
     ],
     mapPosition: { x: 59, y: 48 },
+    mapCoordinate: { lat: 37.3838, lng: 127.1214 },
   },
   {
     id: "h-202",
@@ -102,6 +105,7 @@ export const HOSPITALS: Hospital[] = [
       },
     ],
     mapPosition: { x: 52, y: 55 },
+    mapCoordinate: { lat: 37.2636, lng: 127.0326 },
   },
   {
     id: "h-301",
@@ -127,6 +131,7 @@ export const HOSPITALS: Hospital[] = [
       },
     ],
     mapPosition: { x: 36, y: 45 },
+    mapCoordinate: { lat: 37.4494, lng: 126.7011 },
   },
   {
     id: "h-302",
@@ -152,6 +157,7 @@ export const HOSPITALS: Hospital[] = [
       },
     ],
     mapPosition: { x: 31, y: 52 },
+    mapCoordinate: { lat: 37.393, lng: 126.6466 },
   },
   {
     id: "h-401",
@@ -177,6 +183,7 @@ export const HOSPITALS: Hospital[] = [
       },
     ],
     mapPosition: { x: 76, y: 72 },
+    mapCoordinate: { lat: 35.1631, lng: 129.1637 },
   },
   {
     id: "h-402",
@@ -202,5 +209,6 @@ export const HOSPITALS: Hospital[] = [
       },
     ],
     mapPosition: { x: 72, y: 68 },
+    mapCoordinate: { lat: 35.1569, lng: 129.0596 },
   },
 ];

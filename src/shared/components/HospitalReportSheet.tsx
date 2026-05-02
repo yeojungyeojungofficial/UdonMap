@@ -1,7 +1,9 @@
-import { FormEvent, useState } from "react";
+import Image from "next/image";
+import { ChangeEvent, FormEvent, useEffect, useMemo, useState } from "react";
 import styles from "@/src/shared/components/HospitalReportSheet.module.css";
 
 const ANIMAL_OPTIONS = ["포유류", "양서류", "파충류", "조류", "어류"];
+const MAX_FILE_COUNT = 3;
 
 type HospitalReportSheetProps = {
   isOpen: boolean;
@@ -14,6 +16,23 @@ export default function HospitalReportSheet({
 }: HospitalReportSheetProps) {
   const [selectedAnimals, setSelectedAnimals] = useState<string[]>([]);
   const [submitted, setSubmitted] = useState(false);
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+  const [fileLimitMessage, setFileLimitMessage] = useState("");
+
+  const selectedFilePreviews = useMemo(
+    () =>
+      selectedFiles.map((file) => ({
+        file,
+        url: URL.createObjectURL(file),
+      })),
+    [selectedFiles],
+  );
+
+  useEffect(() => {
+    return () => {
+      selectedFilePreviews.forEach(({ url }) => URL.revokeObjectURL(url));
+    };
+  }, [selectedFilePreviews]);
 
   if (!isOpen) {
     return null;
@@ -33,6 +52,32 @@ export default function HospitalReportSheet({
     setSubmitted(true);
   };
 
+  const handleSelectFiles = (event: ChangeEvent<HTMLInputElement>) => {
+    const newFiles = Array.from(event.currentTarget.files ?? []);
+    const availableCount = MAX_FILE_COUNT - selectedFiles.length;
+    const nextFiles = [
+      ...selectedFiles,
+      ...newFiles.slice(0, Math.max(availableCount, 0)),
+    ];
+
+    setSelectedFiles(nextFiles);
+    setFileLimitMessage(
+      newFiles.length > availableCount
+        ? `사진은 최대 ${MAX_FILE_COUNT}개까지 첨부됩니다.`
+        : "",
+    );
+    setSubmitted(false);
+    event.currentTarget.value = "";
+  };
+
+  const handleRemoveFile = (targetIndex: number) => {
+    setSelectedFiles((current) =>
+      current.filter((_, index) => index !== targetIndex),
+    );
+    setFileLimitMessage("");
+    setSubmitted(false);
+  };
+
   return (
     <div className={styles.overlay} role="presentation" onClick={onClose}>
       <section
@@ -45,7 +90,6 @@ export default function HospitalReportSheet({
         <div className={styles.handle} />
         <header className={styles.header}>
           <div>
-            <p className={styles.eyebrow}>병원제보</p>
             <h2 className={styles.title}>특수동물 진료 병원 제보</h2>
           </div>
           <button type="button" className={styles.closeButton} onClick={onClose}>
@@ -87,12 +131,69 @@ export default function HospitalReportSheet({
           </fieldset>
 
           <label className={styles.field}>
-            <span>인증 사진</span>
-            <input type="file" accept="image/*" />
+            <span>세부종</span>
+            <input
+              type="text"
+              placeholder="예: 이구아나, 햄스터, 앵무새 등"
+            />
           </label>
 
+          <div className={styles.field}>
+            <span>인증 사진</span>
+            <div className={styles.photoUploadRail}>
+              <label
+                className={`${styles.photoAddTile} ${
+                  selectedFiles.length >= MAX_FILE_COUNT
+                    ? styles.photoAddTileDisabled
+                    : ""
+                }`}
+              >
+                <input
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  className={styles.fileInput}
+                  onChange={handleSelectFiles}
+                  disabled={selectedFiles.length >= MAX_FILE_COUNT}
+                />
+                <span>
+                  {selectedFiles.length > 0 ? "사진 추가" : "선택"}
+                </span>
+                <small>
+                  {selectedFiles.length}/{MAX_FILE_COUNT}
+                </small>
+              </label>
+
+              {selectedFilePreviews.map(({ file, url }, index) => (
+                <figure
+                  key={`${file.name}-${file.lastModified}-${index}`}
+                  className={styles.photoPreviewCard}
+                >
+                  <Image
+                    src={url}
+                    alt={`${file.name} 미리보기`}
+                    fill
+                    sizes="118px"
+                    unoptimized
+                  />
+                  <button
+                    type="button"
+                    className={styles.photoRemoveButton}
+                    onClick={() => handleRemoveFile(index)}
+                    aria-label={`${file.name} 삭제`}
+                  >
+                    ×
+                  </button>
+                </figure>
+              ))}
+            </div>
+            {fileLimitMessage ? (
+              <p className={styles.fileLimitMessage}>{fileLimitMessage}</p>
+            ) : null}
+          </div>
+
           <label className={styles.field}>
-            <span>더 많은 정보기</span>
+            <span>더 많은 정보기록</span>
             <textarea
               rows={5}
               placeholder="진료 경험, 가능한 동물 종류, 예약 방법 등 더 알려줄 내용을 적어주세요"

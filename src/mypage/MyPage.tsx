@@ -55,14 +55,13 @@ export default function MyPage() {
             </p>
             <div className={styles.benefitGrid} aria-label="마이페이지 기능 요약">
               <div>찜한 병원</div>
-              <div>내 후기</div>
               <div>제보 내역</div>
+              <div>후원 내역</div>
             </div>
           </div>
 
           <form className={styles.authCard} onSubmit={handleSubmit}>
             <div className={styles.cardHeader}>
-              <p>로그인 전</p>
               <h2>우동 시작하기</h2>
             </div>
 
