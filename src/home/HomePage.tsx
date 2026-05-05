@@ -7,7 +7,7 @@ import RegionFilter from "@/src/home/components/RegionFilter";
 import HospitalReportSheet from "@/src/shared/components/HospitalReportSheet";
 import TopNav from "@/src/shared/components/TopNav";
 import { fetchHospitals } from "@/src/home/hospitalsApi";
-import type { Hospital, Region } from "@/src/home/types";
+import type { Hospital, HospitalComment, Region } from "@/src/home/types";
 import styles from "@/src/home/Home.module.css";
 
 export default function HomePage() {
@@ -106,6 +106,23 @@ export default function HomePage() {
     setSelectedHospitalId(hospital.id);
   }, []);
 
+  const handleCommentCreated = useCallback(
+    (hospitalId: string, comment: HospitalComment) => {
+      setHospitals((currentHospitals) =>
+        currentHospitals.map((hospital) =>
+          hospital.id === hospitalId
+            ? {
+                ...hospital,
+                comments: [comment, ...hospital.comments],
+                reviewCount: hospital.reviewCount + 1,
+              }
+            : hospital,
+        ),
+      );
+    },
+    [],
+  );
+
   return (
     <>
       <Head>
@@ -171,8 +188,10 @@ export default function HomePage() {
         </main>
 
         <HospitalBottomSheet
+          key={selectedHospital?.id ?? "empty-hospital-sheet"}
           hospital={selectedHospital}
           onClose={() => setSelectedHospitalId(null)}
+          onCommentCreated={handleCommentCreated}
         />
         <HospitalReportSheet
           isOpen={isReportSheetOpen}

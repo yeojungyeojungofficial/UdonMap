@@ -1,0 +1,65 @@
+create table if not exists public.profiles (
+  id uuid primary key references auth.users (id) on delete cascade,
+  email text,
+  display_name text,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+create index if not exists profiles_email_idx on public.profiles (email);
+
+alter table public.profiles enable row level security;
+
+drop trigger if exists set_profiles_updated_at on public.profiles;
+
+create trigger set_profiles_updated_at
+before update on public.profiles
+for each row
+execute function public.set_updated_at();
+
+create or replace function public.handle_new_user_profile()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  insert into public.profiles (id, email, display_name)
+  values (
+    new.id,
+    new.email,
+    nullif(coalesce(new.raw_user_meta_data ->> 'name', split_part(new.email, '@', 1)), '')
+  )
+  on conflict (id) do update
+  set email = excluded.email;
+
+  return new;
+end;
+$$;
+
+drop trigger if exists on_auth_user_created on auth.users;
+
+create trigger on_auth_user_created
+after insert on auth.users
+for each row
+execute function public.handle_new_user_profile();
+
+drop policy if exists "Profiles are insertable by owner" on public.profiles;
+drop policy if exists "Profiles are updatable by owner" on public.profiles;
+drop policy if exists "Profiles are readable by owner" on public.profiles;
+
+create policy "Profiles are readable by owner"
+on public.profiles
+for select
+to authenticated
+using (auth.uid() = id);
+
+create policy "Profiles are updatable by owner"
+on public.profiles
+for update
+to authenticated
+using (auth.uid() = id)
+with check (auth.uid() = id);
+
+grant select on public.profiles to authenticated;
+grant update (display_name) on public.profiles to authenticated;

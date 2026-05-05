@@ -1,29 +1,67 @@
 import Head from "next/head";
 import Link from "next/link";
-import { FormEvent, useEffect, useMemo, useState } from "react";
+import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
 import type { Session } from "@supabase/supabase-js";
 import HospitalReportSheet from "@/src/shared/components/HospitalReportSheet";
 import TopNav from "@/src/shared/components/TopNav";
 import {
+  fetchCurrentUserProfile,
+  saveCurrentUserProfile,
+} from "@/src/mypage/profileApi";
+import {
   getSupabaseBrowserClient,
   supabase,
 } from "@/src/shared/lib/supabase";
+import {
+  MAX_DISPLAY_NAME_LENGTH,
+  type UserProfile,
+} from "@/src/shared/lib/userProfiles";
 import styles from "@/src/mypage/MyPage.module.css";
+
+function formatProfileDate(value: string | null | undefined) {
+  if (!value) {
+    return "확인 중";
+  }
+
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return "확인 중";
+  }
+
+  return new Intl.DateTimeFormat("ko-KR", {
+    dateStyle: "medium",
+  }).format(date);
+}
 
 export default function MyPage() {
   const isSupabaseConfigured = Boolean(supabase);
   const [activeMenu, setActiveMenu] = useState("마이페이지");
   const [email, setEmail] = useState("");
   const [session, setSession] = useState<Session | null>(null);
+  const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [displayName, setDisplayName] = useState("");
   const [isAuthReady, setIsAuthReady] = useState(!isSupabaseConfigured);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isProfileLoading, setIsProfileLoading] = useState(false);
+  const [isProfileSaving, setIsProfileSaving] = useState(false);
   const [authMessage, setAuthMessage] = useState("");
   const [authError, setAuthError] = useState(() =>
     isSupabaseConfigured
       ? ""
       : "Supabase 환경변수 NEXT_PUBLIC_SUPABASE_URL 또는 NEXT_PUBLIC_SUPABASE_ANON_KEY가 없습니다.",
   );
+  const [profileMessage, setProfileMessage] = useState("");
+  const [profileError, setProfileError] = useState("");
   const [isReportSheetOpen, setIsReportSheetOpen] = useState(false);
+
+  const resetProfileState = useCallback(() => {
+    setProfile(null);
+    setDisplayName("");
+    setProfileMessage("");
+    setProfileError("");
+    setIsProfileLoading(false);
+  }, []);
 
   useEffect(() => {
     if (!supabase) {
@@ -37,6 +75,10 @@ export default function MyPage() {
     } = supabase.auth.onAuthStateChange((_event, nextSession) => {
       if (isMounted) {
         setSession(nextSession);
+
+        if (!nextSession) {
+          resetProfileState();
+        }
       }
     });
 
@@ -49,6 +91,10 @@ export default function MyPage() {
           return;
         }
         setSession(data.session);
+
+        if (!data.session) {
+          resetProfileState();
+        }
       })
       .finally(() => {
         if (isMounted) {
@@ -60,9 +106,64 @@ export default function MyPage() {
       isMounted = false;
       subscription.unsubscribe();
     };
-  }, []);
+  }, [resetProfileState]);
+
+  useEffect(() => {
+    if (!session) {
+      return;
+    }
+
+    let isMounted = true;
+    const activeSession = session;
+
+    async function loadProfile() {
+      setIsProfileLoading(true);
+      setProfileMessage("");
+      setProfileError("");
+
+      try {
+        const nextProfile = await fetchCurrentUserProfile(activeSession);
+        if (!isMounted) return;
+        setProfile(nextProfile);
+        setDisplayName(nextProfile.display_name ?? "");
+      } catch (error) {
+        if (!isMounted) return;
+        setProfileError(
+          error instanceof Error
+            ? error.message
+            : "프로필 조회 중 알 수 없는 오류가 발생했습니다.",
+        );
+      } finally {
+        if (isMounted) {
+          setIsProfileLoading(false);
+        }
+      }
+    }
+
+    void loadProfile();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [session]);
 
   const canSubmit = useMemo(() => email.trim().includes("@"), [email]);
+  const currentDisplayName = profile?.display_name ?? "";
+  const canSaveProfile = useMemo(
+    () =>
+      Boolean(session) &&
+      !isProfileLoading &&
+      !isProfileSaving &&
+      displayName.trim() !== currentDisplayName &&
+      displayName.trim().length <= MAX_DISPLAY_NAME_LENGTH,
+    [
+      currentDisplayName,
+      displayName,
+      isProfileLoading,
+      isProfileSaving,
+      session,
+    ],
+  );
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -103,9 +204,38 @@ export default function MyPage() {
     }
   };
 
+  const handleProfileSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    if (!session || !canSaveProfile) {
+      return;
+    }
+
+    setIsProfileSaving(true);
+    setProfileMessage("");
+    setProfileError("");
+
+    try {
+      const nextProfile = await saveCurrentUserProfile(session, displayName);
+      setProfile(nextProfile);
+      setDisplayName(nextProfile.display_name ?? "");
+      setProfileMessage("프로필을 저장했습니다.");
+    } catch (error) {
+      setProfileError(
+        error instanceof Error
+          ? error.message
+          : "프로필 저장 중 알 수 없는 오류가 발생했습니다.",
+      );
+    } finally {
+      setIsProfileSaving(false);
+    }
+  };
+
   const handleLogout = async () => {
     setAuthMessage("");
     setAuthError("");
+    setProfileMessage("");
+    setProfileError("");
 
     try {
       const supabase = getSupabaseBrowserClient();
@@ -117,6 +247,8 @@ export default function MyPage() {
       }
 
       setSession(null);
+      setProfile(null);
+      setDisplayName("");
     } catch (error) {
       setAuthError(
         error instanceof Error
@@ -173,6 +305,57 @@ export default function MyPage() {
                 <span>로그인 이메일</span>
                 <strong>{session.user.email}</strong>
               </div>
+              <div className={styles.profileMetaGrid}>
+                <div>
+                  <span>가입일</span>
+                  <strong>{formatProfileDate(profile?.created_at)}</strong>
+                </div>
+              </div>
+
+              <form
+                className={styles.profileForm}
+                onSubmit={handleProfileSubmit}
+              >
+                <label className={styles.field}>
+                  <span>닉네임</span>
+                  <input
+                    type="text"
+                    value={displayName}
+                    onChange={(event) => {
+                      setDisplayName(event.currentTarget.value);
+                      setProfileMessage("");
+                      setProfileError("");
+                    }}
+                    placeholder="닉네임을 입력하세요"
+                    autoComplete="nickname"
+                    maxLength={MAX_DISPLAY_NAME_LENGTH}
+                    disabled={isProfileLoading}
+                  />
+                </label>
+                <p className={styles.profileHint}>
+                  {displayName.trim().length}/{MAX_DISPLAY_NAME_LENGTH}
+                </p>
+                <button
+                  type="submit"
+                  className={styles.submitButton}
+                  disabled={!canSaveProfile}
+                >
+                  {isProfileSaving ? "저장 중" : "프로필 저장"}
+                </button>
+              </form>
+
+              {isProfileLoading ? (
+                <p className={styles.submitMessage}>프로필을 불러오는 중입니다.</p>
+              ) : null}
+
+              {profileMessage ? (
+                <p className={styles.submitMessage}>{profileMessage}</p>
+              ) : null}
+
+              {profileError ? (
+                <p className={styles.errorMessage}>{profileError}</p>
+              ) : null}
+
               <button
                 type="button"
                 className={styles.submitButton}

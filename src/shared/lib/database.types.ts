@@ -143,6 +143,74 @@ export type Database = {
           },
         ];
       };
+      hospital_comments: {
+        Row: {
+          id: string;
+          hospital_id: string;
+          user_id: string;
+          author_name: string;
+          body: string;
+          like_count: number;
+          status: "visible" | "hidden" | "deleted";
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          hospital_id: string;
+          user_id: string;
+          author_name: string;
+          body: string;
+          like_count?: number;
+          status?: "visible" | "hidden" | "deleted";
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          hospital_id?: string;
+          user_id?: string;
+          author_name?: string;
+          body?: string;
+          like_count?: number;
+          status?: "visible" | "hidden" | "deleted";
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "hospital_comments_hospital_id_fkey";
+            columns: ["hospital_id"];
+            isOneToOne: false;
+            referencedRelation: "hospitals";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      profiles: {
+        Row: {
+          id: string;
+          email: string | null;
+          display_name: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id: string;
+          email?: string | null;
+          display_name?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          email?: string | null;
+          display_name?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
     };
     Views: Record<string, never>;
     Functions: Record<string, never>;

@@ -5,6 +5,7 @@ export type HospitalComment = {
   author: string;
   content: string;
   likes: number;
+  createdAt: string;
 };
 
 export type Hospital = {

@@ -179,6 +179,43 @@
   overflow-wrap: anywhere;
 }
 
+.profileMetaGrid {
+  margin-top: 12px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.profileMetaGrid div {
+  display: grid;
+  gap: 6px;
+  border: 1px solid #ead8ca;
+  border-radius: 8px;
+  padding: 12px;
+  background: #fffdfb;
+}
+
+.profileMetaGrid span,
+.profileHint {
+  color: #7d4b2a;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.profileMetaGrid strong {
+  color: #383838;
+  font-size: 14px;
+}
+
+.profileForm {
+  margin-top: 8px;
+}
+
+.profileHint {
+  margin: 8px 0 0;
+  text-align: right;
+}
+
 @media (max-width: 860px) {
   .page {
     padding-top: 116px;
@@ -207,5 +244,9 @@
 
   .authCard {
     padding: 22px;
+  }
+
+  .profileMetaGrid {
+    grid-template-columns: 1fr;
   }
 }

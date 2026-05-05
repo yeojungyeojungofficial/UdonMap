@@ -1,6 +1,11 @@
 import { getSupabaseBrowserClient } from "@/src/shared/lib/supabase";
 import type { Database } from "@/src/shared/lib/database.types";
-import type { Hospital } from "@/src/home/types";
+import type { Hospital, HospitalComment } from "@/src/home/types";
+import {
+  HOSPITAL_COMMENT_COLUMNS,
+  toHospitalComment,
+  type HospitalCommentRow,
+} from "@/src/shared/lib/hospitalComments";
 
 type HospitalRow = Database["public"]["Tables"]["hospitals"]["Row"];
 type HospitalListRow = Pick<
@@ -56,13 +61,24 @@ function getSummary(row: HospitalListRow) {
   const traits = [
     row.specialty ? "특수동물 진료" : null,
     row.emergency ? "응급 진료 가능" : null,
-    row.phone ? `문의 ${row.phone}` : null,
   ].filter(Boolean);
 
   return traits.length > 0 ? traits.join(" · ") : "병원 상세 정보를 확인해보세요.";
 }
 
-function toHospital(row: HospitalListRow): Hospital {
+function groupCommentsByHospitalId(rows: HospitalCommentRow[]) {
+  return rows.reduce((commentsByHospitalId, row) => {
+    const comments = commentsByHospitalId.get(row.hospital_id) ?? [];
+    comments.push(toHospitalComment(row));
+    commentsByHospitalId.set(row.hospital_id, comments);
+    return commentsByHospitalId;
+  }, new Map<string, HospitalComment[]>());
+}
+
+function toHospital(
+  row: HospitalListRow,
+  comments: HospitalComment[] = [],
+): Hospital {
   const animals =
     row.exotic_animals.length > 0 ? row.exotic_animals : ["특수동물"];
 
@@ -75,7 +91,7 @@ function toHospital(row: HospitalListRow): Hospital {
     likes: row.likes,
     reviewCount: row.review_count,
     animals,
-    comments: [],
+    comments,
     mapPosition: getFallbackMapPosition(row.latitude, row.longitude),
     mapCoordinate: {
       lat: row.latitude,
@@ -101,5 +117,27 @@ export async function fetchHospitals() {
     throw new Error(`Supabase hospitals 조회 실패: ${error.message}`);
   }
 
-  return (data ?? []).map((row) => toHospital(row));
+  const hospitals = data ?? [];
+  const hospitalIds = hospitals.map((hospital) => hospital.id);
+
+  if (hospitalIds.length === 0) {
+    return [];
+  }
+
+  const { data: commentsData, error: commentsError } = await supabase
+    .from("hospital_comments")
+    .select(HOSPITAL_COMMENT_COLUMNS)
+    .in("hospital_id", hospitalIds)
+    .eq("status", "visible")
+    .order("created_at", { ascending: false });
+
+  if (commentsError) {
+    throw new Error(`Supabase hospital_comments 조회 실패: ${commentsError.message}`);
+  }
+
+  const commentsByHospitalId = groupCommentsByHospitalId(commentsData ?? []);
+
+  return hospitals.map((row) =>
+    toHospital(row, commentsByHospitalId.get(row.id) ?? []),
+  );
 }
