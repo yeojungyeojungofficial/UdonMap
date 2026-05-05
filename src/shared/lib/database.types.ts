@@ -30,6 +30,7 @@ export type Database = {
           source_urls: string[];
           kakao: Json | null;
           likes: number;
+          dislikes: number;
           review_count: number;
           created_at: string;
           updated_at: string;
@@ -54,6 +55,7 @@ export type Database = {
           source_urls?: string[];
           kakao?: Json | null;
           likes?: number;
+          dislikes?: number;
           review_count?: number;
           created_at?: string;
           updated_at?: string;
@@ -78,6 +80,7 @@ export type Database = {
           source_urls?: string[];
           kakao?: Json | null;
           likes?: number;
+          dislikes?: number;
           review_count?: number;
           created_at?: string;
           updated_at?: string;
@@ -151,6 +154,7 @@ export type Database = {
           author_name: string;
           body: string;
           like_count: number;
+          dislike_count: number;
           status: "visible" | "hidden" | "deleted";
           created_at: string;
           updated_at: string;
@@ -162,6 +166,7 @@ export type Database = {
           author_name: string;
           body: string;
           like_count?: number;
+          dislike_count?: number;
           status?: "visible" | "hidden" | "deleted";
           created_at?: string;
           updated_at?: string;
@@ -173,6 +178,7 @@ export type Database = {
           author_name?: string;
           body?: string;
           like_count?: number;
+          dislike_count?: number;
           status?: "visible" | "hidden" | "deleted";
           created_at?: string;
           updated_at?: string;
@@ -183,6 +189,70 @@ export type Database = {
             columns: ["hospital_id"];
             isOneToOne: false;
             referencedRelation: "hospitals";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      hospital_reactions: {
+        Row: {
+          hospital_id: string;
+          user_id: string;
+          reaction_type: "like" | "dislike";
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          hospital_id: string;
+          user_id: string;
+          reaction_type: "like" | "dislike";
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          hospital_id?: string;
+          user_id?: string;
+          reaction_type?: "like" | "dislike";
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "hospital_reactions_hospital_id_fkey";
+            columns: ["hospital_id"];
+            isOneToOne: false;
+            referencedRelation: "hospitals";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      hospital_comment_reactions: {
+        Row: {
+          comment_id: string;
+          user_id: string;
+          reaction_type: "like" | "dislike";
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          comment_id: string;
+          user_id: string;
+          reaction_type: "like" | "dislike";
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          comment_id?: string;
+          user_id?: string;
+          reaction_type?: "like" | "dislike";
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "hospital_comment_reactions_comment_id_fkey";
+            columns: ["comment_id"];
+            isOneToOne: false;
+            referencedRelation: "hospital_comments";
             referencedColumns: ["id"];
           },
         ];
@@ -213,7 +283,33 @@ export type Database = {
       };
     };
     Views: Record<string, never>;
-    Functions: Record<string, never>;
+    Functions: {
+      set_hospital_reaction: {
+        Args: {
+          p_hospital_id: string;
+          p_user_id: string;
+          p_reaction_type: "like" | "dislike";
+        };
+        Returns: {
+          likes: number;
+          dislikes: number;
+          reaction_type: "like" | "dislike" | null;
+        }[];
+      };
+      set_hospital_comment_reaction: {
+        Args: {
+          p_hospital_id: string;
+          p_comment_id: string;
+          p_user_id: string;
+          p_reaction_type: "like" | "dislike";
+        };
+        Returns: {
+          like_count: number;
+          dislike_count: number;
+          reaction_type: "like" | "dislike" | null;
+        }[];
+      };
+    };
     Enums: Record<string, never>;
     CompositeTypes: Record<string, never>;
   };

@@ -599,6 +599,11 @@
   color: #1f1f1f;
 }
 
+.reactionButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.58;
+}
+
 .reactionButtonLikeActive {
   border-color: #ff5b15;
   background: #fff0e8;
@@ -832,11 +837,39 @@
   padding: 14px 16px;
 }
 
+.commentHeader {
+  min-height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
 .commentAuthor {
   margin: 0;
+  min-width: 0;
   color: var(--accent-strong);
   font-size: 13px;
   font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.commentDeleteButton {
+  flex: 0 0 auto;
+  min-width: 54px;
+  height: 28px;
+  border: 1px solid #e4d7d0;
+  border-radius: 999px;
+  background: #ffffff;
+  color: #9b4a1d;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.commentDeleteButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
 }
 
 .commentBody {
@@ -845,10 +878,50 @@
   font-size: 14px;
 }
 
-.commentLikes {
-  margin: 8px 0 0;
-  color: #383838;
+.commentReactionRow {
+  margin-top: 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.commentReactionButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-height: 30px;
+  border: 1px solid #e5e5e5;
+  border-radius: 999px;
+  padding: 0 10px;
+  background: #ffffff;
+  color: #555555;
   font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease, color 0.15s ease;
+}
+
+.commentReactionButton:hover {
+  border-color: #cccccc;
+  color: #1f1f1f;
+}
+
+.commentReactionButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.58;
+}
+
+.commentReactionButtonLikeActive {
+  border-color: #ff8a45;
+  background: #fff3eb;
+  color: #d55100;
+}
+
+.commentReactionButtonDislikeActive {
+  border-color: #8fa2ff;
+  background: #f1f4ff;
+  color: #3b5bdb;
 }
 
 .emptyComment {

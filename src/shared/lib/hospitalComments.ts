@@ -1,5 +1,6 @@
-import type { HospitalComment } from "@/src/home/types";
+import type { HospitalComment, ReactionType } from "@/src/home/types";
 import type { Database } from "@/src/shared/lib/database.types";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import type { User } from "@supabase/supabase-js";
 import {
   getDefaultDisplayName,
@@ -7,7 +8,7 @@ import {
 } from "@/src/shared/lib/userProfiles";
 
 export const HOSPITAL_COMMENT_COLUMNS =
-  "id,hospital_id,user_id,author_name,body,like_count,status,created_at,updated_at";
+  "id,hospital_id,user_id,author_name,body,like_count,dislike_count,status,created_at,updated_at";
 export const MAX_HOSPITAL_COMMENT_LENGTH = 600;
 
 export type HospitalCommentRow =
@@ -20,11 +21,27 @@ export type CreateHospitalCommentRequest = {
   content: string;
 };
 
+export type DeleteHospitalCommentRequest = {
+  commentId: string;
+};
+
 export type HospitalCommentValidationResult =
   | {
       ok: true;
       value: {
         content: string;
+      };
+    }
+  | {
+      ok: false;
+      message: string;
+    };
+
+export type DeleteHospitalCommentValidationResult =
+  | {
+      ok: true;
+      value: {
+        commentId: string;
       };
     }
   | {
@@ -61,6 +78,29 @@ export function validateCreateHospitalComment(
   };
 }
 
+export function validateDeleteHospitalComment(
+  body: unknown,
+): DeleteHospitalCommentValidationResult {
+  if (!body || typeof body !== "object") {
+    return { ok: false, message: "요청 본문이 올바르지 않습니다." };
+  }
+
+  const commentIdValue = (body as Partial<DeleteHospitalCommentRequest>)
+    .commentId;
+  const commentId = typeof commentIdValue === "string" ? commentIdValue.trim() : "";
+
+  if (!commentId) {
+    return { ok: false, message: "댓글 ID가 필요합니다." };
+  }
+
+  return {
+    ok: true,
+    value: {
+      commentId,
+    },
+  };
+}
+
 export function getHospitalCommentAuthorName(
   profile: UserProfile,
   user: User,
@@ -73,12 +113,37 @@ export function getHospitalCommentAuthorName(
   );
 }
 
-export function toHospitalComment(row: HospitalCommentRow): HospitalComment {
+export function toHospitalComment(
+  row: HospitalCommentRow,
+  reaction: ReactionType | null = null,
+): HospitalComment {
   return {
     id: row.id,
+    authorId: row.user_id,
     author: row.author_name,
     content: row.body,
     likes: row.like_count,
+    dislikes: row.dislike_count,
+    reaction,
     createdAt: row.created_at,
   };
+}
+
+export async function updateHospitalCommentAuthorNames(
+  supabase: SupabaseClient<Database>,
+  user: User,
+  profile: UserProfile,
+) {
+  const authorName = getHospitalCommentAuthorName(profile, user);
+  const { error } = await supabase
+    .from("hospital_comments")
+    .update({ author_name: authorName })
+    .eq("user_id", user.id)
+    .neq("author_name", authorName);
+
+  if (error) {
+    throw new Error(
+      `Supabase hospital_comments 작성자명 동기화 실패: ${error.message}`,
+    );
+  }
 }

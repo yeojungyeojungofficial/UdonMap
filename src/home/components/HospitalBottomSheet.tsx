@@ -1,8 +1,20 @@
 "use client";
 
 import { FormEvent, useEffect, useState } from "react";
-import { createHospitalComment } from "@/src/home/commentApi";
-import type { Hospital, HospitalComment } from "@/src/home/types";
+import {
+  createHospitalComment,
+  deleteHospitalComment,
+} from "@/src/home/commentApi";
+import {
+  updateHospitalCommentReaction,
+  updateHospitalReaction,
+} from "@/src/home/reactionApi";
+import type {
+  Hospital,
+  HospitalComment,
+  ReactionSnapshot,
+  ReactionType,
+} from "@/src/home/types";
 import { supabase } from "@/src/shared/lib/supabase";
 import styles from "@/src/home/Home.module.css";
 
@@ -12,6 +24,16 @@ type HospitalBottomSheetProps = {
   hospital: Hospital | null;
   onClose: () => void;
   onCommentCreated?: (hospitalId: string, comment: HospitalComment) => void;
+  onCommentDeleted?: (hospitalId: string, commentId: string) => void;
+  onHospitalReactionChanged?: (
+    hospitalId: string,
+    reaction: ReactionSnapshot,
+  ) => void;
+  onCommentReactionChanged?: (
+    hospitalId: string,
+    commentId: string,
+    reaction: ReactionSnapshot,
+  ) => void;
 };
 
 type IconName =
@@ -184,14 +206,24 @@ export default function HospitalBottomSheet({
   hospital,
   onClose,
   onCommentCreated,
+  onCommentDeleted,
+  onHospitalReactionChanged,
+  onCommentReactionChanged,
 }: HospitalBottomSheetProps) {
-  const [reaction, setReaction] = useState<"like" | "dislike" | null>(null);
   const [commentContent, setCommentContent] = useState("");
   const [isCommentSubmitting, setIsCommentSubmitting] = useState(false);
   const [commentMessage, setCommentMessage] = useState("");
   const [commentError, setCommentError] = useState("");
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isAuthReady, setIsAuthReady] = useState(!supabase);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const [hospitalReactionSubmitting, setHospitalReactionSubmitting] =
+    useState<ReactionType | null>(null);
+  const [commentReactionSubmittingId, setCommentReactionSubmittingId] =
+    useState<string | null>(null);
+  const [deletingCommentId, setDeletingCommentId] = useState<string | null>(
+    null,
+  );
 
   useEffect(() => {
     if (!supabase) {
@@ -205,6 +237,7 @@ export default function HospitalBottomSheet({
     } = supabase.auth.onAuthStateChange((_event, nextSession) => {
       if (isMounted) {
         setIsLoggedIn(Boolean(nextSession));
+        setCurrentUserId(nextSession?.user.id ?? null);
         setIsAuthReady(true);
       }
     });
@@ -214,6 +247,7 @@ export default function HospitalBottomSheet({
       .then(({ data }) => {
         if (!isMounted) return;
         setIsLoggedIn(Boolean(data.session));
+        setCurrentUserId(data.session?.user.id ?? null);
       })
       .finally(() => {
         if (isMounted) {
@@ -235,12 +269,6 @@ export default function HospitalBottomSheet({
   const operationStatus = getOperationStatus(hoursRows);
   const isClosed = operationStatus === "휴무";
   const isSpecialtyHospital = hospital.isSpecialty || hospital.animals.length > 0;
-
-  const displayedLikes = hospital.likes + (reaction === "like" ? 1 : 0);
-
-  const handleReaction = (type: "like" | "dislike") => {
-    setReaction((prev) => (prev === type ? null : type));
-  };
 
   const handleShare = async () => {
     if (typeof window === "undefined") {
@@ -296,6 +324,83 @@ export default function HospitalBottomSheet({
       );
     } finally {
       setIsCommentSubmitting(false);
+    }
+  };
+
+  const handleReaction = async (type: ReactionType) => {
+    setCommentMessage("");
+    setCommentError("");
+
+    if (!isLoggedIn) {
+      setCommentError("로그인 후 반응을 남길 수 있습니다.");
+      return;
+    }
+
+    setHospitalReactionSubmitting(type);
+
+    try {
+      const reaction = await updateHospitalReaction(hospital.id, type);
+      onHospitalReactionChanged?.(hospital.id, reaction);
+    } catch (error) {
+      setCommentError(
+        error instanceof Error
+          ? error.message
+          : "반응 저장 중 알 수 없는 오류가 발생했습니다.",
+      );
+    } finally {
+      setHospitalReactionSubmitting(null);
+    }
+  };
+
+  const handleCommentReaction = async (
+    commentId: string,
+    type: ReactionType,
+  ) => {
+    setCommentMessage("");
+    setCommentError("");
+
+    if (!isLoggedIn) {
+      setCommentError("로그인 후 반응을 남길 수 있습니다.");
+      return;
+    }
+
+    setCommentReactionSubmittingId(commentId);
+
+    try {
+      const reaction = await updateHospitalCommentReaction(
+        hospital.id,
+        commentId,
+        type,
+      );
+      onCommentReactionChanged?.(hospital.id, commentId, reaction);
+    } catch (error) {
+      setCommentError(
+        error instanceof Error
+          ? error.message
+          : "반응 저장 중 알 수 없는 오류가 발생했습니다.",
+      );
+    } finally {
+      setCommentReactionSubmittingId(null);
+    }
+  };
+
+  const handleCommentDelete = async (commentId: string) => {
+    setCommentMessage("");
+    setCommentError("");
+    setDeletingCommentId(commentId);
+
+    try {
+      const deletedCommentId = await deleteHospitalComment(hospital.id, commentId);
+      onCommentDeleted?.(hospital.id, deletedCommentId);
+      setCommentMessage("댓글을 삭제했습니다.");
+    } catch (error) {
+      setCommentError(
+        error instanceof Error
+          ? error.message
+          : "댓글 삭제 중 알 수 없는 오류가 발생했습니다.",
+      );
+    } finally {
+      setDeletingCommentId(null);
     }
   };
 
@@ -472,22 +577,28 @@ export default function HospitalBottomSheet({
               <button
                 type="button"
                 className={`${styles.reactionButton} ${
-                  reaction === "like" ? styles.reactionButtonLikeActive : ""
+                  hospital.reaction === "like" ? styles.reactionButtonLikeActive : ""
                 }`}
-                onClick={() => handleReaction("like")}
+                onClick={() => void handleReaction("like")}
+                disabled={Boolean(hospitalReactionSubmitting)}
+                aria-pressed={hospital.reaction === "like"}
               >
                 <SheetIcon name="thumbsUp" />
-                좋아요 {displayedLikes}
+                좋아요 {hospital.likes}
               </button>
               <button
                 type="button"
                 className={`${styles.reactionButton} ${
-                  reaction === "dislike" ? styles.reactionButtonDislikeActive : ""
+                  hospital.reaction === "dislike"
+                    ? styles.reactionButtonDislikeActive
+                    : ""
                 }`}
-                onClick={() => handleReaction("dislike")}
+                onClick={() => void handleReaction("dislike")}
+                disabled={Boolean(hospitalReactionSubmitting)}
+                aria-pressed={hospital.reaction === "dislike"}
               >
                 <SheetIcon name="thumbsDown" />
-                싫어요
+                싫어요 {hospital.dislikes}
               </button>
             </div>
             <button type="button" className={styles.reportButton}>
@@ -552,9 +663,54 @@ export default function HospitalBottomSheet({
               <ul className={styles.commentList}>
                 {hospital.comments.map((comment) => (
                   <li key={comment.id} className={styles.commentItem}>
-                    <p className={styles.commentAuthor}>{comment.author}</p>
+                    <div className={styles.commentHeader}>
+                      <p className={styles.commentAuthor}>{comment.author}</p>
+                      {comment.authorId === currentUserId ? (
+                        <button
+                          type="button"
+                          className={styles.commentDeleteButton}
+                          onClick={() => handleCommentDelete(comment.id)}
+                          disabled={deletingCommentId === comment.id}
+                        >
+                          {deletingCommentId === comment.id ? "삭제 중" : "삭제"}
+                        </button>
+                      ) : null}
+                    </div>
                     <p className={styles.commentBody}>{comment.content}</p>
-                    <p className={styles.commentLikes}>좋아요 {comment.likes}</p>
+                    <div className={styles.commentReactionRow}>
+                      <button
+                        type="button"
+                        className={`${styles.commentReactionButton} ${
+                          comment.reaction === "like"
+                            ? styles.commentReactionButtonLikeActive
+                            : ""
+                        }`}
+                        onClick={() =>
+                          void handleCommentReaction(comment.id, "like")
+                        }
+                        disabled={commentReactionSubmittingId === comment.id}
+                        aria-pressed={comment.reaction === "like"}
+                      >
+                        <SheetIcon name="thumbsUp" />
+                        좋아요 {comment.likes}
+                      </button>
+                      <button
+                        type="button"
+                        className={`${styles.commentReactionButton} ${
+                          comment.reaction === "dislike"
+                            ? styles.commentReactionButtonDislikeActive
+                            : ""
+                        }`}
+                        onClick={() =>
+                          void handleCommentReaction(comment.id, "dislike")
+                        }
+                        disabled={commentReactionSubmittingId === comment.id}
+                        aria-pressed={comment.reaction === "dislike"}
+                      >
+                        <SheetIcon name="thumbsDown" />
+                        싫어요 {comment.dislikes}
+                      </button>
+                    </div>
                   </li>
                 ))}
               </ul>

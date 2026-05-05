@@ -4,14 +4,18 @@ import {
   HOSPITAL_COMMENT_COLUMNS,
   toHospitalComment,
   validateCreateHospitalComment,
+  validateDeleteHospitalComment,
 } from "@/src/shared/lib/hospitalComments";
 import type { HospitalComment } from "@/src/home/types";
 import { getSupabaseServerClient } from "@/src/shared/lib/supabaseServer";
 import { ensureUserProfile } from "@/src/shared/lib/userProfiles";
 
-type CreateHospitalCommentResponse =
+type HospitalCommentResponse =
   | {
       comment: HospitalComment;
+    }
+  | {
+      commentId: string;
     }
   | {
       error: string;
@@ -38,11 +42,11 @@ function getBearerToken(req: NextApiRequest) {
 
 export default async function handler(
   req: NextApiRequest,
-  res: NextApiResponse<CreateHospitalCommentResponse>,
+  res: NextApiResponse<HospitalCommentResponse>,
 ) {
-  if (req.method !== "POST") {
-    res.setHeader("Allow", "POST");
-    res.status(405).json({ error: "POST 요청만 지원합니다." });
+  if (req.method !== "POST" && req.method !== "DELETE") {
+    res.setHeader("Allow", "POST, DELETE");
+    res.status(405).json({ error: "POST, DELETE 요청만 지원합니다." });
     return;
   }
 
@@ -50,13 +54,6 @@ export default async function handler(
 
   if (!hospitalId) {
     res.status(400).json({ error: "병원 ID가 필요합니다." });
-    return;
-  }
-
-  const validation = validateCreateHospitalComment(req.body);
-
-  if (!validation.ok) {
-    res.status(400).json({ error: validation.message });
     return;
   }
 
@@ -80,6 +77,47 @@ export default async function handler(
           ? `Supabase 사용자 확인 실패: ${userError.message}`
           : "로그인 사용자를 확인할 수 없습니다.",
       });
+      return;
+    }
+
+    if (req.method === "DELETE") {
+      const validation = validateDeleteHospitalComment(req.body);
+
+      if (!validation.ok) {
+        res.status(400).json({ error: validation.message });
+        return;
+      }
+
+      const { data, error } = await supabase
+        .from("hospital_comments")
+        .update({ status: "deleted" })
+        .eq("id", validation.value.commentId)
+        .eq("hospital_id", hospitalId)
+        .eq("user_id", user.id)
+        .eq("status", "visible")
+        .select("id")
+        .maybeSingle();
+
+      if (error) {
+        res.status(500).json({
+          error: `Supabase hospital_comments delete 실패: ${error.message}`,
+        });
+        return;
+      }
+
+      if (!data) {
+        res.status(404).json({ error: "삭제할 댓글을 찾을 수 없습니다." });
+        return;
+      }
+
+      res.status(200).json({ commentId: data.id });
+      return;
+    }
+
+    const validation = validateCreateHospitalComment(req.body);
+
+    if (!validation.ok) {
+      res.status(400).json({ error: validation.message });
       return;
     }
 

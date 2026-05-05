@@ -7,7 +7,12 @@ import RegionFilter from "@/src/home/components/RegionFilter";
 import HospitalReportSheet from "@/src/shared/components/HospitalReportSheet";
 import TopNav from "@/src/shared/components/TopNav";
 import { fetchHospitals } from "@/src/home/hospitalsApi";
-import type { Hospital, HospitalComment, Region } from "@/src/home/types";
+import type {
+  Hospital,
+  HospitalComment,
+  ReactionSnapshot,
+  Region,
+} from "@/src/home/types";
 import styles from "@/src/home/Home.module.css";
 
 export default function HomePage() {
@@ -123,6 +128,68 @@ export default function HomePage() {
     [],
   );
 
+  const handleCommentDeleted = useCallback(
+    (hospitalId: string, commentId: string) => {
+      setHospitals((currentHospitals) =>
+        currentHospitals.map((hospital) =>
+          hospital.id === hospitalId
+            ? {
+                ...hospital,
+                comments: hospital.comments.filter(
+                  (comment) => comment.id !== commentId,
+                ),
+                reviewCount: Math.max(0, hospital.reviewCount - 1),
+              }
+            : hospital,
+        ),
+      );
+    },
+    [],
+  );
+
+  const handleHospitalReactionChanged = useCallback(
+    (hospitalId: string, reaction: ReactionSnapshot) => {
+      setHospitals((currentHospitals) =>
+        currentHospitals.map((hospital) =>
+          hospital.id === hospitalId
+            ? {
+                ...hospital,
+                likes: reaction.likes,
+                dislikes: reaction.dislikes,
+                reaction: reaction.reaction,
+              }
+            : hospital,
+        ),
+      );
+    },
+    [],
+  );
+
+  const handleCommentReactionChanged = useCallback(
+    (hospitalId: string, commentId: string, reaction: ReactionSnapshot) => {
+      setHospitals((currentHospitals) =>
+        currentHospitals.map((hospital) =>
+          hospital.id === hospitalId
+            ? {
+                ...hospital,
+                comments: hospital.comments.map((comment) =>
+                  comment.id === commentId
+                    ? {
+                        ...comment,
+                        likes: reaction.likes,
+                        dislikes: reaction.dislikes,
+                        reaction: reaction.reaction,
+                      }
+                    : comment,
+                ),
+              }
+            : hospital,
+        ),
+      );
+    },
+    [],
+  );
+
   return (
     <>
       <Head>
@@ -192,6 +259,9 @@ export default function HomePage() {
           hospital={selectedHospital}
           onClose={() => setSelectedHospitalId(null)}
           onCommentCreated={handleCommentCreated}
+          onCommentDeleted={handleCommentDeleted}
+          onHospitalReactionChanged={handleHospitalReactionChanged}
+          onCommentReactionChanged={handleCommentReactionChanged}
         />
         <HospitalReportSheet
           isOpen={isReportSheetOpen}

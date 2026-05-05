@@ -1,5 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { getSupabaseServerClient } from "@/src/shared/lib/supabaseServer";
+import { updateHospitalCommentAuthorNames } from "@/src/shared/lib/hospitalComments";
 import {
   ensureUserProfile,
   updateUserProfile,
@@ -77,6 +78,7 @@ export default async function handler(
     const profile = await updateUserProfile(supabase, user, {
       display_name: validation.value.displayName,
     });
+    await updateHospitalCommentAuthorNames(supabase, user, profile);
 
     res.status(200).json({ profile });
   } catch (error) {
