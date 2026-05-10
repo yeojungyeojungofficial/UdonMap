@@ -23,8 +23,7 @@ export default function TopNav({
   return (
     <header className={styles.topNav}>
       <div className={styles.logoWrap}>
-        <span className={styles.logoMark}>AM</span>
-        <p className={styles.logoText}>우동</p>
+        <p className={styles.logoText}> <span>우</span>리들의 <span>동</span>물병원</p>
       </div>
       <nav className={styles.menuWrap} aria-label="상단 메뉴">
         {MENUS.map((menu) => {
