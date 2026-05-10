@@ -35,10 +35,14 @@
 
 .logoText {
   margin: 0;
-  color: #e5792d;
+  color: #1a1a1a;
   font-size: 22px;
   line-height: 1;
   font-weight: 800;
+}
+
+.logoText span {
+  color: #e5792d;
 }
 
 .menuWrap {
