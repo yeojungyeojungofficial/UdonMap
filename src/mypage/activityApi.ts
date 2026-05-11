@@ -27,9 +27,18 @@ export type MyComment = {
   deletedAt: string | null;
 };
 
+export type MyPost = {
+  id: string;
+  board: string;
+  title: string;
+  createdAt: string;
+  updatedAt: string;
+};
+
 type MyActivityResponse =
   | {
       reports: MyReport[];
+      posts: MyPost[];
       comments: MyComment[];
     }
   | {
@@ -61,5 +70,9 @@ export async function fetchMyActivity() {
     );
   }
 
-  return result;
+  return {
+    reports: result.reports,
+    posts: result.posts ?? [],
+    comments: result.comments,
+  };
 }

@@ -36,12 +36,13 @@ import {
 import {
   fetchMyActivity,
   type MyComment,
+  type MyPost,
   type MyReport,
 } from "@/src/mypage/activityApi";
 import styles from "@/src/mypage/MyPage.module.css";
 
 type AuthMode = "login" | "signup";
-type ActivityTab = "reports" | "comments";
+type ActivityTab = "reports" | "posts" | "comments";
 
 const INVALID_AUTH_CODE_MESSAGE = "잘못된 인증번호입니다";
 const AUTH_ERROR_QUERY_KEYS = [
@@ -185,6 +186,7 @@ export default function MyPage() {
   const [isActivitySheetOpen, setIsActivitySheetOpen] = useState(false);
   const [activityTab, setActivityTab] = useState<ActivityTab>("comments");
   const [myReports, setMyReports] = useState<MyReport[]>([]);
+  const [myPosts, setMyPosts] = useState<MyPost[]>([]);
   const [myComments, setMyComments] = useState<MyComment[]>([]);
   const [isActivityLoading, setIsActivityLoading] = useState(false);
   const [activityError, setActivityError] = useState("");
@@ -241,9 +243,11 @@ export default function MyPage() {
     try {
       const nextActivity = await fetchMyActivity();
       setMyReports(nextActivity.reports);
+      setMyPosts(nextActivity.posts);
       setMyComments(nextActivity.comments);
     } catch (error) {
       setMyReports([]);
+      setMyPosts([]);
       setMyComments([]);
       setActivityError(
         error instanceof Error
@@ -320,6 +324,7 @@ export default function MyPage() {
           setBookmarkError("");
           setIsActivitySheetOpen(false);
           setMyReports([]);
+          setMyPosts([]);
           setMyComments([]);
           setActivityError("");
         }
@@ -338,6 +343,7 @@ export default function MyPage() {
           setBookmarkError("");
           setIsActivitySheetOpen(false);
           setMyReports([]);
+          setMyPosts([]);
           setMyComments([]);
           setActivityError("");
         }
@@ -625,13 +631,19 @@ export default function MyPage() {
                   type="button"
                   onClick={() => openActivitySheet("reports")}
                 >
-                  제보 내역
+                  내 제보
+                </button>
+                <button
+                  type="button"
+                  onClick={() => openActivitySheet("posts")}
+                >
+                  내 게시글
                 </button>
                 <button
                   type="button"
                   onClick={() => openActivitySheet("comments")}
                 >
-                  댓글 내역
+                  내 댓글
                 </button>
               </div>
             ) : null}
@@ -918,7 +930,7 @@ export default function MyPage() {
                 <div>
                   <h2 id="activity-sheet-title">내 활동 내역</h2>
                   <p>
-                    글 {myReports.length}개 · 댓글 {myComments.length}개
+                    제보 {myReports.length}개 · 게시글 {myPosts.length}개 · 댓글 {myComments.length}개
                   </p>
                 </div>
                 <button
@@ -940,7 +952,17 @@ export default function MyPage() {
                   aria-pressed={activityTab === "reports"}
                   onClick={() => setActivityTab("reports")}
                 >
-                  내가 쓴 글
+                  내 제보
+                </button>
+                <button
+                  type="button"
+                  className={`${styles.activityTab} ${
+                    activityTab === "posts" ? styles.activityTabActive : ""
+                  }`}
+                  aria-pressed={activityTab === "posts"}
+                  onClick={() => setActivityTab("posts")}
+                >
+                  내 게시글
                 </button>
                 <button
                   type="button"
@@ -950,7 +972,7 @@ export default function MyPage() {
                   aria-pressed={activityTab === "comments"}
                   onClick={() => setActivityTab("comments")}
                 >
-                  내가 쓴 댓글
+                  내 댓글
                 </button>
               </div>
 
@@ -968,7 +990,14 @@ export default function MyPage() {
               !activityError &&
               activityTab === "reports" &&
               myReports.length === 0 ? (
-                <p className={styles.bookmarkState}>아직 작성한 글이 없습니다.</p>
+                <p className={styles.bookmarkState}>아직 제보 내역이 없습니다.</p>
+              ) : null}
+
+              {!isActivityLoading &&
+              !activityError &&
+              activityTab === "posts" &&
+              myPosts.length === 0 ? (
+                <p className={styles.bookmarkState}>아직 작성한 게시글이 없습니다.</p>
               ) : null}
 
               {!isActivityLoading &&
@@ -1004,6 +1033,23 @@ export default function MyPage() {
                           <em>{report.animalSpecies}</em>
                         ) : null}
                       </div>
+                    </li>
+                  ))}
+                </ul>
+              ) : null}
+
+              {!isActivityLoading &&
+              !activityError &&
+              activityTab === "posts" &&
+              myPosts.length > 0 ? (
+                <ul className={styles.activityList}>
+                  {myPosts.map((post) => (
+                    <li key={post.id} className={styles.activityItem}>
+                      <div className={styles.activityMeta}>
+                        <span>{formatProfileDate(post.createdAt)}</span>
+                        <em>{post.board}</em>
+                      </div>
+                      <strong>{post.title}</strong>
                     </li>
                   ))}
                 </ul>

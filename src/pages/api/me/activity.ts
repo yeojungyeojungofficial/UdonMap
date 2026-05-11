@@ -26,6 +26,11 @@ type CommentRow = Pick<
   | "deleted_at"
 >;
 
+type PostRow = Pick<
+  Database["public"]["Tables"]["board_posts"]["Row"],
+  "id" | "board" | "filter_tag" | "title" | "created_at" | "updated_at"
+>;
+
 type HospitalRow = Pick<
   Database["public"]["Tables"]["hospitals"]["Row"],
   "id" | "name" | "region" | "street_address"
@@ -41,6 +46,14 @@ type MyActivityResponse =
         animalSpecies: string | null;
         details: string | null;
         status: ReportRow["status"];
+        createdAt: string;
+        updatedAt: string;
+      }>;
+      posts: Array<{
+        id: string;
+        board: string;
+        filterTag: string | null;
+        title: string;
         createdAt: string;
         updatedAt: string;
       }>;
@@ -123,6 +136,20 @@ export default async function handler(
       return;
     }
 
+    const { data: postData, error: postError } = await supabase
+      .from("board_posts")
+      .select("id,board,filter_tag,title,created_at,updated_at")
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: false })
+      .limit(50);
+
+    if (postError) {
+      res.status(500).json({
+        error: `Supabase board_posts 조회 실패: ${postError.message}`,
+      });
+      return;
+    }
+
     const { data: commentData, error: commentError } = await supabase
       .from("hospital_comments")
       .select("id,hospital_id,body,status,created_at,updated_at,deleted_at")
@@ -175,6 +202,14 @@ export default async function handler(
         status: report.status,
         createdAt: report.created_at,
         updatedAt: report.updated_at,
+      })),
+      posts: ((postData ?? []) as PostRow[]).map((post) => ({
+        id: post.id,
+        board: post.board,
+        filterTag: post.filter_tag,
+        title: post.title,
+        createdAt: post.created_at,
+        updatedAt: post.updated_at,
       })),
       comments: comments.map((comment) => {
         const hospital = hospitalsById.get(comment.hospital_id);

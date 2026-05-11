@@ -1,4 +1,6 @@
 import { useEffect, useRef, useState } from "react";
+import { loadAuthSession } from "@/src/shared/lib/authSession";
+import { getSupabaseBrowserClient } from "@/src/shared/lib/supabase";
 import { REGION_FILTERS } from "@/src/home/regions";
 import type { Region } from "@/src/home/types";
 import styles from "@/src/reviews/PostComposeSheet.module.css";
@@ -14,6 +16,7 @@ type TipTag = "포유류" | "설치류" | "조류" | "파충류" | "양서류" |
 
 const MAX_PHOTOS = 5;
 const MAX_BODY = 5000;
+const STORAGE_BUCKET = "posting_image";
 const REVIEW_TAG_OPTIONS = REGION_FILTERS.filter(
   (region): region is Exclude<Region, "전체"> => region !== "전체",
 );
@@ -48,6 +51,9 @@ export default function PostComposeSheet({
   const [isLinkInputOpen, setIsLinkInputOpen] = useState(false);
   const [photoCount, setPhotoCount] = useState(0);
   const [photoLimitMsg, setPhotoLimitMsg] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState("");
+  const [uploadingCount, setUploadingCount] = useState(0);
 
   const editorRef = useRef<HTMLDivElement>(null);
   const savedRangeRef = useRef<Range | null>(null);
@@ -174,7 +180,7 @@ export default function PostComposeSheet({
     return wrapper;
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const incoming = Array.from(e.target.files ?? []);
     e.target.value = "";
 
@@ -187,18 +193,53 @@ export default function PostComposeSheet({
     }
 
     const accepted = incoming.slice(0, available);
-    accepted.forEach((file, i) => {
-      const url = URL.createObjectURL(file);
-      const node = buildResizableImage(url, `첨부 사진 ${currentCount + i + 1}`);
-      insertNodeAtCursor(node);
-    });
 
-    const next = currentCount + accepted.length;
-    setPhotoCount(next);
     setPhotoLimitMsg(
       accepted.length < incoming.length
         ? `사진은 최대 ${MAX_PHOTOS}장까지 첨부할 수 있어요.`
         : "",
+    );
+    setUploadingCount((n) => n + accepted.length);
+
+    const supabase = getSupabaseBrowserClient();
+    const session = await loadAuthSession(supabase);
+
+    await Promise.all(
+      accepted.map(async (file, i) => {
+        const blobUrl = URL.createObjectURL(file);
+        const altText = `첨부 사진 ${currentCount + i + 1}`;
+
+        // 먼저 blob URL로 즉시 미리보기 삽입
+        const node = buildResizableImage(blobUrl, altText);
+        insertNodeAtCursor(node);
+        setPhotoCount((n) => n + 1);
+
+        // Storage에 업로드 후 영구 URL로 교체
+        if (session) {
+          const ext = file.name.split(".").pop() ?? "jpg";
+          const path = `${session.user.id}/${Date.now()}-${i}.${ext}`;
+
+          const { error } = await supabase.storage
+            .from(STORAGE_BUCKET)
+            .upload(path, file, { upsert: false });
+
+          if (!error) {
+            const { data: urlData } = supabase.storage
+              .from(STORAGE_BUCKET)
+              .getPublicUrl(path);
+
+            // 에디터 내 해당 img 요소의 src를 영구 URL로 교체
+            const imgEl = node.querySelector("img");
+            if (imgEl) {
+              imgEl.src = urlData.publicUrl;
+              imgEl.removeAttribute("data-object-url");
+            }
+            URL.revokeObjectURL(blobUrl);
+          }
+        }
+
+        setUploadingCount((n) => Math.max(0, n - 1));
+      }),
     );
   };
 
@@ -244,6 +285,8 @@ export default function PostComposeSheet({
       setIsLinkInputOpen(false);
       setPhotoCount(0);
       setPhotoLimitMsg("");
+      setIsSubmitting(false);
+      setSubmitError("");
       savedRangeRef.current = null;
       if (editorRef.current) {
         const imgs = editorRef.current.querySelectorAll("[data-object-url]");
@@ -278,16 +321,65 @@ export default function PostComposeSheet({
 
   if (!isOpen) return null;
 
-  const handleSubmit = () => {
-    const content = editorRef.current?.innerHTML ?? "";
+  const handleSubmit = async () => {
+    if (isSubmitting) return;
+
+    const body = editorRef.current?.innerHTML ?? "";
     const filterTag =
       selectedBoard === "병원후기 게시판"
-        ? selectedReviewTag
+        ? (selectedReviewTag ?? null)
         : selectedBoard === "꿀팁 게시판"
-          ? selectedTipTag
+          ? (selectedTipTag ?? null)
           : null;
-    console.log("[reviews] 글 등록", { selectedBoard, filterTag, title, content });
-    onClose();
+
+    setIsSubmitting(true);
+    setSubmitError("");
+
+    try {
+      const supabase = getSupabaseBrowserClient();
+      const session = await loadAuthSession(supabase);
+
+      if (!session) {
+        setSubmitError("로그인이 필요합니다.");
+        return;
+      }
+
+      const response = await fetch("/api/board-posts", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({
+          board: selectedBoard,
+          filterTag,
+          title: title.trim(),
+          body,
+        }),
+      });
+
+      const result = (await response.json().catch(() => null)) as
+        | { id: string }
+        | { error: string }
+        | null;
+
+      if (!response.ok || !result || "error" in result) {
+        setSubmitError(
+          result && "error" in result
+            ? result.error
+            : "게시글 등록에 실패했습니다.",
+        );
+        return;
+      }
+
+      onClose();
+    } catch (error) {
+      setSubmitError(
+        error instanceof Error ? error.message : "알 수 없는 오류가 발생했습니다.",
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const atPhotoLimit = photoCount >= MAX_PHOTOS;
@@ -303,10 +395,10 @@ export default function PostComposeSheet({
           <button
             type="button"
             className={styles.submitButton}
-            disabled={!title.trim() || bodyLength === 0}
-            onClick={handleSubmit}
+            disabled={!title.trim() || bodyLength === 0 || isSubmitting}
+            onClick={() => void handleSubmit()}
           >
-            등록
+            {isSubmitting ? "등록 중" : "등록"}
           </button>
         </div>
 
@@ -430,13 +522,17 @@ export default function PostComposeSheet({
           )}
         </div>
 
+        {submitError ? (
+          <p className={styles.submitError}>{submitError}</p>
+        ) : null}
+
         <div className={styles.toolbar}>
           <div className={styles.toolbarLeft}>
             <button
               type="button"
               className={styles.toolbarButton}
               aria-label={`사진 첨부 (${photoCount}/${MAX_PHOTOS})`}
-              disabled={atPhotoLimit}
+              disabled={atPhotoLimit || isSubmitting}
               onClick={() => {
                 saveSelection();
                 fileInputRef.current?.click();
@@ -466,7 +562,12 @@ export default function PostComposeSheet({
             </button>
           </div>
           <div className={styles.toolbarRight}>
-            {photoLimitMsg && (
+            {uploadingCount > 0 && (
+              <span className={styles.uploadingMsg}>
+                이미지 업로드 중 {uploadingCount}개…
+              </span>
+            )}
+            {photoLimitMsg && !uploadingCount && (
               <span className={styles.photoLimitMsg}>{photoLimitMsg}</span>
             )}
             <span className={styles.charCount}>
@@ -482,7 +583,7 @@ export default function PostComposeSheet({
         accept="image/*"
         multiple
         style={{ display: "none" }}
-        onChange={handleFileChange}
+        onChange={(e) => void handleFileChange(e)}
       />
     </div>
   );
