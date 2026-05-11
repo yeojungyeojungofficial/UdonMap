@@ -40,6 +40,23 @@ function getBearerToken(req: NextApiRequest) {
   return header.slice("Bearer ".length).trim() || null;
 }
 
+type ActiveSuspension = {
+  duration: string;
+  ends_at: string | null;
+};
+
+function getSuspensionMessage(suspension: ActiveSuspension) {
+  if (suspension.duration === "permanent" || !suspension.ends_at) {
+    return "영구 정지된 계정입니다. 댓글을 작성할 수 없습니다.";
+  }
+
+  return `${new Intl.DateTimeFormat("ko-KR", {
+    dateStyle: "medium",
+    timeStyle: "short",
+    timeZone: "Asia/Seoul",
+  }).format(new Date(suspension.ends_at))}까지 정지된 계정입니다. 댓글을 작성할 수 없습니다.`;
+}
+
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse<HospitalCommentResponse>,
@@ -118,6 +135,26 @@ export default async function handler(
 
     if (!validation.ok) {
       res.status(400).json({ error: validation.message });
+      return;
+    }
+
+    const { data: suspensionData, error: suspensionError } = await supabase
+      .rpc("get_user_active_suspension", {
+        p_user_id: user.id,
+      })
+      .maybeSingle();
+
+    if (suspensionError) {
+      res.status(500).json({
+        error: `Supabase user_suspensions 조회 실패: ${suspensionError.message}`,
+      });
+      return;
+    }
+
+    if (suspensionData) {
+      res.status(403).json({
+        error: getSuspensionMessage(suspensionData),
+      });
       return;
     }
 

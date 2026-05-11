@@ -412,6 +412,92 @@
   font-weight: 800;
 }
 
+.activityTabs {
+  margin-top: 18px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+  border: 1px solid #ead8ca;
+  border-radius: 8px;
+  padding: 4px;
+  background: #fff8f2;
+}
+
+.activityTab {
+  min-height: 40px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: #7d4b2a;
+  font: inherit;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.activityTabActive {
+  background: #ffffff;
+  color: #383838;
+  box-shadow: 0 2px 8px rgba(135, 75, 31, 0.12);
+}
+
+.activityList {
+  list-style: none;
+  margin: 16px 0 0;
+  padding: 0;
+  display: grid;
+  gap: 10px;
+}
+
+.activityItem {
+  display: grid;
+  gap: 7px;
+  border: 1px solid #f0ded0;
+  border-radius: 8px;
+  padding: 14px;
+  background: #fffdfb;
+}
+
+.activityMeta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.activityMeta span {
+  color: #7d4b2a;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.activityMeta em {
+  border-radius: 999px;
+  padding: 4px 8px;
+  background: #fff1e8;
+  color: #e5792d;
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 800;
+}
+
+.activityItem strong {
+  color: #383838;
+  font-size: 16px;
+}
+
+.activityItem p {
+  margin: 0;
+  color: #4a3f38;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.activityBody {
+  border-radius: 8px;
+  padding: 10px;
+  background: #ffffff;
+}
+
 .authDialog {
   width: min(360px, 100%);
   border: 1px solid #ead8ca;

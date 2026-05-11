@@ -32,9 +32,15 @@ import {
   fetchBookmarkedHospitals,
   type BookmarkedHospital,
 } from "@/src/mypage/bookmarksApi";
+import {
+  fetchMyActivity,
+  type MyComment,
+  type MyReport,
+} from "@/src/mypage/activityApi";
 import styles from "@/src/mypage/MyPage.module.css";
 
 type AuthMode = "login" | "signup";
+type ActivityTab = "reports" | "comments";
 
 const INVALID_AUTH_CODE_MESSAGE = "잘못된 인증번호입니다";
 const AUTH_ERROR_QUERY_KEYS = [
@@ -42,6 +48,17 @@ const AUTH_ERROR_QUERY_KEYS = [
   "error_code",
   "error_description",
 ] as const;
+const REPORT_STATUS_LABELS = {
+  pending: "접수",
+  in_review: "검토중",
+  approved: "승인",
+  rejected: "반려",
+} as const;
+const COMMENT_STATUS_LABELS = {
+  visible: "공개",
+  hidden: "숨김",
+  deleted: "삭제됨",
+} as const;
 
 function formatProfileDate(value: string | null | undefined) {
   if (!value) {
@@ -164,6 +181,12 @@ export default function MyPage() {
   >([]);
   const [isBookmarkLoading, setIsBookmarkLoading] = useState(false);
   const [bookmarkError, setBookmarkError] = useState("");
+  const [isActivitySheetOpen, setIsActivitySheetOpen] = useState(false);
+  const [activityTab, setActivityTab] = useState<ActivityTab>("comments");
+  const [myReports, setMyReports] = useState<MyReport[]>([]);
+  const [myComments, setMyComments] = useState<MyComment[]>([]);
+  const [isActivityLoading, setIsActivityLoading] = useState(false);
+  const [activityError, setActivityError] = useState("");
 
   const openAuthDialog = useCallback((message: string) => {
     setAuthDialogMessage(message);
@@ -186,6 +209,10 @@ export default function MyPage() {
     setIsBookmarkSheetOpen(false);
   };
 
+  const closeActivitySheet = () => {
+    setIsActivitySheetOpen(false);
+  };
+
   const loadBookmarkedHospitals = useCallback(async (activeSession: Session) => {
     setIsBookmarkLoading(true);
     setBookmarkError("");
@@ -206,6 +233,27 @@ export default function MyPage() {
     }
   }, []);
 
+  const loadMyActivity = useCallback(async () => {
+    setIsActivityLoading(true);
+    setActivityError("");
+
+    try {
+      const nextActivity = await fetchMyActivity();
+      setMyReports(nextActivity.reports);
+      setMyComments(nextActivity.comments);
+    } catch (error) {
+      setMyReports([]);
+      setMyComments([]);
+      setActivityError(
+        error instanceof Error
+          ? error.message
+          : "내 활동 내역 조회 중 알 수 없는 오류가 발생했습니다.",
+      );
+    } finally {
+      setIsActivityLoading(false);
+    }
+  }, []);
+
   const openBookmarkSheet = () => {
     if (!session) {
       return;
@@ -213,6 +261,16 @@ export default function MyPage() {
 
     setIsBookmarkSheetOpen(true);
     void loadBookmarkedHospitals(session);
+  };
+
+  const openActivitySheet = (nextTab: ActivityTab) => {
+    if (!session) {
+      return;
+    }
+
+    setActivityTab(nextTab);
+    setIsActivitySheetOpen(true);
+    void loadMyActivity();
   };
 
   useEffect(() => {
@@ -259,6 +317,10 @@ export default function MyPage() {
           setIsBookmarkSheetOpen(false);
           setBookmarkedHospitals([]);
           setBookmarkError("");
+          setIsActivitySheetOpen(false);
+          setMyReports([]);
+          setMyComments([]);
+          setActivityError("");
         }
       }
     });
@@ -273,6 +335,10 @@ export default function MyPage() {
           setIsBookmarkSheetOpen(false);
           setBookmarkedHospitals([]);
           setBookmarkError("");
+          setIsActivitySheetOpen(false);
+          setMyReports([]);
+          setMyComments([]);
+          setActivityError("");
         }
       })
       .catch((error) => {
@@ -554,8 +620,18 @@ export default function MyPage() {
                 <button type="button" onClick={openBookmarkSheet}>
                   찜한 병원
                 </button>
-                <div>제보 내역</div>
-                <div>댓글 내역</div>
+                <button
+                  type="button"
+                  onClick={() => openActivitySheet("reports")}
+                >
+                  제보 내역
+                </button>
+                <button
+                  type="button"
+                  onClick={() => openActivitySheet("comments")}
+                >
+                  댓글 내역
+                </button>
               </div>
             ) : null}
           </div>
@@ -819,6 +895,138 @@ export default function MyPage() {
                         {hospital.isEmergency ? <em>응급 진료</em> : null}
                         {hospital.isSpecialty ? <em>특수동물 진료</em> : null}
                       </div>
+                    </li>
+                  ))}
+                </ul>
+              ) : null}
+            </section>
+          </div>
+        ) : null}
+        {isActivitySheetOpen ? (
+          <div
+            className={styles.sheetBackdrop}
+            role="presentation"
+            onClick={closeActivitySheet}
+          >
+            <section
+              className={styles.bookmarkSheet}
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="activity-sheet-title"
+              onClick={(event) => event.stopPropagation()}
+            >
+              <div className={styles.sheetHandle} />
+              <div className={styles.bookmarkSheetHeader}>
+                <div>
+                  <h2 id="activity-sheet-title">내 활동 내역</h2>
+                  <p>
+                    글 {myReports.length}개 · 댓글 {myComments.length}개
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  className={styles.sheetCloseButton}
+                  onClick={closeActivitySheet}
+                  aria-label="내 활동 내역 닫기"
+                >
+                  닫기
+                </button>
+              </div>
+
+              <div className={styles.activityTabs} aria-label="활동 내역 구분">
+                <button
+                  type="button"
+                  className={`${styles.activityTab} ${
+                    activityTab === "reports" ? styles.activityTabActive : ""
+                  }`}
+                  aria-pressed={activityTab === "reports"}
+                  onClick={() => setActivityTab("reports")}
+                >
+                  내가 쓴 글
+                </button>
+                <button
+                  type="button"
+                  className={`${styles.activityTab} ${
+                    activityTab === "comments" ? styles.activityTabActive : ""
+                  }`}
+                  aria-pressed={activityTab === "comments"}
+                  onClick={() => setActivityTab("comments")}
+                >
+                  내가 쓴 댓글
+                </button>
+              </div>
+
+              {isActivityLoading ? (
+                <p className={styles.bookmarkState}>
+                  내 활동 내역을 불러오는 중입니다.
+                </p>
+              ) : null}
+
+              {activityError ? (
+                <p className={styles.bookmarkError}>{activityError}</p>
+              ) : null}
+
+              {!isActivityLoading &&
+              !activityError &&
+              activityTab === "reports" &&
+              myReports.length === 0 ? (
+                <p className={styles.bookmarkState}>아직 작성한 글이 없습니다.</p>
+              ) : null}
+
+              {!isActivityLoading &&
+              !activityError &&
+              activityTab === "comments" &&
+              myComments.length === 0 ? (
+                <p className={styles.bookmarkState}>
+                  아직 작성한 댓글이 없습니다.
+                </p>
+              ) : null}
+
+              {!isActivityLoading &&
+              !activityError &&
+              activityTab === "reports" &&
+              myReports.length > 0 ? (
+                <ul className={styles.activityList}>
+                  {myReports.map((report) => (
+                    <li key={report.id} className={styles.activityItem}>
+                      <div className={styles.activityMeta}>
+                        <span>{formatProfileDate(report.createdAt)}</span>
+                        <em>{REPORT_STATUS_LABELS[report.status]}</em>
+                      </div>
+                      <strong>{report.hospitalName}</strong>
+                      <p>{report.address}</p>
+                      {report.details ? (
+                        <p className={styles.activityBody}>{report.details}</p>
+                      ) : null}
+                      <div className={styles.bookmarkTags}>
+                        {report.animalCategories.map((animal) => (
+                          <em key={`${report.id}-${animal}`}>{animal}</em>
+                        ))}
+                        {report.animalSpecies ? (
+                          <em>{report.animalSpecies}</em>
+                        ) : null}
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              ) : null}
+
+              {!isActivityLoading &&
+              !activityError &&
+              activityTab === "comments" &&
+              myComments.length > 0 ? (
+                <ul className={styles.activityList}>
+                  {myComments.map((comment) => (
+                    <li key={comment.id} className={styles.activityItem}>
+                      <div className={styles.activityMeta}>
+                        <span>{formatProfileDate(comment.createdAt)}</span>
+                        <em>{COMMENT_STATUS_LABELS[comment.status]}</em>
+                      </div>
+                      <strong>{comment.hospitalName}</strong>
+                      {comment.hospitalAddress ? (
+                        <p>{comment.hospitalAddress}</p>
+                      ) : null}
+                      <p className={styles.activityBody}>{comment.content}</p>
                     </li>
                   ))}
                 </ul>

@@ -1,5 +1,7 @@
 import Image from "next/image";
 import { ChangeEvent, FormEvent, useEffect, useMemo, useState } from "react";
+import { loadAuthSession } from "@/src/shared/lib/authSession";
+import { supabase } from "@/src/shared/lib/supabase";
 import styles from "@/src/shared/components/HospitalReportSheet.module.css";
 
 const ANIMAL_OPTIONS = ["포유류", "양서류", "파충류", "조류", "어류"];
@@ -81,11 +83,21 @@ export default function HospitalReportSheet({
     clearSubmitFeedback();
 
     try {
+      const headers: Record<string, string> = {
+        "Content-Type": "application/json",
+      };
+
+      if (supabase) {
+        const session = await loadAuthSession(supabase);
+
+        if (session) {
+          headers.Authorization = `Bearer ${session.access_token}`;
+        }
+      }
+
       const response = await fetch("/api/hospital-reports", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers,
         body: JSON.stringify({
           hospitalName,
           streetAddress,
