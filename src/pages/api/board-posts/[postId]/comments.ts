@@ -21,7 +21,6 @@ type BoardPostCommentRow =
 type BoardPostCommentResponse =
   | {
       comment: BoardPostComment;
-      commentCount: number;
     }
   | {
       error: string;
@@ -164,35 +163,8 @@ export default async function handler(
       return;
     }
 
-    const { count, error: countError } = await supabase
-      .from("board_post_comments")
-      .select("id", { count: "exact", head: true })
-      .eq("post_id", postId)
-      .eq("status", "visible");
-
-    if (countError) {
-      res.status(500).json({
-        error: `Supabase board_post_comments count 실패: ${countError.message}`,
-      });
-      return;
-    }
-
-    const commentCount = count ?? 0;
-    const { error: updateError } = await supabase
-      .from("board_posts")
-      .update({ comment_count: commentCount })
-      .eq("id", postId);
-
-    if (updateError) {
-      res.status(500).json({
-        error: `Supabase board_posts comment_count 수정 실패: ${updateError.message}`,
-      });
-      return;
-    }
-
     res.status(201).json({
       comment: toBoardPostComment(data as BoardPostCommentRow),
-      commentCount,
     });
   } catch (error) {
     const message =

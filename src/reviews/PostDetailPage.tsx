@@ -123,7 +123,7 @@ export default function PostDetailPage() {
         currentPost
           ? {
               ...currentPost,
-              commentCount: result.commentCount,
+              commentCount: currentPost.commentCount + 1,
               comments: [...currentPost.comments, result.comment],
             }
           : currentPost,

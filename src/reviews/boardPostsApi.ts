@@ -34,7 +34,6 @@ type CreateBoardPostResponse =
 type CreateBoardCommentResponse =
   | {
       comment: BoardPostComment;
-      commentCount: number;
     }
   | {
       error: string;
