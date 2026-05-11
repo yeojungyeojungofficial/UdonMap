@@ -23,6 +23,7 @@ export type Hospital = {
   id: string;
   name: string;
   region: string;
+  regionFilter: string;
   address: string;
   summary: string;
   likes: number;
@@ -45,4 +46,5 @@ export type Hospital = {
   hours?: string[];
   isEmergency?: boolean;
   isSpecialty?: boolean;
+  isBookmarked: boolean;
 };

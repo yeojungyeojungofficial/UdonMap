@@ -9,6 +9,7 @@ import {
   updateHospitalCommentReaction,
   updateHospitalReaction,
 } from "@/src/home/reactionApi";
+import { updateHospitalBookmark } from "@/src/home/bookmarkApi";
 import type {
   Hospital,
   HospitalComment,
@@ -34,6 +35,7 @@ type HospitalBottomSheetProps = {
     hospitalId: string,
     reaction: ReactionSnapshot,
   ) => void;
+  onBookmarkChanged?: (hospitalId: string, isBookmarked: boolean) => void;
   onCommentReactionChanged?: (
     hospitalId: string,
     commentId: string,
@@ -129,7 +131,10 @@ function SheetIcon({ name }: { name: IconName }) {
   switch (name) {
     case "bookmark":
       return (
-        <svg {...commonProps}>
+        <svg
+          {...commonProps}
+          className={`${styles.sheetIcon} ${styles.sheetIconBookmark}`}
+        >
           <path d="M7 4.5h10v15l-5-3.4-5 3.4z" />
         </svg>
       );
@@ -213,6 +218,7 @@ export default function HospitalBottomSheet({
   onCommentCreated,
   onCommentDeleted,
   onHospitalReactionChanged,
+  onBookmarkChanged,
   onCommentReactionChanged,
 }: HospitalBottomSheetProps) {
   const initialAuthSession = getCachedAuthSession();
@@ -220,6 +226,8 @@ export default function HospitalBottomSheet({
   const [isCommentSubmitting, setIsCommentSubmitting] = useState(false);
   const [commentMessage, setCommentMessage] = useState("");
   const [commentError, setCommentError] = useState("");
+  const [bookmarkError, setBookmarkError] = useState("");
+  const [isBookmarkSubmitting, setIsBookmarkSubmitting] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(Boolean(initialAuthSession));
   const [isAuthReady, setIsAuthReady] = useState(
     !supabase || initialAuthSession !== undefined,
@@ -307,6 +315,36 @@ export default function HospitalBottomSheet({
     }
 
     await navigator.clipboard?.writeText(`${shareText}\n${shareUrl}`);
+  };
+
+  const handleBookmarkClick = async () => {
+    setBookmarkError("");
+    setCommentMessage("");
+    setCommentError("");
+
+    if (!isLoggedIn) {
+      setBookmarkError("로그인 후 찜할 수 있습니다.");
+      return;
+    }
+
+    const nextIsBookmarked = !hospital.isBookmarked;
+    setIsBookmarkSubmitting(true);
+
+    try {
+      const savedIsBookmarked = await updateHospitalBookmark(
+        hospital.id,
+        nextIsBookmarked,
+      );
+      onBookmarkChanged?.(hospital.id, savedIsBookmarked);
+    } catch (error) {
+      setBookmarkError(
+        error instanceof Error
+          ? error.message
+          : "찜 저장 중 알 수 없는 오류가 발생했습니다.",
+      );
+    } finally {
+      setIsBookmarkSubmitting(false);
+    }
   };
 
   const handleCommentSubmit = async (event: FormEvent<HTMLFormElement>) => {
@@ -442,8 +480,13 @@ export default function HospitalBottomSheet({
           <div className={styles.sheetHeroActions}>
             <button
               type="button"
-              className={styles.sheetIconButton}
-              aria-label="병원 북마크"
+              className={`${styles.sheetIconButton} ${
+                hospital.isBookmarked ? styles.sheetIconButtonActive : ""
+              }`}
+              onClick={handleBookmarkClick}
+              disabled={isBookmarkSubmitting || !isAuthReady}
+              aria-label={hospital.isBookmarked ? "찜 해제" : "병원 찜하기"}
+              aria-pressed={hospital.isBookmarked}
             >
               <SheetIcon name="bookmark" />
             </button>
@@ -502,6 +545,10 @@ export default function HospitalBottomSheet({
 
           {hospital.summary ? (
             <p className={styles.sheetSummary}>{hospital.summary}</p>
+          ) : null}
+
+          {bookmarkError ? (
+            <p className={styles.commentError}>{bookmarkError}</p>
           ) : null}
 
           {hospital.phone || hospital.homepage || hospital.instagram ? (

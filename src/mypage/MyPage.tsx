@@ -28,6 +28,10 @@ import {
   MAX_DISPLAY_NAME_LENGTH,
   type UserProfile,
 } from "@/src/shared/lib/userProfiles";
+import {
+  fetchBookmarkedHospitals,
+  type BookmarkedHospital,
+} from "@/src/mypage/bookmarksApi";
 import styles from "@/src/mypage/MyPage.module.css";
 
 type AuthMode = "login" | "signup";
@@ -154,6 +158,12 @@ export default function MyPage() {
   const [profileMessage, setProfileMessage] = useState("");
   const [profileError, setProfileError] = useState("");
   const [isReportSheetOpen, setIsReportSheetOpen] = useState(false);
+  const [isBookmarkSheetOpen, setIsBookmarkSheetOpen] = useState(false);
+  const [bookmarkedHospitals, setBookmarkedHospitals] = useState<
+    BookmarkedHospital[]
+  >([]);
+  const [isBookmarkLoading, setIsBookmarkLoading] = useState(false);
+  const [bookmarkError, setBookmarkError] = useState("");
 
   const openAuthDialog = useCallback((message: string) => {
     setAuthDialogMessage(message);
@@ -171,6 +181,39 @@ export default function MyPage() {
     setProfileError("");
     setIsProfileLoading(false);
   }, []);
+
+  const closeBookmarkSheet = () => {
+    setIsBookmarkSheetOpen(false);
+  };
+
+  const loadBookmarkedHospitals = useCallback(async (activeSession: Session) => {
+    setIsBookmarkLoading(true);
+    setBookmarkError("");
+
+    try {
+      const nextBookmarkedHospitals =
+        await fetchBookmarkedHospitals(activeSession);
+      setBookmarkedHospitals(nextBookmarkedHospitals);
+    } catch (error) {
+      setBookmarkedHospitals([]);
+      setBookmarkError(
+        error instanceof Error
+          ? error.message
+          : "찜한 병원 조회 중 알 수 없는 오류가 발생했습니다.",
+      );
+    } finally {
+      setIsBookmarkLoading(false);
+    }
+  }, []);
+
+  const openBookmarkSheet = () => {
+    if (!session) {
+      return;
+    }
+
+    setIsBookmarkSheetOpen(true);
+    void loadBookmarkedHospitals(session);
+  };
 
   useEffect(() => {
     let nextAuthDialogMessage = "";
@@ -213,6 +256,9 @@ export default function MyPage() {
 
         if (!nextSession) {
           resetProfileState();
+          setIsBookmarkSheetOpen(false);
+          setBookmarkedHospitals([]);
+          setBookmarkError("");
         }
       }
     });
@@ -224,6 +270,9 @@ export default function MyPage() {
 
         if (!nextSession) {
           resetProfileState();
+          setIsBookmarkSheetOpen(false);
+          setBookmarkedHospitals([]);
+          setBookmarkError("");
         }
       })
       .catch((error) => {
@@ -500,11 +549,15 @@ export default function MyPage() {
              우동은 특수동물 병원 정보를 한 곳에서 확인할 수 있는 서비스입니다. <br />
              특수동물 반려자들의 제보들을 통해서 데이터를 모으고 있습니다.
             </p>
-            <div className={styles.benefitGrid} aria-label="마이페이지 기능 요약">
-              <div>찜한 병원</div>
-              <div>제보 내역</div>
-              <div>댓글 내역</div>
-            </div>
+            {session ? (
+              <div className={styles.benefitGrid} aria-label="마이페이지 기능 요약">
+                <button type="button" onClick={openBookmarkSheet}>
+                  찜한 병원
+                </button>
+                <div>제보 내역</div>
+                <div>댓글 내역</div>
+              </div>
+            ) : null}
           </div>
 
           {session ? (
@@ -705,6 +758,74 @@ export default function MyPage() {
           isOpen={isReportSheetOpen}
           onClose={closeReportSheet}
         />
+        {isBookmarkSheetOpen ? (
+          <div
+            className={styles.sheetBackdrop}
+            role="presentation"
+            onClick={closeBookmarkSheet}
+          >
+            <section
+              className={styles.bookmarkSheet}
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="bookmark-sheet-title"
+              onClick={(event) => event.stopPropagation()}
+            >
+              <div className={styles.sheetHandle} />
+              <div className={styles.bookmarkSheetHeader}>
+                <div>
+                  <h2 id="bookmark-sheet-title">찜한 병원</h2>
+                  <p>{bookmarkedHospitals.length}개</p>
+                </div>
+                <button
+                  type="button"
+                  className={styles.sheetCloseButton}
+                  onClick={closeBookmarkSheet}
+                  aria-label="찜한 병원 닫기"
+                >
+                  닫기
+                </button>
+              </div>
+
+              {isBookmarkLoading ? (
+                <p className={styles.bookmarkState}>
+                  찜한 병원을 불러오는 중입니다.
+                </p>
+              ) : null}
+
+              {bookmarkError ? (
+                <p className={styles.bookmarkError}>{bookmarkError}</p>
+              ) : null}
+
+              {!isBookmarkLoading &&
+              !bookmarkError &&
+              bookmarkedHospitals.length === 0 ? (
+                <p className={styles.bookmarkState}>아직 찜한 병원이 없습니다.</p>
+              ) : null}
+
+              {!isBookmarkLoading &&
+              !bookmarkError &&
+              bookmarkedHospitals.length > 0 ? (
+                <ul className={styles.bookmarkList}>
+                  {bookmarkedHospitals.map((hospital) => (
+                    <li key={hospital.id} className={styles.bookmarkItem}>
+                      <span>{hospital.region}</span>
+                      <strong>{hospital.name}</strong>
+                      <p>{hospital.address}</p>
+                      <div className={styles.bookmarkTags}>
+                        {hospital.animals.slice(0, 4).map((animal) => (
+                          <em key={`${hospital.id}-${animal}`}>{animal}</em>
+                        ))}
+                        {hospital.isEmergency ? <em>응급 진료</em> : null}
+                        {hospital.isSpecialty ? <em>특수동물 진료</em> : null}
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              ) : null}
+            </section>
+          </div>
+        ) : null}
         {authDialogMessage ? (
           <div className={styles.dialogBackdrop} role="presentation">
             <section

@@ -17,6 +17,7 @@ export type Database = {
           phone: string | null;
           street_address: string;
           region: string;
+          region_filter: string;
           latitude: number;
           longitude: number;
           homepage: string | null;
@@ -42,6 +43,7 @@ export type Database = {
           phone?: string | null;
           street_address: string;
           region: string;
+          region_filter?: string;
           latitude: number;
           longitude: number;
           homepage?: string | null;
@@ -67,6 +69,7 @@ export type Database = {
           phone?: string | null;
           street_address?: string;
           region?: string;
+          region_filter?: string;
           latitude?: number;
           longitude?: number;
           homepage?: string | null;
@@ -253,6 +256,32 @@ export type Database = {
             columns: ["comment_id"];
             isOneToOne: false;
             referencedRelation: "hospital_comments";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      hospital_bookmarks: {
+        Row: {
+          hospital_id: string;
+          user_id: string;
+          created_at: string;
+        };
+        Insert: {
+          hospital_id: string;
+          user_id: string;
+          created_at?: string;
+        };
+        Update: {
+          hospital_id?: string;
+          user_id?: string;
+          created_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "hospital_bookmarks_hospital_id_fkey";
+            columns: ["hospital_id"];
+            isOneToOne: false;
+            referencedRelation: "hospitals";
             referencedColumns: ["id"];
           },
         ];

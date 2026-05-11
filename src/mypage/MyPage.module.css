@@ -43,16 +43,28 @@
   gap: 10px;
 }
 
-.benefitGrid div {
+.benefitGrid div,
+.benefitGrid button {
   min-height: 74px;
+  border: 1px solid #ead8ca;
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 1px solid #ead8ca;
   border-radius: 8px;
   background: rgba(255, 255, 255, 0.7);
   color: #4a3f38;
+  font: inherit;
   font-weight: 800;
+}
+
+.benefitGrid button {
+  cursor: pointer;
+}
+
+.benefitGrid button:hover {
+  border-color: #ff9645;
+  background: #fff8f2;
+  color: #e5792d;
 }
 
 .authCard {
@@ -251,7 +263,7 @@
 }
 
 .profileForm {
-  margin-top: 8px;
+  margin-top: 16px;
 }
 
 .profileHint {
@@ -268,6 +280,136 @@
   justify-content: center;
   padding: 20px;
   background: rgba(56, 56, 56, 0.42);
+}
+
+.sheetBackdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 45;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 24px 20px 0;
+  background: rgba(56, 56, 56, 0.42);
+}
+
+.bookmarkSheet {
+  width: min(640px, 100%);
+  max-height: calc(100vh - 32px);
+  overflow: auto;
+  border-radius: 24px 24px 0 0;
+  padding: 12px 20px 32px;
+  background: #ffffff;
+  box-shadow: 0 -18px 48px rgba(56, 56, 56, 0.2);
+}
+
+.sheetHandle {
+  width: 48px;
+  height: 5px;
+  border-radius: 999px;
+  margin: 2px auto 16px;
+  background: #d8c8bc;
+}
+
+.bookmarkSheetHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.bookmarkSheetHeader h2 {
+  margin: 0;
+  color: #383838;
+  font-size: 24px;
+}
+
+.bookmarkSheetHeader p {
+  margin: 5px 0 0;
+  color: #7d4b2a;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.sheetCloseButton {
+  min-width: 58px;
+  height: 38px;
+  border: 1px solid #ead8ca;
+  border-radius: 999px;
+  background: #fff8f2;
+  color: #7d4b2a;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.bookmarkState,
+.bookmarkError {
+  margin: 16px 0 0;
+  border-radius: 8px;
+  padding: 14px;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.bookmarkState {
+  background: #fff8f2;
+  color: #7d4b2a;
+}
+
+.bookmarkError {
+  background: #fff1e8;
+  color: #9d3217;
+}
+
+.bookmarkList {
+  list-style: none;
+  margin: 16px 0 0;
+  padding: 0;
+  display: grid;
+  gap: 10px;
+}
+
+.bookmarkItem {
+  display: grid;
+  gap: 6px;
+  border: 1px solid #f0ded0;
+  border-radius: 8px;
+  padding: 14px;
+  background: #fffdfb;
+}
+
+.bookmarkItem span {
+  color: #e5792d;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.bookmarkItem strong {
+  color: #383838;
+  font-size: 16px;
+}
+
+.bookmarkItem p {
+  margin: 0;
+  color: #4a3f38;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.bookmarkTags {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.bookmarkTags em {
+  border-radius: 999px;
+  padding: 4px 8px;
+  background: #fff1e8;
+  color: #7d4b2a;
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 800;
 }
 
 .authDialog {
