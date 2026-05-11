@@ -7,7 +7,7 @@ import styles from "@/src/support/SupportPage.module.css";
 const DONATION_ACCOUNT = {
   bank: "카카오뱅크",
   number: "3333367781692 ",
-  holder: "박인권",
+  holder: "박*권",
 };
 
 export default function SupportPage() {
