@@ -1,7 +1,11 @@
 import Head from "next/head";
+import Link from "next/link";
 import { useMemo, useState } from "react";
 import HospitalReportSheet from "@/src/shared/components/HospitalReportSheet";
 import TopNav from "@/src/shared/components/TopNav";
+import PostComposeSheet from "@/src/reviews/PostComposeSheet";
+import { REGION_FILTERS } from "@/src/home/regions";
+import type { Region } from "@/src/home/types";
 import styles from "@/src/reviews/ReviewsPage.module.css";
 
 const BOARD_TABS = [
@@ -10,17 +14,16 @@ const BOARD_TABS = [
   "꿀팁 게시판",
 ] as const;
 
-const REGIONS = ["전체", "서울", "경기", "인천", "부산"] as const;
+const REVIEW_REGION_OPTIONS: readonly Region[] = REGION_FILTERS;
 
 type BoardTab = (typeof BOARD_TABS)[number];
-type Region = (typeof REGIONS)[number];
 
 type Post = {
   id: string;
   board: BoardTab;
   title: string;
   likes: number;
-  region?: Exclude<Region, "전체">;
+  region?: Region;
 };
 
 const POSTS: Post[] = [
@@ -76,6 +79,7 @@ export default function ReviewsPage() {
   const [activeTab, setActiveTab] = useState<BoardTab>("병원후기 게시판");
   const [selectedRegion, setSelectedRegion] = useState<Region>("전체");
   const [isReportSheetOpen, setIsReportSheetOpen] = useState(false);
+  const [isComposeOpen, setIsComposeOpen] = useState(false);
 
   const visiblePosts = useMemo(
     () =>
@@ -105,6 +109,10 @@ export default function ReviewsPage() {
     setActiveMenu("병원후기");
   };
 
+  const handleWritePost = () => {
+    setIsComposeOpen(true);
+  };
+
   return (
     <>
       <Head>
@@ -125,11 +133,6 @@ export default function ReviewsPage() {
         />
 
         <main className={styles.content}>
-          <header className={styles.pageHeader}>
-            <p className={styles.eyebrow}>Community</p>
-            <h1>병원후기</h1>
-          </header>
-
           <section className={styles.boardSurface}>
             <div className={styles.tabBar} aria-label="게시판 선택">
               {BOARD_TABS.map((tab) => (
@@ -148,7 +151,7 @@ export default function ReviewsPage() {
 
             {activeTab === "병원후기 게시판" ? (
               <div className={styles.regionFilter} aria-label="지역 필터">
-                {REGIONS.map((region) => (
+                {REVIEW_REGION_OPTIONS.map((region) => (
                   <button
                     key={region}
                     type="button"
@@ -166,15 +169,45 @@ export default function ReviewsPage() {
             <ul className={styles.postList}>
               {visiblePosts.map((post) => (
                 <li key={post.id}>
-                  <button type="button" className={styles.postItem}>
+                  <Link href={`/reviews/${post.id}`} className={styles.postItem}>
                     <span className={styles.postTitle}>{post.title}</span>
                     <span className={styles.postLikes}>좋아요 {post.likes}</span>
-                  </button>
+                  </Link>
                 </li>
               ))}
             </ul>
           </section>
         </main>
+
+        <button
+          type="button"
+          className={styles.writeFab}
+          aria-label={`${activeTab} 글쓰기`}
+          onClick={handleWritePost}
+        >
+          <svg
+            className={styles.writeFabIcon}
+            viewBox="0 0 24 24"
+            aria-hidden="true"
+            focusable="false"
+          >
+            <path
+              d="M4 17.25V20h2.75L18.81 7.94l-2.75-2.75L4 17.25z"
+              fill="currentColor"
+            />
+            <path
+              d="M20.71 5.04a1 1 0 0 0 0-1.41l-2.34-2.34a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"
+              fill="currentColor"
+            />
+          </svg>
+          <span className={styles.writeFabLabel}>글쓰기</span>
+        </button>
+
+        <PostComposeSheet
+          isOpen={isComposeOpen}
+          defaultBoard={activeTab}
+          onClose={() => setIsComposeOpen(false)}
+        />
 
         <HospitalReportSheet
           isOpen={isReportSheetOpen}

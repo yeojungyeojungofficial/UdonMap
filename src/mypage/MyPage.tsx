@@ -800,7 +800,7 @@ export default function MyPage() {
                       closeAuthDialog();
                     }}
                   />
-                  <span>자동로그인 (24시간)</span>
+                  <span>자동로그인</span>
                 </label>
               ) : null}
 

@@ -1,41 +1,27 @@
 .page {
   min-height: 100vh;
-  padding: 20px;
-  padding-top: 84px;
+  padding: 0;
+  padding-top: 70px;
   background: #ffffff;
   color: #383838;
 }
 
 .content {
-  width: min(980px, 100%);
-  margin: 0 auto;
-  display: grid;
-  gap: 18px;
-}
-
-.pageHeader {
-  padding: 22px 0 4px;
-}
-
-.eyebrow {
-  margin: 0 0 8px;
-  color: #ff9645;
-  font-size: 13px;
-  font-weight: 800;
-}
-
-.pageHeader h1 {
+  width: 100%;
+  max-width: none;
   margin: 0;
-  font-size: 34px;
-  letter-spacing: 0;
+  display: flex;
+  flex-direction: column;
+  min-height: calc(100vh - 70px);
 }
 
 .boardSurface {
-  border: 1px solid #ead8ca;
-  border-radius: 8px;
-  padding: 18px;
+  flex: 1;
+  border: none;
+  border-radius: 0;
+  padding: 18px 24px;
   background: #ffffff;
-  box-shadow: 0 16px 30px rgba(56, 56, 56, 0.08);
+  box-shadow: none;
 }
 
 .tabBar {
@@ -89,19 +75,20 @@
 }
 
 .postItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
   width: 100%;
   min-height: 58px;
   border: 1px solid #ead8ca;
   border-radius: 8px;
   padding: 14px 16px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
   background: #fffdfb;
   color: #383838;
-  text-align: left;
+  text-decoration: none;
   cursor: pointer;
+  box-sizing: border-box;
 }
 
 .postItem:hover {
@@ -121,16 +108,71 @@
   font-weight: 800;
 }
 
+.writeFab {
+  position: fixed;
+  right: 28px;
+  bottom: 28px;
+  z-index: 90;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: none;
+  border-radius: 999px;
+  padding: 14px 22px;
+  background: #ff9645;
+  color: #ffffff;
+  font-size: 15px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
+}
+
+.writeFab:hover {
+  background: #e5792d;
+  transform: translateY(-1px);
+}
+
+.writeFab:active {
+  transform: translateY(0);
+}
+
+.writeFab:focus-visible {
+  outline: 3px solid rgba(255, 150, 69, 0.4);
+  outline-offset: 3px;
+}
+
+.writeFabIcon {
+  width: 20px;
+  height: 20px;
+  flex: 0 0 auto;
+}
+
+.writeFabLabel {
+  white-space: nowrap;
+}
+
 @media (max-width: 960px) {
   .page {
-    padding-top: 116px;
+    padding-top: 104px;
+  }
+
+  .content {
+    min-height: calc(100vh - 104px);
   }
 }
 
 @media (max-width: 640px) {
   .page {
-    padding: 12px;
-    padding-top: 112px;
+    padding: 0;
+    padding-top: 100px;
+  }
+
+  .content {
+    min-height: calc(100vh - 100px);
+  }
+
+  .boardSurface {
+    padding: 14px 12px;
   }
 
   .tabBar {
@@ -140,5 +182,32 @@
   .postItem {
     align-items: flex-start;
     flex-direction: column;
+  }
+
+  .writeFab {
+    right: 18px;
+    bottom: 18px;
+    padding: 0;
+    width: 56px;
+    height: 56px;
+    justify-content: center;
+    gap: 0;
+  }
+
+  .writeFabIcon {
+    width: 22px;
+    height: 22px;
+  }
+
+  .writeFabLabel {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
   }
 }
