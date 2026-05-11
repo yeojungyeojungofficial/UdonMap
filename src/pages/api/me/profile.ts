@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { getSupabaseServerClient } from "@/src/shared/lib/supabaseServer";
 import { updateHospitalCommentAuthorNames } from "@/src/shared/lib/hospitalComments";
+import { getBearerToken } from "@/src/shared/lib/apiRequest";
 import {
   ensureUserProfile,
   updateUserProfile,
@@ -15,19 +16,6 @@ type UserProfileResponse =
   | {
       error: string;
     };
-
-function getBearerToken(req: NextApiRequest) {
-  const authorization = req.headers.authorization;
-  const header = Array.isArray(authorization)
-    ? authorization[0]
-    : authorization;
-
-  if (!header?.startsWith("Bearer ")) {
-    return null;
-  }
-
-  return header.slice("Bearer ".length).trim() || null;
-}
 
 export default async function handler(
   req: NextApiRequest,

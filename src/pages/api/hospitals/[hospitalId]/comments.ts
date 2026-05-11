@@ -9,6 +9,7 @@ import {
 import type { HospitalComment } from "@/src/home/types";
 import { getSupabaseServerClient } from "@/src/shared/lib/supabaseServer";
 import { ensureUserProfile } from "@/src/shared/lib/userProfiles";
+import { getBearerToken } from "@/src/shared/lib/apiRequest";
 
 type HospitalCommentResponse =
   | {
@@ -25,19 +26,6 @@ function getHospitalId(req: NextApiRequest) {
   return Array.isArray(req.query.hospitalId)
     ? req.query.hospitalId[0]
     : req.query.hospitalId;
-}
-
-function getBearerToken(req: NextApiRequest) {
-  const authorization = req.headers.authorization;
-  const header = Array.isArray(authorization)
-    ? authorization[0]
-    : authorization;
-
-  if (!header?.startsWith("Bearer ")) {
-    return null;
-  }
-
-  return header.slice("Bearer ".length).trim() || null;
 }
 
 type ActiveSuspension = {

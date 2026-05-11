@@ -5,15 +5,17 @@
   background: rgba(56, 56, 56, 0.52);
   display: flex;
   align-items: flex-end;
+  padding-bottom: env(safe-area-inset-bottom);
 }
 
 .sheet {
   width: 100%;
   max-height: min(86vh, 760px);
+  max-height: min(86dvh, 760px);
   overflow: auto;
   border-radius: 24px 24px 0 0;
   background: #ffffff;
-  padding: 12px 18px 24px;
+  padding: 12px 18px max(24px, env(safe-area-inset-bottom));
   animation: slideUp 0.26s ease;
 }
 

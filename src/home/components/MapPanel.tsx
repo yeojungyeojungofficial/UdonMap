@@ -167,6 +167,7 @@ export default function MapPanel({
   const shouldSkipInitialBoundsRef = useRef(true);
   const [isSdkReady, setIsSdkReady] = useState(false);
   const [isMapReady, setIsMapReady] = useState(false);
+  const [hasSdkLoadError, setHasSdkLoadError] = useState(false);
   const [mapLevel, setMapLevel] = useState(INITIAL_MAP_LEVEL);
 
   useEffect(() => {
@@ -355,7 +356,7 @@ export default function MapPanel({
 
   return (
     <section className={styles.mapPanel} aria-label="병원 지도">
-      {scriptSrc ? (
+      {scriptSrc && !hasSdkLoadError ? (
         <>
           <div ref={mapContainerRef} className={styles.kakaoMap} />
           {!isMapReady ? fallbackMarkers : null}
@@ -365,6 +366,9 @@ export default function MapPanel({
             strategy="afterInteractive"
             onReady={() => {
               window.kakao?.maps.load(() => setIsSdkReady(true));
+            }}
+            onError={() => {
+              setHasSdkLoadError(true);
             }}
           />
         </>

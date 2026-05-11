@@ -32,6 +32,7 @@ export type Hospital = {
   reviewCount: number;
   animals: string[];
   comments: HospitalComment[];
+  commentsLoaded: boolean;
   mapPosition: {
     x: number;
     y: number;

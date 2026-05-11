@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { getSupabaseServerClient } from "@/src/shared/lib/supabaseServer";
 import type { Database } from "@/src/shared/lib/database.types";
+import { getBearerToken } from "@/src/shared/lib/apiRequest";
 
 type ReportRow = Pick<
   Database["public"]["Tables"]["hospital_reports"]["Row"],
@@ -38,7 +39,7 @@ type HospitalRow = Pick<
 
 type MyActivityResponse =
   | {
-      reports: Array<{
+      reports?: Array<{
         id: string;
         hospitalName: string;
         address: string;
@@ -49,7 +50,7 @@ type MyActivityResponse =
         createdAt: string;
         updatedAt: string;
       }>;
-      posts: Array<{
+      posts?: Array<{
         id: string;
         board: string;
         filterTag: string | null;
@@ -57,7 +58,7 @@ type MyActivityResponse =
         createdAt: string;
         updatedAt: string;
       }>;
-      comments: Array<{
+      comments?: Array<{
         id: string;
         hospitalId: string;
         hospitalName: string;
@@ -74,17 +75,18 @@ type MyActivityResponse =
       error: string;
     };
 
-function getBearerToken(req: NextApiRequest) {
-  const authorization = req.headers.authorization;
-  const header = Array.isArray(authorization)
-    ? authorization[0]
-    : authorization;
+type ActivityTab = "reports" | "posts" | "comments" | "all";
 
-  if (!header?.startsWith("Bearer ")) {
-    return null;
+function getActivityTab(req: NextApiRequest): ActivityTab | null {
+  const value = Array.isArray(req.query.tab) ? req.query.tab[0] : req.query.tab;
+
+  if (!value) {
+    return "all";
   }
 
-  return header.slice("Bearer ".length).trim() || null;
+  return value === "reports" || value === "posts" || value === "comments"
+    ? value
+    : null;
 }
 
 export default async function handler(
@@ -104,6 +106,13 @@ export default async function handler(
     return;
   }
 
+  const activityTab = getActivityTab(req);
+
+  if (!activityTab) {
+    res.status(400).json({ error: "올바른 활동 탭이 필요합니다." });
+    return;
+  }
+
   try {
     const supabase = getSupabaseServerClient();
     const {
@@ -120,51 +129,66 @@ export default async function handler(
       return;
     }
 
-    const { data: reportData, error: reportError } = await supabase
-      .from("hospital_reports")
-      .select(
-        "id,hospital_name,street_address,animal_categories,animal_species,details,status,created_at,updated_at",
-      )
-      .eq("user_id", user.id)
-      .order("created_at", { ascending: false })
-      .limit(50);
+    let reportData: ReportRow[] = [];
+    let postData: PostRow[] = [];
+    let comments: CommentRow[] = [];
 
-    if (reportError) {
-      res.status(500).json({
-        error: `Supabase hospital_reports 조회 실패: ${reportError.message}`,
-      });
-      return;
+    if (activityTab === "reports" || activityTab === "all") {
+      const { data, error } = await supabase
+        .from("hospital_reports")
+        .select(
+          "id,hospital_name,street_address,animal_categories,animal_species,details,status,created_at,updated_at",
+        )
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false })
+        .limit(50);
+
+      if (error) {
+        res.status(500).json({
+          error: `Supabase hospital_reports 조회 실패: ${error.message}`,
+        });
+        return;
+      }
+
+      reportData = (data ?? []) as ReportRow[];
     }
 
-    const { data: postData, error: postError } = await supabase
-      .from("board_posts")
-      .select("id,board,filter_tag,title,created_at,updated_at")
-      .eq("user_id", user.id)
-      .order("created_at", { ascending: false })
-      .limit(50);
+    if (activityTab === "posts" || activityTab === "all") {
+      const { data, error } = await supabase
+        .from("board_posts")
+        .select("id,board,filter_tag,title,created_at,updated_at")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false })
+        .limit(50);
 
-    if (postError) {
-      res.status(500).json({
-        error: `Supabase board_posts 조회 실패: ${postError.message}`,
-      });
-      return;
+      if (error) {
+        res.status(500).json({
+          error: `Supabase board_posts 조회 실패: ${error.message}`,
+        });
+        return;
+      }
+
+      postData = (data ?? []) as PostRow[];
     }
 
-    const { data: commentData, error: commentError } = await supabase
-      .from("hospital_comments")
-      .select("id,hospital_id,body,status,created_at,updated_at,deleted_at")
-      .eq("user_id", user.id)
-      .order("created_at", { ascending: false })
-      .limit(50);
+    if (activityTab === "comments" || activityTab === "all") {
+      const { data, error } = await supabase
+        .from("hospital_comments")
+        .select("id,hospital_id,body,status,created_at,updated_at,deleted_at")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false })
+        .limit(50);
 
-    if (commentError) {
-      res.status(500).json({
-        error: `Supabase hospital_comments 조회 실패: ${commentError.message}`,
-      });
-      return;
+      if (error) {
+        res.status(500).json({
+          error: `Supabase hospital_comments 조회 실패: ${error.message}`,
+        });
+        return;
+      }
+
+      comments = (data ?? []) as CommentRow[];
     }
 
-    const comments = (commentData ?? []) as CommentRow[];
     const hospitalIds = Array.from(
       new Set(comments.map((comment) => comment.hospital_id)),
     );
@@ -192,7 +216,7 @@ export default async function handler(
     }
 
     res.status(200).json({
-      reports: ((reportData ?? []) as ReportRow[]).map((report) => ({
+      reports: reportData.map((report) => ({
         id: report.id,
         hospitalName: report.hospital_name,
         address: report.street_address,
@@ -203,7 +227,7 @@ export default async function handler(
         createdAt: report.created_at,
         updatedAt: report.updated_at,
       })),
-      posts: ((postData ?? []) as PostRow[]).map((post) => ({
+      posts: postData.map((post) => ({
         id: post.id,
         board: post.board,
         filterTag: post.filter_tag,

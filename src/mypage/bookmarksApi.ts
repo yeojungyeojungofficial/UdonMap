@@ -1,6 +1,7 @@
 import type { Session } from "@supabase/supabase-js";
 import { getSupabaseBrowserClient } from "@/src/shared/lib/supabase";
 import type { Database } from "@/src/shared/lib/database.types";
+import { isMissingBookmarksTableError } from "@/src/shared/lib/bookmarkErrors";
 
 type BookmarkRow = Pick<
   Database["public"]["Tables"]["hospital_bookmarks"]["Row"],
@@ -28,14 +29,6 @@ export type BookmarkedHospital = {
   isEmergency: boolean;
   bookmarkedAt: string;
 };
-
-function isMissingBookmarksTableError(error: { code?: string; message: string }) {
-  return (
-    error.code === "42P01" ||
-    error.message.includes("hospital_bookmarks") ||
-    error.message.includes("schema cache")
-  );
-}
 
 export async function fetchBookmarkedHospitals(session: Session) {
   const supabase = getSupabaseBrowserClient();

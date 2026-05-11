@@ -41,6 +41,8 @@ type HospitalBottomSheetProps = {
     commentId: string,
     reaction: ReactionSnapshot,
   ) => void;
+  isLoadingComments?: boolean;
+  commentLoadError?: string;
 };
 
 type IconName =
@@ -220,6 +222,8 @@ export default function HospitalBottomSheet({
   onHospitalReactionChanged,
   onBookmarkChanged,
   onCommentReactionChanged,
+  isLoadingComments = false,
+  commentLoadError = "",
 }: HospitalBottomSheetProps) {
   const initialAuthSession = getCachedAuthSession();
   const [commentContent, setCommentContent] = useState("");
@@ -673,7 +677,7 @@ export default function HospitalBottomSheet({
             <div className={styles.sheetSectionHeader}>
               <h4 className={styles.commentTitle}>이용자 댓글</h4>
               <span className={styles.commentCount}>
-                {hospital.comments.length}개
+                {hospital.reviewCount}개
               </span>
             </div>
             <form
@@ -721,7 +725,15 @@ export default function HospitalBottomSheet({
                 <p className={styles.commentError}>{commentError}</p>
               ) : null}
             </form>
-            {hospital.comments.length > 0 ? (
+            {isLoadingComments ? (
+              <p className={styles.commentMessage}>댓글을 불러오는 중입니다.</p>
+            ) : null}
+            {commentLoadError ? (
+              <p className={styles.commentError}>{commentLoadError}</p>
+            ) : null}
+            {!isLoadingComments &&
+            !commentLoadError &&
+            hospital.comments.length > 0 ? (
               <ul className={styles.commentList}>
                 {hospital.comments.map((comment) => (
                   <li key={comment.id} className={styles.commentItem}>
@@ -776,7 +788,10 @@ export default function HospitalBottomSheet({
                   </li>
                 ))}
               </ul>
-            ) : (
+            ) : null}
+            {!isLoadingComments &&
+            !commentLoadError &&
+            hospital.comments.length === 0 ? (
               <div className={styles.emptyComment}>
                 <span className={styles.emptyCommentIcon}>
                   <SheetIcon name="comment" />
@@ -784,7 +799,7 @@ export default function HospitalBottomSheet({
                 <strong>아직 등록된 댓글이 없습니다.</strong>
                 <p>첫 번째 댓글을 남겨 다른 보호자들에게 도움을 주세요.</p>
               </div>
-            )}
+            ) : null}
           </section>
         </div>
       </section>

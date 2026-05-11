@@ -35,6 +35,7 @@ import {
 } from "@/src/mypage/bookmarksApi";
 import {
   fetchMyActivity,
+  type MyActivityTab,
   type MyComment,
   type MyPost,
   type MyReport,
@@ -42,7 +43,7 @@ import {
 import styles from "@/src/mypage/MyPage.module.css";
 
 type AuthMode = "login" | "signup";
-type ActivityTab = "reports" | "posts" | "comments";
+type ActivityTab = MyActivityTab;
 
 const INVALID_AUTH_CODE_MESSAGE = "잘못된 인증번호입니다";
 const AUTH_ERROR_QUERY_KEYS = [
@@ -236,19 +237,31 @@ export default function MyPage() {
     }
   }, []);
 
-  const loadMyActivity = useCallback(async () => {
+  const loadMyActivity = useCallback(async (tab: ActivityTab) => {
     setIsActivityLoading(true);
     setActivityError("");
 
     try {
-      const nextActivity = await fetchMyActivity();
-      setMyReports(nextActivity.reports);
-      setMyPosts(nextActivity.posts);
-      setMyComments(nextActivity.comments);
+      const nextActivity = await fetchMyActivity(tab);
+      if (tab === "reports") {
+        setMyReports(nextActivity.reports);
+      }
+      if (tab === "posts") {
+        setMyPosts(nextActivity.posts);
+      }
+      if (tab === "comments") {
+        setMyComments(nextActivity.comments);
+      }
     } catch (error) {
-      setMyReports([]);
-      setMyPosts([]);
-      setMyComments([]);
+      if (tab === "reports") {
+        setMyReports([]);
+      }
+      if (tab === "posts") {
+        setMyPosts([]);
+      }
+      if (tab === "comments") {
+        setMyComments([]);
+      }
       setActivityError(
         error instanceof Error
           ? error.message
@@ -275,7 +288,12 @@ export default function MyPage() {
 
     setActivityTab(nextTab);
     setIsActivitySheetOpen(true);
-    void loadMyActivity();
+    void loadMyActivity(nextTab);
+  };
+
+  const handleActivityTabChange = (nextTab: ActivityTab) => {
+    setActivityTab(nextTab);
+    void loadMyActivity(nextTab);
   };
 
   useEffect(() => {
@@ -950,7 +968,7 @@ export default function MyPage() {
                     activityTab === "reports" ? styles.activityTabActive : ""
                   }`}
                   aria-pressed={activityTab === "reports"}
-                  onClick={() => setActivityTab("reports")}
+                  onClick={() => handleActivityTabChange("reports")}
                 >
                   내 제보
                 </button>
@@ -960,7 +978,7 @@ export default function MyPage() {
                     activityTab === "posts" ? styles.activityTabActive : ""
                   }`}
                   aria-pressed={activityTab === "posts"}
-                  onClick={() => setActivityTab("posts")}
+                  onClick={() => handleActivityTabChange("posts")}
                 >
                   내 게시글
                 </button>
@@ -970,7 +988,7 @@ export default function MyPage() {
                     activityTab === "comments" ? styles.activityTabActive : ""
                   }`}
                   aria-pressed={activityTab === "comments"}
-                  onClick={() => setActivityTab("comments")}
+                  onClick={() => handleActivityTabChange("comments")}
                 >
                   내 댓글
                 </button>
