@@ -17,6 +17,7 @@ export type Database = {
           phone: string | null;
           street_address: string;
           region: string;
+          region_filter: string;
           latitude: number;
           longitude: number;
           homepage: string | null;
@@ -42,6 +43,7 @@ export type Database = {
           phone?: string | null;
           street_address: string;
           region: string;
+          region_filter?: string;
           latitude: number;
           longitude: number;
           homepage?: string | null;
@@ -67,6 +69,7 @@ export type Database = {
           phone?: string | null;
           street_address?: string;
           region?: string;
+          region_filter?: string;
           latitude?: number;
           longitude?: number;
           homepage?: string | null;
@@ -90,6 +93,7 @@ export type Database = {
       hospital_reports: {
         Row: {
           id: string;
+          user_id: string | null;
           hospital_id: string | null;
           hospital_name: string;
           street_address: string;
@@ -106,6 +110,7 @@ export type Database = {
         };
         Insert: {
           id?: string;
+          user_id?: string | null;
           hospital_id?: string | null;
           hospital_name: string;
           street_address: string;
@@ -122,6 +127,7 @@ export type Database = {
         };
         Update: {
           id?: string;
+          user_id?: string | null;
           hospital_id?: string | null;
           hospital_name?: string;
           street_address?: string;
@@ -156,6 +162,9 @@ export type Database = {
           like_count: number;
           dislike_count: number;
           status: "visible" | "hidden" | "deleted";
+          deleted_at: string | null;
+          deleted_by: string | null;
+          deleted_reason: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -168,6 +177,9 @@ export type Database = {
           like_count?: number;
           dislike_count?: number;
           status?: "visible" | "hidden" | "deleted";
+          deleted_at?: string | null;
+          deleted_by?: string | null;
+          deleted_reason?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -180,6 +192,9 @@ export type Database = {
           like_count?: number;
           dislike_count?: number;
           status?: "visible" | "hidden" | "deleted";
+          deleted_at?: string | null;
+          deleted_by?: string | null;
+          deleted_reason?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -257,6 +272,112 @@ export type Database = {
           },
         ];
       };
+      hospital_bookmarks: {
+        Row: {
+          hospital_id: string;
+          user_id: string;
+          created_at: string;
+        };
+        Insert: {
+          hospital_id: string;
+          user_id: string;
+          created_at?: string;
+        };
+        Update: {
+          hospital_id?: string;
+          user_id?: string;
+          created_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "hospital_bookmarks_hospital_id_fkey";
+            columns: ["hospital_id"];
+            isOneToOne: false;
+            referencedRelation: "hospitals";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      comment_moderation_actions: {
+        Row: {
+          id: string;
+          comment_id: string;
+          target_user_id: string;
+          admin_id: string | null;
+          action: "delete" | "restore";
+          reason: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          comment_id: string;
+          target_user_id: string;
+          admin_id?: string | null;
+          action: "delete" | "restore";
+          reason?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          comment_id?: string;
+          target_user_id?: string;
+          admin_id?: string | null;
+          action?: "delete" | "restore";
+          reason?: string | null;
+          created_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "comment_moderation_actions_comment_id_fkey";
+            columns: ["comment_id"];
+            isOneToOne: false;
+            referencedRelation: "hospital_comments";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      user_suspensions: {
+        Row: {
+          id: string;
+          user_id: string;
+          duration: "3d" | "7d" | "permanent";
+          reason: string | null;
+          starts_at: string;
+          ends_at: string | null;
+          created_by: string | null;
+          created_at: string;
+          revoked_at: string | null;
+          revoked_by: string | null;
+          revoke_reason: string | null;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          duration: "3d" | "7d" | "permanent";
+          reason?: string | null;
+          starts_at?: string;
+          ends_at?: string | null;
+          created_by?: string | null;
+          created_at?: string;
+          revoked_at?: string | null;
+          revoked_by?: string | null;
+          revoke_reason?: string | null;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          duration?: "3d" | "7d" | "permanent";
+          reason?: string | null;
+          starts_at?: string;
+          ends_at?: string | null;
+          created_by?: string | null;
+          created_at?: string;
+          revoked_at?: string | null;
+          revoked_by?: string | null;
+          revoke_reason?: string | null;
+        };
+        Relationships: [];
+      };
       profiles: {
         Row: {
           id: string;
@@ -284,6 +405,139 @@ export type Database = {
     };
     Views: Record<string, never>;
     Functions: {
+      admin_delete_hospital_comment: {
+        Args: {
+          p_comment_id: string;
+          p_admin_id?: string | null;
+          p_reason?: string | null;
+        };
+        Returns: {
+          comment_id: string;
+          user_id: string;
+          status: "visible" | "hidden" | "deleted";
+          deleted_at: string | null;
+          deleted_by: string | null;
+          deleted_reason: string | null;
+        }[];
+      };
+      admin_list_hospital_comments: {
+        Args: {
+          p_page?: number;
+          p_page_size?: number;
+          p_user_id?: string | null;
+          p_hospital_id?: string | null;
+          p_status?: "visible" | "hidden" | "deleted" | null;
+          p_search?: string | null;
+        };
+        Returns: {
+          comment_id: string;
+          hospital_id: string;
+          hospital_name: string;
+          user_id: string;
+          user_email: string | null;
+          user_display_name: string | null;
+          author_name: string;
+          body: string;
+          like_count: number;
+          dislike_count: number;
+          status: "visible" | "hidden" | "deleted";
+          created_at: string;
+          updated_at: string;
+          deleted_at: string | null;
+          deleted_by: string | null;
+          deleted_reason: string | null;
+          total_count: number;
+        }[];
+      };
+      admin_list_user_suspensions: {
+        Args: {
+          p_page?: number;
+          p_page_size?: number;
+          p_user_id?: string | null;
+          p_include_inactive?: boolean;
+          p_search?: string | null;
+        };
+        Returns: {
+          suspension_id: string;
+          user_id: string;
+          user_email: string | null;
+          user_display_name: string | null;
+          duration: "3d" | "7d" | "permanent";
+          reason: string | null;
+          starts_at: string;
+          ends_at: string | null;
+          created_by: string | null;
+          created_at: string;
+          revoked_at: string | null;
+          revoked_by: string | null;
+          revoke_reason: string | null;
+          is_active: boolean;
+          total_count: number;
+        }[];
+      };
+      admin_restore_hospital_comment: {
+        Args: {
+          p_comment_id: string;
+          p_admin_id?: string | null;
+          p_reason?: string | null;
+        };
+        Returns: {
+          comment_id: string;
+          user_id: string;
+          status: "visible" | "hidden" | "deleted";
+        }[];
+      };
+      admin_revoke_user_suspension: {
+        Args: {
+          p_suspension_id: string;
+          p_admin_id?: string | null;
+          p_reason?: string | null;
+        };
+        Returns: {
+          suspension_id: string;
+          user_id: string;
+          revoked_at: string;
+          revoked_by: string | null;
+          revoke_reason: string | null;
+        }[];
+      };
+      admin_suspend_user: {
+        Args: {
+          p_user_id: string;
+          p_duration: "3d" | "7d" | "permanent";
+          p_admin_id?: string | null;
+          p_reason?: string | null;
+        };
+        Returns: {
+          suspension_id: string;
+          user_id: string;
+          duration: "3d" | "7d" | "permanent";
+          starts_at: string;
+          ends_at: string | null;
+          reason: string | null;
+        }[];
+      };
+      get_user_active_suspension: {
+        Args: {
+          p_user_id: string;
+        };
+        Returns: {
+          suspension_id: string;
+          user_id: string;
+          duration: "3d" | "7d" | "permanent";
+          reason: string | null;
+          starts_at: string;
+          ends_at: string | null;
+          created_by: string | null;
+          created_at: string;
+        }[];
+      };
+      is_user_currently_suspended: {
+        Args: {
+          p_user_id: string;
+        };
+        Returns: boolean;
+      };
       set_hospital_reaction: {
         Args: {
           p_hospital_id: string;

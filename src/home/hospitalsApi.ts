@@ -1,4 +1,5 @@
 import { getSupabaseBrowserClient } from "@/src/shared/lib/supabase";
+import { loadAuthSession } from "@/src/shared/lib/authSession";
 import type { Database } from "@/src/shared/lib/database.types";
 import type { Hospital, HospitalComment, ReactionType } from "@/src/home/types";
 import {
@@ -15,6 +16,7 @@ type HospitalListRow = Pick<
   | "phone"
   | "street_address"
   | "region"
+  | "region_filter"
   | "latitude"
   | "longitude"
   | "homepage"
@@ -36,7 +38,7 @@ const KOREA_MAP_BOUNDS = {
 };
 
 const HOSPITAL_COLUMNS =
-  "id,name,phone,street_address,region,latitude,longitude,homepage,instagram,specialty,emergency,hours,exotic_animals,likes,dislikes,review_count";
+  "id,name,phone,street_address,region,region_filter,latitude,longitude,homepage,instagram,specialty,emergency,hours,exotic_animals,likes,dislikes,review_count";
 
 function clamp(value: number, min: number, max: number) {
   return Math.min(Math.max(value, min), max);
@@ -77,6 +79,19 @@ type HospitalCommentReactionRow = Pick<
   "comment_id" | "reaction_type"
 >;
 
+type HospitalBookmarkRow = Pick<
+  Database["public"]["Tables"]["hospital_bookmarks"]["Row"],
+  "hospital_id"
+>;
+
+function isMissingBookmarksTableError(error: { code?: string; message: string }) {
+  return (
+    error.code === "42P01" ||
+    error.message.includes("hospital_bookmarks") ||
+    error.message.includes("schema cache")
+  );
+}
+
 function toReactionMap<IdKey extends string>(
   rows: Array<Record<IdKey, string> & { reaction_type: ReactionType }>,
   idKey: IdKey,
@@ -103,6 +118,7 @@ function toHospital(
   row: HospitalListRow,
   comments: HospitalComment[] = [],
   reaction: ReactionType | null = null,
+  isBookmarked = false,
 ): Hospital {
   const animals =
     row.exotic_animals.length > 0 ? row.exotic_animals : ["특수동물"];
@@ -111,6 +127,7 @@ function toHospital(
     id: row.id,
     name: row.name,
     region: row.region,
+    regionFilter: row.region_filter,
     address: row.street_address,
     summary: getSummary(row),
     likes: row.likes,
@@ -130,6 +147,7 @@ function toHospital(
     hours: row.hours,
     isEmergency: row.emergency,
     isSpecialty: row.specialty,
+    isBookmarked,
   };
 }
 
@@ -164,17 +182,11 @@ export async function fetchHospitals() {
 
   const comments = commentsData ?? [];
   const commentIds = comments.map((comment) => comment.id);
-  const {
-    data: { session },
-    error: sessionError,
-  } = await supabase.auth.getSession();
-
-  if (sessionError) {
-    throw new Error(`Supabase 세션 조회 실패: ${sessionError.message}`);
-  }
+  const session = await loadAuthSession(supabase);
 
   let reactionsByHospitalId = new Map<string, ReactionType>();
   let reactionsByCommentId = new Map<string, ReactionType>();
+  let bookmarkedHospitalIds = new Set<string>();
 
   if (session) {
     const { data: hospitalReactionData, error: hospitalReactionError } =
@@ -214,6 +226,24 @@ export async function fetchHospitals() {
         "comment_id",
       );
     }
+
+    const { data: bookmarkData, error: bookmarkError } = await supabase
+      .from("hospital_bookmarks")
+      .select("hospital_id")
+      .eq("user_id", session.user.id)
+      .in("hospital_id", hospitalIds);
+
+    if (bookmarkError && !isMissingBookmarksTableError(bookmarkError)) {
+      throw new Error(
+        `Supabase hospital_bookmarks 조회 실패: ${bookmarkError.message}`,
+      );
+    }
+
+    bookmarkedHospitalIds = new Set(
+      ((bookmarkData ?? []) as HospitalBookmarkRow[]).map(
+        (bookmark) => bookmark.hospital_id,
+      ),
+    );
   }
 
   const commentsByHospitalId = groupCommentsByHospitalId(
@@ -226,6 +256,7 @@ export async function fetchHospitals() {
       row,
       commentsByHospitalId.get(row.id) ?? [],
       reactionsByHospitalId.get(row.id) ?? null,
+      bookmarkedHospitalIds.has(row.id),
     ),
   );
 }

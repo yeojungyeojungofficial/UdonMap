@@ -8,7 +8,7 @@ import {
 } from "@/src/shared/lib/userProfiles";
 
 export const HOSPITAL_COMMENT_COLUMNS =
-  "id,hospital_id,user_id,author_name,body,like_count,dislike_count,status,created_at,updated_at";
+  "id,hospital_id,user_id,author_name,body,like_count,dislike_count,status,deleted_at,deleted_by,deleted_reason,created_at,updated_at";
 export const MAX_HOSPITAL_COMMENT_LENGTH = 600;
 
 export type HospitalCommentRow =

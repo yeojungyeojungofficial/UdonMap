@@ -1,5 +1,6 @@
 import type { HospitalComment } from "@/src/home/types";
 import { getSupabaseBrowserClient } from "@/src/shared/lib/supabase";
+import { loadAuthSession } from "@/src/shared/lib/authSession";
 
 type CreateHospitalCommentResponse =
   | {
@@ -17,14 +18,7 @@ export async function createHospitalComment(
   content: string,
 ) {
   const supabase = getSupabaseBrowserClient();
-  const {
-    data: { session },
-    error: sessionError,
-  } = await supabase.auth.getSession();
-
-  if (sessionError) {
-    throw new Error(`Supabase 세션 조회 실패: ${sessionError.message}`);
-  }
+  const session = await loadAuthSession(supabase);
 
   if (!session) {
     throw new Error("로그인이 필요합니다.");
@@ -62,14 +56,7 @@ export async function deleteHospitalComment(
   commentId: string,
 ) {
   const supabase = getSupabaseBrowserClient();
-  const {
-    data: { session },
-    error: sessionError,
-  } = await supabase.auth.getSession();
-
-  if (sessionError) {
-    throw new Error(`Supabase 세션 조회 실패: ${sessionError.message}`);
-  }
+  const session = await loadAuthSession(supabase);
 
   if (!session) {
     throw new Error("로그인이 필요합니다.");

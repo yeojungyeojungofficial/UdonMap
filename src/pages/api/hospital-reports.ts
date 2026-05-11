@@ -11,6 +11,19 @@ type CreateHospitalReportResponse =
       error: string;
     };
 
+function getBearerToken(req: NextApiRequest) {
+  const authorization = req.headers.authorization;
+  const header = Array.isArray(authorization)
+    ? authorization[0]
+    : authorization;
+
+  if (!header?.startsWith("Bearer ")) {
+    return null;
+  }
+
+  return header.slice("Bearer ".length).trim() || null;
+}
+
 export const config = {
   api: {
     bodyParser: {
@@ -38,9 +51,33 @@ export default async function handler(
 
   try {
     const supabase = getSupabaseServerClient();
+    const accessToken = getBearerToken(req);
+    let userId: string | null = null;
+
+    if (accessToken) {
+      const {
+        data: { user },
+        error: userError,
+      } = await supabase.auth.getUser(accessToken);
+
+      if (userError || !user) {
+        res.status(401).json({
+          error: userError
+            ? `Supabase 사용자 확인 실패: ${userError.message}`
+            : "로그인 사용자를 확인할 수 없습니다.",
+        });
+        return;
+      }
+
+      userId = user.id;
+    }
+
     const { data, error } = await supabase
       .from("hospital_reports")
-      .insert(validation.value)
+      .insert({
+        ...validation.value,
+        user_id: userId,
+      })
       .select("id,status")
       .single();
 

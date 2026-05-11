@@ -68,7 +68,7 @@ const SEOUL_CENTER = {
   lng: 126.978,
 };
 
-const INITIAL_MAP_LEVEL = 12;
+const INITIAL_MAP_LEVEL = 9;
 const CLUSTER_MIN_LEVEL = 10;
 const CLUSTER_BASE_GRID_DEGREES = 0.8;
 

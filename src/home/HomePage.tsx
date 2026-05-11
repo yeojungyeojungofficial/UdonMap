@@ -7,6 +7,7 @@ import RegionFilter from "@/src/home/components/RegionFilter";
 import HospitalReportSheet from "@/src/shared/components/HospitalReportSheet";
 import TopNav from "@/src/shared/components/TopNav";
 import { fetchHospitals } from "@/src/home/hospitalsApi";
+import { OTHER_REGION_FILTER, REGION_FILTERS } from "@/src/home/regions";
 import type {
   Hospital,
   HospitalComment,
@@ -20,7 +21,7 @@ export default function HomePage() {
   const [isLoadingHospitals, setIsLoadingHospitals] = useState(true);
   const [hasHospitalLoadError, setHasHospitalLoadError] = useState(false);
   const [query, setQuery] = useState("");
-  const [selectedRegion, setSelectedRegion] = useState<Region>("전체");
+  const [selectedRegion, setSelectedRegion] = useState<Region>("서울");
   const [selectedHospitalId, setSelectedHospitalId] = useState<string | null>(
     null,
   );
@@ -55,11 +56,13 @@ export default function HomePage() {
   }, []);
 
   const regionOptions = useMemo<Region[]>(() => {
-    const regions = Array.from(
-      new Set(hospitals.map((hospital) => hospital.region).filter(Boolean)),
-    ).sort((left, right) => left.localeCompare(right, "ko"));
+    const hasOtherRegions = hospitals.some(
+      (hospital) => hospital.regionFilter === OTHER_REGION_FILTER,
+    );
 
-    return ["전체", ...regions];
+    return hasOtherRegions
+      ? [...REGION_FILTERS, OTHER_REGION_FILTER]
+      : [...REGION_FILTERS];
   }, [hospitals]);
 
   const effectiveSelectedRegion =
@@ -73,7 +76,7 @@ export default function HomePage() {
     return hospitals.filter((hospital) => {
       if (
         effectiveSelectedRegion !== "전체" &&
-        hospital.region !== effectiveSelectedRegion
+        hospital.regionFilter !== effectiveSelectedRegion
       ) {
         return false;
       }
@@ -190,6 +193,22 @@ export default function HomePage() {
     [],
   );
 
+  const handleBookmarkChanged = useCallback(
+    (hospitalId: string, isBookmarked: boolean) => {
+      setHospitals((currentHospitals) =>
+        currentHospitals.map((hospital) =>
+          hospital.id === hospitalId
+            ? {
+                ...hospital,
+                isBookmarked,
+              }
+            : hospital,
+        ),
+      );
+    },
+    [],
+  );
+
   return (
     <>
       <Head>
@@ -223,7 +242,9 @@ export default function HomePage() {
         </div>
         {isLoadingHospitals || hasHospitalLoadError ? (
           <div className={styles.statusBanner}>
-            병원목록을 불러오는중입니다
+            {hasHospitalLoadError
+              ? "병원목록을 불러오지 못했습니다."
+              : "병원목록을 불러오는중입니다"}
           </div>
         ) : null}
         <div className={styles.heroSection}>
@@ -262,6 +283,7 @@ export default function HomePage() {
           onCommentDeleted={handleCommentDeleted}
           onHospitalReactionChanged={handleHospitalReactionChanged}
           onCommentReactionChanged={handleCommentReactionChanged}
+          onBookmarkChanged={handleBookmarkChanged}
         />
         <HospitalReportSheet
           isOpen={isReportSheetOpen}

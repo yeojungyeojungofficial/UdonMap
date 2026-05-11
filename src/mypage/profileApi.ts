@@ -1,6 +1,8 @@
 import type { Session } from "@supabase/supabase-js";
 import type { UserProfile } from "@/src/shared/lib/userProfiles";
 
+let cachedUserProfile: UserProfile | null = null;
+
 type UserProfileResponse =
   | {
       profile: UserProfile;
@@ -36,7 +38,20 @@ async function requestUserProfile(
     );
   }
 
+  cachedUserProfile = result.profile;
   return result.profile;
+}
+
+export function getCachedCurrentUserProfile(userId: string) {
+  return cachedUserProfile?.id === userId ? cachedUserProfile : null;
+}
+
+export function setCachedCurrentUserProfile(profile: UserProfile) {
+  cachedUserProfile = profile;
+}
+
+export function clearCachedCurrentUserProfile() {
+  cachedUserProfile = null;
 }
 
 export function fetchCurrentUserProfile(session: Session) {
