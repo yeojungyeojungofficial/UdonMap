@@ -6,6 +6,7 @@ import MapPanel from "@/src/home/components/MapPanel";
 import RegionFilter from "@/src/home/components/RegionFilter";
 import HospitalReportSheet from "@/src/shared/components/HospitalReportSheet";
 import TopNav from "@/src/shared/components/TopNav";
+import CommonFooter from "@/src/shared/components/CommonFooter";
 import { fetchHospitals } from "@/src/home/hospitalsApi";
 import { OTHER_REGION_FILTER, REGION_FILTERS } from "@/src/home/regions";
 import type {
@@ -289,6 +290,7 @@ export default function HomePage() {
           isOpen={isReportSheetOpen}
           onClose={closeReportSheet}
         />
+        <CommonFooter />
       </div>
     </>
   );

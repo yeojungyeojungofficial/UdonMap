@@ -4,6 +4,7 @@ import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
 import type { Session } from "@supabase/supabase-js";
 import HospitalReportSheet from "@/src/shared/components/HospitalReportSheet";
 import TopNav from "@/src/shared/components/TopNav";
+import CommonFooter from "@/src/shared/components/CommonFooter";
 import {
   clearCachedCurrentUserProfile,
   fetchCurrentUserProfile,
@@ -703,9 +704,6 @@ export default function MyPage() {
               >
                 로그아웃
               </button>
-              <Link href="/" className={styles.secondaryButton}>
-                비회원으로 둘러보기
-              </Link>
             </section>
           ) : (
             <form className={styles.authCard} onSubmit={handleSubmit}>
@@ -1034,6 +1032,7 @@ export default function MyPage() {
             </section>
           </div>
         ) : null}
+        <CommonFooter className={styles.pageFooter} />
         {authDialogMessage ? (
           <div className={styles.dialogBackdrop} role="presentation">
             <section

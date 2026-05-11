@@ -129,6 +129,41 @@
   font-weight: 600;
 }
 
+.filterSection {
+  margin: 0 16px 10px;
+}
+
+.filterLabel {
+  margin: 0;
+  color: #8a7566;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.filterTagList {
+  margin-top: 8px;
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.filterTagButton {
+  border: 1px solid #ead8ca;
+  border-radius: 999px;
+  padding: 6px 12px;
+  background: #fff9f5;
+  color: #7d4b2a;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.filterTagButtonActive {
+  border-color: #ff9645;
+  background: #ff9645;
+  color: #ffffff;
+}
+
 .divider {
   height: 1px;
   background: #f0e6dc;
@@ -382,6 +417,10 @@
   .titleInput {
     padding: 16px 24px;
     font-size: 22px;
+  }
+
+  .filterSection {
+    margin: 0 24px 12px;
   }
 
   .divider {

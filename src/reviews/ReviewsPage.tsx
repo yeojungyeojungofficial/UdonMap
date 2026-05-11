@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import HospitalReportSheet from "@/src/shared/components/HospitalReportSheet";
 import TopNav from "@/src/shared/components/TopNav";
 import PostComposeSheet from "@/src/reviews/PostComposeSheet";
+import CommonFooter from "@/src/shared/components/CommonFooter";
 import { REGION_FILTERS } from "@/src/home/regions";
 import type { Region } from "@/src/home/types";
 import styles from "@/src/reviews/ReviewsPage.module.css";
@@ -16,7 +17,18 @@ const BOARD_TABS = [
 
 const REVIEW_REGION_OPTIONS: readonly Region[] = REGION_FILTERS;
 
+const TIP_CATEGORIES = [
+  "전체",
+  "포유류",
+  "설치류",
+  "조류",
+  "파충류",
+  "양서류",
+  "어류",
+] as const;
+
 type BoardTab = (typeof BOARD_TABS)[number];
+type TipCategory = (typeof TIP_CATEGORIES)[number];
 
 type Post = {
   id: string;
@@ -24,6 +36,7 @@ type Post = {
   title: string;
   likes: number;
   region?: Region;
+  category?: Exclude<TipCategory, "전체">;
 };
 
 const POSTS: Post[] = [
@@ -65,12 +78,14 @@ const POSTS: Post[] = [
     board: "꿀팁 게시판",
     title: "초진 전에 챙기면 좋은 진료 기록 목록",
     likes: 42,
+    category: "포유류",
   },
   {
     id: "tip-2",
     board: "꿀팁 게시판",
     title: "응급 상황에서 병원에 먼저 말해야 할 정보",
     likes: 31,
+    category: "파충류",
   },
 ];
 
@@ -78,6 +93,8 @@ export default function ReviewsPage() {
   const [activeMenu, setActiveMenu] = useState("병원후기");
   const [activeTab, setActiveTab] = useState<BoardTab>("병원후기 게시판");
   const [selectedRegion, setSelectedRegion] = useState<Region>("전체");
+  const [selectedTipCategory, setSelectedTipCategory] =
+    useState<TipCategory>("전체");
   const [isReportSheetOpen, setIsReportSheetOpen] = useState(false);
   const [isComposeOpen, setIsComposeOpen] = useState(false);
 
@@ -88,19 +105,29 @@ export default function ReviewsPage() {
           return false;
         }
 
-        if (activeTab !== "병원후기 게시판" || selectedRegion === "전체") {
-          return true;
+        if (activeTab === "병원후기 게시판") {
+          return selectedRegion === "전체" || post.region === selectedRegion;
         }
 
-        return post.region === selectedRegion;
+        if (activeTab === "꿀팁 게시판") {
+          return (
+            selectedTipCategory === "전체" ||
+            post.category === selectedTipCategory
+          );
+        }
+
+        return true;
       }),
-    [activeTab, selectedRegion],
+    [activeTab, selectedRegion, selectedTipCategory],
   );
 
   const handleSelectTab = (tab: BoardTab) => {
     setActiveTab(tab);
     if (tab !== "병원후기 게시판") {
       setSelectedRegion("전체");
+    }
+    if (tab !== "꿀팁 게시판") {
+      setSelectedTipCategory("전체");
     }
   };
 
@@ -166,6 +193,25 @@ export default function ReviewsPage() {
               </div>
             ) : null}
 
+            {activeTab === "꿀팁 게시판" ? (
+              <div className={styles.regionFilter} aria-label="동물 카테고리 필터">
+                {TIP_CATEGORIES.map((category) => (
+                  <button
+                    key={category}
+                    type="button"
+                    className={`${styles.regionButton} ${
+                      selectedTipCategory === category
+                        ? styles.regionButtonActive
+                        : ""
+                    }`}
+                    onClick={() => setSelectedTipCategory(category)}
+                  >
+                    {category}
+                  </button>
+                ))}
+              </div>
+            ) : null}
+
             <ul className={styles.postList}>
               {visiblePosts.map((post) => (
                 <li key={post.id}>
@@ -213,6 +259,7 @@ export default function ReviewsPage() {
           isOpen={isReportSheetOpen}
           onClose={closeReportSheet}
         />
+        <CommonFooter />
       </div>
     </>
   );

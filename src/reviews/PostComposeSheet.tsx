@@ -1,4 +1,6 @@
 import { useEffect, useRef, useState } from "react";
+import { REGION_FILTERS } from "@/src/home/regions";
+import type { Region } from "@/src/home/types";
 import styles from "@/src/reviews/PostComposeSheet.module.css";
 
 const BOARD_TABS = [
@@ -8,9 +10,21 @@ const BOARD_TABS = [
 ] as const;
 
 type BoardTab = (typeof BOARD_TABS)[number];
+type TipTag = "포유류" | "설치류" | "조류" | "파충류" | "양서류" | "어류";
 
 const MAX_PHOTOS = 5;
 const MAX_BODY = 5000;
+const REVIEW_TAG_OPTIONS = REGION_FILTERS.filter(
+  (region): region is Exclude<Region, "전체"> => region !== "전체",
+);
+const TIP_TAG_OPTIONS: readonly TipTag[] = [
+  "포유류",
+  "설치류",
+  "조류",
+  "파충류",
+  "양서류",
+  "어류",
+];
 
 type PostComposeSheetProps = {
   isOpen: boolean;
@@ -25,6 +39,10 @@ export default function PostComposeSheet({
 }: PostComposeSheetProps) {
   const [selectedBoard, setSelectedBoard] = useState<BoardTab>(defaultBoard);
   const [title, setTitle] = useState("");
+  const [selectedReviewTag, setSelectedReviewTag] = useState<
+    Exclude<Region, "전체"> | null
+  >(null);
+  const [selectedTipTag, setSelectedTipTag] = useState<TipTag | null>(null);
   const [bodyLength, setBodyLength] = useState(0);
   const [linkUrl, setLinkUrl] = useState("");
   const [isLinkInputOpen, setIsLinkInputOpen] = useState(false);
@@ -219,6 +237,8 @@ export default function PostComposeSheet({
     if (isOpen) {
       setSelectedBoard(defaultBoard);
       setTitle("");
+      setSelectedReviewTag(null);
+      setSelectedTipTag(null);
       setBodyLength(0);
       setLinkUrl("");
       setIsLinkInputOpen(false);
@@ -260,7 +280,13 @@ export default function PostComposeSheet({
 
   const handleSubmit = () => {
     const content = editorRef.current?.innerHTML ?? "";
-    console.log("[reviews] 글 등록", { selectedBoard, title, content });
+    const filterTag =
+      selectedBoard === "병원후기 게시판"
+        ? selectedReviewTag
+        : selectedBoard === "꿀팁 게시판"
+          ? selectedTipTag
+          : null;
+    console.log("[reviews] 글 등록", { selectedBoard, filterTag, title, content });
     onClose();
   };
 
@@ -312,6 +338,44 @@ export default function PostComposeSheet({
             value={title}
             onChange={(e) => setTitle(e.target.value)}
           />
+          {selectedBoard === "병원후기 게시판" ? (
+            <div className={styles.filterSection}>
+              <p className={styles.filterLabel}>태그</p>
+              <div className={styles.filterTagList}>
+                {REVIEW_TAG_OPTIONS.map((region) => (
+                  <button
+                    key={region}
+                    type="button"
+                    className={`${styles.filterTagButton} ${
+                      selectedReviewTag === region ? styles.filterTagButtonActive : ""
+                    }`}
+                    onClick={() => setSelectedReviewTag(region)}
+                  >
+                    {region}
+                  </button>
+                ))}
+              </div>
+            </div>
+          ) : null}
+          {selectedBoard === "꿀팁 게시판" ? (
+            <div className={styles.filterSection}>
+              <p className={styles.filterLabel}>필터 태그</p>
+              <div className={styles.filterTagList}>
+                {TIP_TAG_OPTIONS.map((tag) => (
+                  <button
+                    key={tag}
+                    type="button"
+                    className={`${styles.filterTagButton} ${
+                      selectedTipTag === tag ? styles.filterTagButtonActive : ""
+                    }`}
+                    onClick={() => setSelectedTipTag(tag)}
+                  >
+                    {tag}
+                  </button>
+                ))}
+              </div>
+            </div>
+          ) : null}
 
           <div className={styles.divider} />
 
