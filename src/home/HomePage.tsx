@@ -7,6 +7,11 @@ import RegionFilter from "@/src/home/components/RegionFilter";
 import HospitalReportSheet from "@/src/shared/components/HospitalReportSheet";
 import TopNav from "@/src/shared/components/TopNav";
 import { fetchHospitals } from "@/src/home/hospitalsApi";
+import {
+  getHospitalRegionFilter,
+  KOREA_REGION_FILTERS,
+  OTHER_REGION_FILTER,
+} from "@/src/home/regions";
 import type {
   Hospital,
   HospitalComment,
@@ -55,11 +60,13 @@ export default function HomePage() {
   }, []);
 
   const regionOptions = useMemo<Region[]>(() => {
-    const regions = Array.from(
-      new Set(hospitals.map((hospital) => hospital.region).filter(Boolean)),
-    ).sort((left, right) => left.localeCompare(right, "ko"));
+    const hasOtherRegions = hospitals.some(
+      (hospital) => getHospitalRegionFilter(hospital) === OTHER_REGION_FILTER,
+    );
 
-    return ["전체", ...regions];
+    return hasOtherRegions
+      ? [...KOREA_REGION_FILTERS, OTHER_REGION_FILTER]
+      : [...KOREA_REGION_FILTERS];
   }, [hospitals]);
 
   const effectiveSelectedRegion =
@@ -73,7 +80,7 @@ export default function HomePage() {
     return hospitals.filter((hospital) => {
       if (
         effectiveSelectedRegion !== "전체" &&
-        hospital.region !== effectiveSelectedRegion
+        getHospitalRegionFilter(hospital) !== effectiveSelectedRegion
       ) {
         return false;
       }

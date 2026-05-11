@@ -2,7 +2,7 @@ import type { Region } from "@/src/home/types";
 import styles from "@/src/home/Home.module.css";
 
 type RegionFilterProps = {
-  regions: Region[];
+  regions: readonly Region[];
   selectedRegion: Region;
   onSelectRegion: (region: Region) => void;
 };

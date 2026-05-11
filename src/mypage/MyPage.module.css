@@ -79,6 +79,32 @@
   font-size: 28px;
 }
 
+.modeTabs {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+  border: 1px solid #ead8ca;
+  border-radius: 8px;
+  padding: 4px;
+  background: #fff8f2;
+}
+
+.modeTab {
+  min-height: 40px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: #7d4b2a;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.modeTabActive {
+  background: #ffffff;
+  color: #383838;
+  box-shadow: 0 2px 8px rgba(135, 75, 31, 0.12);
+}
+
 .field {
   display: grid;
   gap: 8px;
@@ -104,6 +130,23 @@
 .field input:focus {
   outline: 2px solid rgba(255, 150, 69, 0.42);
   border-color: #ff9645;
+}
+
+.checkboxField {
+  margin-top: 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #4a3f38;
+  font-size: 14px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.checkboxField input {
+  width: 18px;
+  height: 18px;
+  accent-color: #ff9645;
 }
 
 .submitButton,
@@ -214,6 +257,51 @@
 .profileHint {
   margin: 8px 0 0;
   text-align: right;
+}
+
+.dialogBackdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(56, 56, 56, 0.42);
+}
+
+.authDialog {
+  width: min(360px, 100%);
+  border: 1px solid #ead8ca;
+  border-radius: 8px;
+  padding: 24px;
+  background: #ffffff;
+  box-shadow: 0 24px 60px rgba(56, 56, 56, 0.22);
+}
+
+.authDialog h2 {
+  margin: 0;
+  color: #383838;
+  font-size: 22px;
+}
+
+.authDialog p {
+  margin: 12px 0 0;
+  color: #4a3f38;
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+.dialogButton {
+  width: 100%;
+  min-height: 44px;
+  margin-top: 20px;
+  border: 0;
+  border-radius: 8px;
+  background: #ff9645;
+  color: #ffffff;
+  font-weight: 800;
+  cursor: pointer;
 }
 
 @media (max-width: 860px) {

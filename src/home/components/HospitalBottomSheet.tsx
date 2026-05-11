@@ -16,6 +16,11 @@ import type {
   ReactionType,
 } from "@/src/home/types";
 import { supabase } from "@/src/shared/lib/supabase";
+import {
+  getCachedAuthSession,
+  loadAuthSession,
+  subscribeToAuthSession,
+} from "@/src/shared/lib/authSession";
 import styles from "@/src/home/Home.module.css";
 
 const WEEKDAY_LABELS = ["월", "화", "수", "목", "금", "토", "일"];
@@ -210,13 +215,18 @@ export default function HospitalBottomSheet({
   onHospitalReactionChanged,
   onCommentReactionChanged,
 }: HospitalBottomSheetProps) {
+  const initialAuthSession = getCachedAuthSession();
   const [commentContent, setCommentContent] = useState("");
   const [isCommentSubmitting, setIsCommentSubmitting] = useState(false);
   const [commentMessage, setCommentMessage] = useState("");
   const [commentError, setCommentError] = useState("");
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [isAuthReady, setIsAuthReady] = useState(!supabase);
-  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const [isLoggedIn, setIsLoggedIn] = useState(Boolean(initialAuthSession));
+  const [isAuthReady, setIsAuthReady] = useState(
+    !supabase || initialAuthSession !== undefined,
+  );
+  const [currentUserId, setCurrentUserId] = useState<string | null>(
+    initialAuthSession?.user.id ?? null,
+  );
   const [hospitalReactionSubmitting, setHospitalReactionSubmitting] =
     useState<ReactionType | null>(null);
   const [commentReactionSubmittingId, setCommentReactionSubmittingId] =
@@ -232,9 +242,7 @@ export default function HospitalBottomSheet({
 
     let isMounted = true;
 
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, nextSession) => {
+    const unsubscribe = subscribeToAuthSession(supabase, (nextSession) => {
       if (isMounted) {
         setIsLoggedIn(Boolean(nextSession));
         setCurrentUserId(nextSession?.user.id ?? null);
@@ -242,12 +250,19 @@ export default function HospitalBottomSheet({
       }
     });
 
-    void supabase.auth
-      .getSession()
-      .then(({ data }) => {
+    void loadAuthSession(supabase)
+      .then((nextSession) => {
         if (!isMounted) return;
-        setIsLoggedIn(Boolean(data.session));
-        setCurrentUserId(data.session?.user.id ?? null);
+        setIsLoggedIn(Boolean(nextSession));
+        setCurrentUserId(nextSession?.user.id ?? null);
+      })
+      .catch((error) => {
+        if (!isMounted) return;
+        setCommentError(
+          error instanceof Error
+            ? error.message
+            : "로그인 상태 확인 중 알 수 없는 오류가 발생했습니다.",
+        );
       })
       .finally(() => {
         if (isMounted) {
@@ -257,7 +272,7 @@ export default function HospitalBottomSheet({
 
     return () => {
       isMounted = false;
-      subscription.unsubscribe();
+      unsubscribe();
     };
   }, []);
 

@@ -1,4 +1,5 @@
 import { getSupabaseBrowserClient } from "@/src/shared/lib/supabase";
+import { loadAuthSession } from "@/src/shared/lib/authSession";
 import type { Database } from "@/src/shared/lib/database.types";
 import type { Hospital, HospitalComment, ReactionType } from "@/src/home/types";
 import {
@@ -164,14 +165,7 @@ export async function fetchHospitals() {
 
   const comments = commentsData ?? [];
   const commentIds = comments.map((comment) => comment.id);
-  const {
-    data: { session },
-    error: sessionError,
-  } = await supabase.auth.getSession();
-
-  if (sessionError) {
-    throw new Error(`Supabase 세션 조회 실패: ${sessionError.message}`);
-  }
+  const session = await loadAuthSession(supabase);
 
   let reactionsByHospitalId = new Map<string, ReactionType>();
   let reactionsByCommentId = new Map<string, ReactionType>();
