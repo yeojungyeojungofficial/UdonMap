@@ -378,6 +378,93 @@ export type Database = {
         };
         Relationships: [];
       };
+      board_post_comments: {
+        Row: {
+          id: string;
+          post_id: string;
+          user_id: string | null;
+          author_name: string;
+          body: string;
+          like_count: number;
+          dislike_count: number;
+          status: "visible" | "hidden" | "deleted";
+          deleted_at: string | null;
+          deleted_by: string | null;
+          deleted_reason: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          post_id: string;
+          user_id?: string | null;
+          author_name: string;
+          body: string;
+          like_count?: number;
+          dislike_count?: number;
+          status?: "visible" | "hidden" | "deleted";
+          deleted_at?: string | null;
+          deleted_by?: string | null;
+          deleted_reason?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          post_id?: string;
+          user_id?: string | null;
+          author_name?: string;
+          body?: string;
+          like_count?: number;
+          dislike_count?: number;
+          status?: "visible" | "hidden" | "deleted";
+          deleted_at?: string | null;
+          deleted_by?: string | null;
+          deleted_reason?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      board_posts: {
+        Row: {
+          id: string;
+          user_id: string | null;
+          board: "병원후기 게시판" | "자유게시판" | "꿀팁 게시판";
+          filter_tag: string | null;
+          title: string;
+          body: string;
+          comment_count: number;
+          status: "visible" | "hidden" | "deleted";
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id?: string | null;
+          board: "병원후기 게시판" | "자유게시판" | "꿀팁 게시판";
+          filter_tag?: string | null;
+          title: string;
+          body?: string;
+          comment_count?: number;
+          status?: "visible" | "hidden" | "deleted";
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string | null;
+          board?: "병원후기 게시판" | "자유게시판" | "꿀팁 게시판";
+          filter_tag?: string | null;
+          title?: string;
+          body?: string;
+          comment_count?: number;
+          status?: "visible" | "hidden" | "deleted";
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
       profiles: {
         Row: {
           id: string;
@@ -405,6 +492,99 @@ export type Database = {
     };
     Views: Record<string, never>;
     Functions: {
+      admin_delete_board_post_comment: {
+        Args: {
+          p_comment_id: string;
+          p_admin_id?: string | null;
+          p_reason?: string | null;
+        };
+        Returns: {
+          comment_id: string;
+          user_id: string;
+          status: "visible" | "hidden" | "deleted";
+          deleted_at: string | null;
+          deleted_by: string | null;
+          deleted_reason: string | null;
+        }[];
+      };
+      admin_list_board_posts: {
+        Args: {
+          p_page?: number;
+          p_page_size?: number;
+          p_board?: string | null;
+          p_status?: "visible" | "hidden" | "deleted" | null;
+          p_search?: string | null;
+        };
+        Returns: {
+          post_id: string;
+          board: string;
+          filter_tag: string | null;
+          title: string;
+          body: string;
+          comment_count: number;
+          user_id: string | null;
+          user_email: string | null;
+          user_display_name: string | null;
+          status: "visible" | "hidden" | "deleted";
+          created_at: string;
+          updated_at: string;
+          total_count: number;
+        }[];
+      };
+      admin_list_board_post_comments: {
+        Args: {
+          p_page?: number;
+          p_page_size?: number;
+          p_post_id?: string | null;
+          p_status?: "visible" | "hidden" | "deleted" | null;
+          p_search?: string | null;
+        };
+        Returns: {
+          comment_id: string;
+          post_id: string;
+          post_title: string;
+          post_board: string;
+          user_id: string | null;
+          user_email: string | null;
+          user_display_name: string | null;
+          author_name: string;
+          body: string;
+          like_count: number;
+          dislike_count: number;
+          status: "visible" | "hidden" | "deleted";
+          created_at: string;
+          updated_at: string;
+          deleted_at: string | null;
+          deleted_by: string | null;
+          deleted_reason: string | null;
+          total_count: number;
+        }[];
+      };
+      admin_restore_board_post_comment: {
+        Args: {
+          p_comment_id: string;
+          p_admin_id?: string | null;
+          p_reason?: string | null;
+        };
+        Returns: {
+          comment_id: string;
+          user_id: string;
+          status: "visible" | "hidden" | "deleted";
+        }[];
+      };
+      admin_update_board_post_status: {
+        Args: {
+          p_post_id: string;
+          p_status: "visible" | "hidden" | "deleted";
+          p_admin_id?: string | null;
+        };
+        Returns: {
+          post_id: string;
+          user_id: string | null;
+          status: "visible" | "hidden" | "deleted";
+          updated_at: string;
+        }[];
+      };
       admin_delete_hospital_comment: {
         Args: {
           p_comment_id: string;

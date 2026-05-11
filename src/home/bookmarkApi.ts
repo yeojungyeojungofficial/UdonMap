@@ -1,13 +1,6 @@
 import { loadAuthSession } from "@/src/shared/lib/authSession";
 import { getSupabaseBrowserClient } from "@/src/shared/lib/supabase";
-
-function isMissingBookmarksTableError(error: { code?: string; message: string }) {
-  return (
-    error.code === "42P01" ||
-    error.message.includes("hospital_bookmarks") ||
-    error.message.includes("schema cache")
-  );
-}
+import { isMissingBookmarksTableError } from "@/src/shared/lib/bookmarkErrors";
 
 export async function updateHospitalBookmark(
   hospitalId: string,

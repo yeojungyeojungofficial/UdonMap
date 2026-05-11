@@ -1,48 +1,130 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { loadAuthSession } from "@/src/shared/lib/authSession";
+import { getSupabaseBrowserClient } from "@/src/shared/lib/supabase";
+import { REGION_FILTERS } from "@/src/home/regions";
+import type { Region } from "@/src/home/types";
+import {
+  BOARD_TABS,
+  type BoardPostSummary,
+  type BoardTab,
+} from "@/src/shared/lib/boardPosts";
+import { createBoardPost } from "@/src/reviews/boardPostsApi";
 import styles from "@/src/reviews/PostComposeSheet.module.css";
-
-const BOARD_TABS = [
-  "병원후기 게시판",
-  "자유게시판",
-  "꿀팁 게시판",
-] as const;
-
-type BoardTab = (typeof BOARD_TABS)[number];
+type TipTag = "포유류" | "설치류" | "조류" | "파충류" | "양서류" | "어류";
 
 const MAX_PHOTOS = 5;
 const MAX_BODY = 5000;
+const STORAGE_BUCKET = "posting_image";
+const REVIEW_TAG_OPTIONS = REGION_FILTERS.filter(
+  (region): region is Exclude<Region, "전체"> => region !== "전체",
+);
+const TIP_TAG_OPTIONS: readonly TipTag[] = [
+  "포유류",
+  "설치류",
+  "조류",
+  "파충류",
+  "양서류",
+  "어류",
+];
 
 type PostComposeSheetProps = {
   isOpen: boolean;
   defaultBoard?: BoardTab;
   onClose: () => void;
+  onCreated?: (post: BoardPostSummary) => void;
 };
+
+type PostComposeSheetContentProps = Omit<PostComposeSheetProps, "isOpen">;
 
 export default function PostComposeSheet({
   isOpen,
+  defaultBoard,
+  onClose,
+  onCreated,
+}: PostComposeSheetProps) {
+  if (!isOpen) {
+    return null;
+  }
+
+  return (
+    <PostComposeSheetContent
+      key={defaultBoard ?? "자유게시판"}
+      defaultBoard={defaultBoard}
+      onClose={onClose}
+      onCreated={onCreated}
+    />
+  );
+}
+
+function PostComposeSheetContent({
   defaultBoard = "자유게시판",
   onClose,
-}: PostComposeSheetProps) {
+  onCreated,
+}: PostComposeSheetContentProps) {
   const [selectedBoard, setSelectedBoard] = useState<BoardTab>(defaultBoard);
   const [title, setTitle] = useState("");
+  const [selectedReviewTag, setSelectedReviewTag] = useState<
+    Exclude<Region, "전체"> | null
+  >(null);
+  const [selectedTipTag, setSelectedTipTag] = useState<TipTag | null>(null);
   const [bodyLength, setBodyLength] = useState(0);
   const [linkUrl, setLinkUrl] = useState("");
   const [isLinkInputOpen, setIsLinkInputOpen] = useState(false);
   const [photoCount, setPhotoCount] = useState(0);
   const [photoLimitMsg, setPhotoLimitMsg] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState("");
+  const [uploadingCount, setUploadingCount] = useState(0);
 
   const editorRef = useRef<HTMLDivElement>(null);
   const savedRangeRef = useRef<Range | null>(null);
   const titleRef = useRef<HTMLInputElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const linkInputRef = useRef<HTMLInputElement>(null);
+  const uploadedImagePathsRef = useRef<string[]>([]);
+  const hasSubmittedRef = useRef(false);
+
+  const revokeEditorObjectUrls = useCallback(() => {
+    const imgs = editorRef.current?.querySelectorAll("[data-object-url]");
+    imgs?.forEach((img) => {
+      const url = img.getAttribute("data-object-url");
+      if (url) URL.revokeObjectURL(url);
+    });
+  }, []);
+
+  const cleanupUploadedImages = useCallback(async () => {
+    const paths = uploadedImagePathsRef.current;
+    if (paths.length === 0) {
+      return;
+    }
+
+    uploadedImagePathsRef.current = [];
+
+    try {
+      const supabase = getSupabaseBrowserClient();
+      await supabase.storage.from(STORAGE_BUCKET).remove(paths);
+    } catch {
+      // best-effort cleanup; storage policies may reject deletion in local setups
+    }
+  }, []);
+
+  const handleClose = useCallback(() => {
+    revokeEditorObjectUrls();
+
+    if (!hasSubmittedRef.current) {
+      void cleanupUploadedImages();
+    }
+
+    onClose();
+  }, [cleanupUploadedImages, onClose, revokeEditorObjectUrls]);
 
   const countPhotos = () =>
     editorRef.current?.querySelectorAll("[data-img-wrapper]").length ?? 0;
 
+  const getEditorTextLength = () => editorRef.current?.innerText.length ?? 0;
+
   const updateBodyLength = () => {
-    const text = editorRef.current?.innerText ?? "";
-    setBodyLength(Math.min(text.length, MAX_BODY));
+    setBodyLength(getEditorTextLength());
   };
 
   const saveSelection = () => {
@@ -156,9 +238,10 @@ export default function PostComposeSheet({
     return wrapper;
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const incoming = Array.from(e.target.files ?? []);
     e.target.value = "";
+    setSubmitError("");
 
     const currentCount = countPhotos();
     const available = MAX_PHOTOS - currentCount;
@@ -169,18 +252,68 @@ export default function PostComposeSheet({
     }
 
     const accepted = incoming.slice(0, available);
-    accepted.forEach((file, i) => {
-      const url = URL.createObjectURL(file);
-      const node = buildResizableImage(url, `첨부 사진 ${currentCount + i + 1}`);
-      insertNodeAtCursor(node);
-    });
+    const supabase = getSupabaseBrowserClient();
+    const session = await loadAuthSession(supabase);
 
-    const next = currentCount + accepted.length;
-    setPhotoCount(next);
+    if (!session) {
+      setSubmitError("로그인 후 사진을 첨부할 수 있습니다.");
+      return;
+    }
+
     setPhotoLimitMsg(
       accepted.length < incoming.length
         ? `사진은 최대 ${MAX_PHOTOS}장까지 첨부할 수 있어요.`
         : "",
+    );
+    setUploadingCount((n) => n + accepted.length);
+
+    await Promise.all(
+      accepted.map(async (file, i) => {
+        const blobUrl = URL.createObjectURL(file);
+        const altText = `첨부 사진 ${currentCount + i + 1}`;
+
+        // 먼저 blob URL로 즉시 미리보기 삽입
+        const node = buildResizableImage(blobUrl, altText);
+        insertNodeAtCursor(node);
+        setPhotoCount((n) => n + 1);
+
+        try {
+          const ext = file.name.split(".").pop() ?? "jpg";
+          const path = `${session.user.id}/${Date.now()}-${i}.${ext}`;
+
+          const { error } = await supabase.storage
+            .from(STORAGE_BUCKET)
+            .upload(path, file, { upsert: false });
+
+          if (error) {
+            throw new Error(`이미지 업로드 실패: ${error.message}`);
+          }
+
+          uploadedImagePathsRef.current.push(path);
+          const { data: urlData } = supabase.storage
+            .from(STORAGE_BUCKET)
+            .getPublicUrl(path);
+
+          // 에디터 내 해당 img 요소의 src를 영구 URL로 교체
+          const imgEl = node.querySelector("img");
+          if (imgEl) {
+            imgEl.src = urlData.publicUrl;
+            imgEl.removeAttribute("data-object-url");
+          }
+          URL.revokeObjectURL(blobUrl);
+        } catch (error) {
+          node.remove();
+          URL.revokeObjectURL(blobUrl);
+          setPhotoCount((n) => Math.max(0, n - 1));
+          setSubmitError(
+            error instanceof Error
+              ? error.message
+              : "이미지 업로드 중 알 수 없는 오류가 발생했습니다.",
+          );
+        } finally {
+          setUploadingCount((n) => Math.max(0, n - 1));
+        }
+      }),
     );
   };
 
@@ -216,39 +349,22 @@ export default function PostComposeSheet({
   };
 
   useEffect(() => {
-    if (isOpen) {
-      setSelectedBoard(defaultBoard);
-      setTitle("");
-      setBodyLength(0);
-      setLinkUrl("");
-      setIsLinkInputOpen(false);
-      setPhotoCount(0);
-      setPhotoLimitMsg("");
-      savedRangeRef.current = null;
-      if (editorRef.current) {
-        const imgs = editorRef.current.querySelectorAll("[data-object-url]");
-        imgs.forEach((img) => {
-          const url = img.getAttribute("data-object-url");
-          if (url) URL.revokeObjectURL(url);
-        });
-        editorRef.current.innerHTML = "";
-      }
-      setTimeout(() => titleRef.current?.focus(), 80);
-    }
-  }, [isOpen, defaultBoard]);
-
-  useEffect(() => {
-    if (!isOpen) return;
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
+      if (e.key === "Escape") handleClose();
     };
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [isOpen, onClose]);
+  }, [handleClose]);
 
   useEffect(() => {
+    const timeoutId = window.setTimeout(() => titleRef.current?.focus(), 80);
+    return () => window.clearTimeout(timeoutId);
+  }, []);
+
+  useEffect(() => {
+    const editor = editorRef.current;
     return () => {
-      const imgs = editorRef.current?.querySelectorAll("[data-object-url]");
+      const imgs = editor?.querySelectorAll("[data-object-url]");
       imgs?.forEach((img) => {
         const url = img.getAttribute("data-object-url");
         if (url) URL.revokeObjectURL(url);
@@ -256,31 +372,76 @@ export default function PostComposeSheet({
     };
   }, []);
 
-  if (!isOpen) return null;
+  const handleSubmit = async () => {
+    if (isSubmitting) return;
 
-  const handleSubmit = () => {
-    const content = editorRef.current?.innerHTML ?? "";
-    console.log("[reviews] 글 등록", { selectedBoard, title, content });
-    onClose();
+    const body = editorRef.current?.innerHTML ?? "";
+    const nextBodyLength = getEditorTextLength();
+    const filterTag =
+      selectedBoard === "병원후기 게시판"
+        ? (selectedReviewTag ?? null)
+        : selectedBoard === "꿀팁 게시판"
+          ? (selectedTipTag ?? null)
+          : null;
+
+    setBodyLength(nextBodyLength);
+
+    if (nextBodyLength === 0) {
+      setSubmitError("내용을 입력해주세요.");
+      return;
+    }
+
+    if (nextBodyLength > MAX_BODY) {
+      setSubmitError(`본문은 ${MAX_BODY.toLocaleString()}자 이하로 입력해주세요.`);
+      return;
+    }
+
+    setIsSubmitting(true);
+    setSubmitError("");
+
+    try {
+      const post = await createBoardPost({
+        board: selectedBoard,
+        filterTag,
+        title: title.trim(),
+        body,
+      });
+      hasSubmittedRef.current = true;
+      onCreated?.(post);
+      onClose();
+    } catch (error) {
+      setSubmitError(
+        error instanceof Error ? error.message : "알 수 없는 오류가 발생했습니다.",
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const atPhotoLimit = photoCount >= MAX_PHOTOS;
+  const isBodyTooLong = bodyLength > MAX_BODY;
 
   return (
     <div className={styles.overlay} role="dialog" aria-modal="true" aria-label="글쓰기">
       <div className={styles.sheet}>
         <div className={styles.sheetHeader}>
-          <button type="button" className={styles.cancelButton} onClick={onClose}>
+          <button type="button" className={styles.cancelButton} onClick={handleClose}>
             취소
           </button>
           <span className={styles.sheetTitle}>글쓰기</span>
           <button
             type="button"
             className={styles.submitButton}
-            disabled={!title.trim() || bodyLength === 0}
-            onClick={handleSubmit}
+            disabled={
+              !title.trim() ||
+              bodyLength === 0 ||
+              isBodyTooLong ||
+              isSubmitting ||
+              uploadingCount > 0
+            }
+            onClick={() => void handleSubmit()}
           >
-            등록
+            {isSubmitting ? "등록 중" : "등록"}
           </button>
         </div>
 
@@ -312,6 +473,44 @@ export default function PostComposeSheet({
             value={title}
             onChange={(e) => setTitle(e.target.value)}
           />
+          {selectedBoard === "병원후기 게시판" ? (
+            <div className={styles.filterSection}>
+              <p className={styles.filterLabel}>태그</p>
+              <div className={styles.filterTagList}>
+                {REVIEW_TAG_OPTIONS.map((region) => (
+                  <button
+                    key={region}
+                    type="button"
+                    className={`${styles.filterTagButton} ${
+                      selectedReviewTag === region ? styles.filterTagButtonActive : ""
+                    }`}
+                    onClick={() => setSelectedReviewTag(region)}
+                  >
+                    {region}
+                  </button>
+                ))}
+              </div>
+            </div>
+          ) : null}
+          {selectedBoard === "꿀팁 게시판" ? (
+            <div className={styles.filterSection}>
+              <p className={styles.filterLabel}>필터 태그</p>
+              <div className={styles.filterTagList}>
+                {TIP_TAG_OPTIONS.map((tag) => (
+                  <button
+                    key={tag}
+                    type="button"
+                    className={`${styles.filterTagButton} ${
+                      selectedTipTag === tag ? styles.filterTagButtonActive : ""
+                    }`}
+                    onClick={() => setSelectedTipTag(tag)}
+                  >
+                    {tag}
+                  </button>
+                ))}
+              </div>
+            </div>
+          ) : null}
 
           <div className={styles.divider} />
 
@@ -366,13 +565,17 @@ export default function PostComposeSheet({
           )}
         </div>
 
+        {submitError ? (
+          <p className={styles.submitError}>{submitError}</p>
+        ) : null}
+
         <div className={styles.toolbar}>
           <div className={styles.toolbarLeft}>
             <button
               type="button"
               className={styles.toolbarButton}
               aria-label={`사진 첨부 (${photoCount}/${MAX_PHOTOS})`}
-              disabled={atPhotoLimit}
+              disabled={atPhotoLimit || isSubmitting}
               onClick={() => {
                 saveSelection();
                 fileInputRef.current?.click();
@@ -402,10 +605,19 @@ export default function PostComposeSheet({
             </button>
           </div>
           <div className={styles.toolbarRight}>
-            {photoLimitMsg && (
+            {uploadingCount > 0 && (
+              <span className={styles.uploadingMsg}>
+                이미지 업로드 중 {uploadingCount}개…
+              </span>
+            )}
+            {photoLimitMsg && !uploadingCount && (
               <span className={styles.photoLimitMsg}>{photoLimitMsg}</span>
             )}
-            <span className={styles.charCount}>
+            <span
+              className={`${styles.charCount} ${
+                isBodyTooLong ? styles.charCountOverLimit : ""
+              }`}
+            >
               {bodyLength.toLocaleString()}/{MAX_BODY.toLocaleString()}
             </span>
           </div>
@@ -418,7 +630,7 @@ export default function PostComposeSheet({
         accept="image/*"
         multiple
         style={{ display: "none" }}
-        onChange={handleFileChange}
+        onChange={(e) => void handleFileChange(e)}
       />
     </div>
   );

@@ -1,106 +1,83 @@
 import Head from "next/head";
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import HospitalReportSheet from "@/src/shared/components/HospitalReportSheet";
+import LoadingScreen from "@/src/shared/components/LoadingScreen";
 import TopNav from "@/src/shared/components/TopNav";
 import PostComposeSheet from "@/src/reviews/PostComposeSheet";
+import CommonFooter from "@/src/shared/components/CommonFooter";
 import { REGION_FILTERS } from "@/src/home/regions";
 import type { Region } from "@/src/home/types";
+import {
+  BOARD_TABS,
+  TIP_CATEGORIES,
+  type BoardPostSummary,
+  type BoardTab,
+  type TipCategory,
+} from "@/src/shared/lib/boardPosts";
+import { fetchBoardPosts } from "@/src/reviews/boardPostsApi";
 import styles from "@/src/reviews/ReviewsPage.module.css";
 
-const BOARD_TABS = [
-  "병원후기 게시판",
-  "자유게시판",
-  "꿀팁 게시판",
-] as const;
-
 const REVIEW_REGION_OPTIONS: readonly Region[] = REGION_FILTERS;
-
-type BoardTab = (typeof BOARD_TABS)[number];
-
-type Post = {
-  id: string;
-  board: BoardTab;
-  title: string;
-  likes: number;
-  region?: Region;
-};
-
-const POSTS: Post[] = [
-  {
-    id: "review-1",
-    board: "병원후기 게시판",
-    title: "서울에서 파충류 진료 가능한 병원 다녀온 후기",
-    likes: 38,
-    region: "서울",
-  },
-  {
-    id: "review-2",
-    board: "병원후기 게시판",
-    title: "부산 조류 진료 병원 예약부터 진료까지 정리",
-    likes: 24,
-    region: "부산",
-  },
-  {
-    id: "review-3",
-    board: "병원후기 게시판",
-    title: "경기권 햄스터 진료 가능한 병원 후기",
-    likes: 19,
-    region: "경기",
-  },
-  {
-    id: "free-1",
-    board: "자유게시판",
-    title: "특수동물 이동장 추천받고 싶어요",
-    likes: 17,
-  },
-  {
-    id: "free-2",
-    board: "자유게시판",
-    title: "동네 병원 정보는 어디서 확인하시나요?",
-    likes: 11,
-  },
-  {
-    id: "tip-1",
-    board: "꿀팁 게시판",
-    title: "초진 전에 챙기면 좋은 진료 기록 목록",
-    likes: 42,
-  },
-  {
-    id: "tip-2",
-    board: "꿀팁 게시판",
-    title: "응급 상황에서 병원에 먼저 말해야 할 정보",
-    likes: 31,
-  },
-];
 
 export default function ReviewsPage() {
   const [activeMenu, setActiveMenu] = useState("병원후기");
   const [activeTab, setActiveTab] = useState<BoardTab>("병원후기 게시판");
   const [selectedRegion, setSelectedRegion] = useState<Region>("전체");
+  const [selectedTipCategory, setSelectedTipCategory] =
+    useState<TipCategory>("전체");
   const [isReportSheetOpen, setIsReportSheetOpen] = useState(false);
   const [isComposeOpen, setIsComposeOpen] = useState(false);
+  const [posts, setPosts] = useState<BoardPostSummary[]>([]);
+  const [isLoadingPosts, setIsLoadingPosts] = useState(true);
+  const [postLoadError, setPostLoadError] = useState("");
 
-  const visiblePosts = useMemo(
-    () =>
-      POSTS.filter((post) => {
-        if (post.board !== activeTab) {
-          return false;
+  useEffect(() => {
+    let isMounted = true;
+    const filterTag =
+      activeTab === "병원후기 게시판"
+        ? selectedRegion
+        : activeTab === "꿀팁 게시판"
+          ? selectedTipCategory
+          : null;
+
+    const loadPosts = async () => {
+      setIsLoadingPosts(true);
+      setPostLoadError("");
+
+      try {
+        const nextPosts = await fetchBoardPosts(activeTab, filterTag);
+        if (!isMounted) return;
+        setPosts(nextPosts);
+      } catch (error) {
+        if (!isMounted) return;
+        setPosts([]);
+        setPostLoadError(
+          error instanceof Error
+            ? error.message
+            : "게시글 목록을 불러오는 중 알 수 없는 오류가 발생했습니다.",
+        );
+      } finally {
+        if (isMounted) {
+          setIsLoadingPosts(false);
         }
+      }
+    };
 
-        if (activeTab !== "병원후기 게시판" || selectedRegion === "전체") {
-          return true;
-        }
+    void loadPosts();
 
-        return post.region === selectedRegion;
-      }),
-    [activeTab, selectedRegion],
-  );
+    return () => {
+      isMounted = false;
+    };
+  }, [activeTab, selectedRegion, selectedTipCategory]);
 
   const handleSelectTab = (tab: BoardTab) => {
     setActiveTab(tab);
     if (tab !== "병원후기 게시판") {
       setSelectedRegion("전체");
+    }
+    if (tab !== "꿀팁 게시판") {
+      setSelectedTipCategory("전체");
     }
   };
 
@@ -111,6 +88,17 @@ export default function ReviewsPage() {
 
   const handleWritePost = () => {
     setIsComposeOpen(true);
+  };
+
+  const handlePostCreated = (post: BoardPostSummary) => {
+    setActiveTab(post.board);
+    if (post.board === "병원후기 게시판") {
+      setSelectedRegion((post.filterTag as Region | null) ?? "전체");
+    }
+    if (post.board === "꿀팁 게시판") {
+      setSelectedTipCategory((post.filterTag as TipCategory | null) ?? "전체");
+    }
+    setPosts((currentPosts) => [post, ...currentPosts]);
   };
 
   return (
@@ -166,16 +154,51 @@ export default function ReviewsPage() {
               </div>
             ) : null}
 
-            <ul className={styles.postList}>
-              {visiblePosts.map((post) => (
-                <li key={post.id}>
-                  <Link href={`/reviews/${post.id}`} className={styles.postItem}>
-                    <span className={styles.postTitle}>{post.title}</span>
-                    <span className={styles.postLikes}>좋아요 {post.likes}</span>
-                  </Link>
-                </li>
-              ))}
-            </ul>
+            {activeTab === "꿀팁 게시판" ? (
+              <div className={styles.regionFilter} aria-label="동물 카테고리 필터">
+                {TIP_CATEGORIES.map((category) => (
+                  <button
+                    key={category}
+                    type="button"
+                    className={`${styles.regionButton} ${
+                      selectedTipCategory === category
+                        ? styles.regionButtonActive
+                        : ""
+                    }`}
+                    onClick={() => setSelectedTipCategory(category)}
+                  >
+                    {category}
+                  </button>
+                ))}
+              </div>
+            ) : null}
+
+            {isLoadingPosts ? (
+              <LoadingScreen message="게시글을 불러오는 중입니다." />
+            ) : null}
+
+            {postLoadError ? (
+              <p className={styles.boardError}>{postLoadError}</p>
+            ) : null}
+
+            {!isLoadingPosts && !postLoadError && posts.length === 0 ? (
+              <p className={styles.boardEmpty}>아직 아무 게시글이 없어요</p>
+            ) : null}
+
+            {!isLoadingPosts && !postLoadError && posts.length > 0 ? (
+              <ul className={styles.postList}>
+                {posts.map((post) => (
+                  <li key={post.id}>
+                    <Link href={`/reviews/${post.id}`} className={styles.postItem}>
+                      <span className={styles.postTitle}>{post.title}</span>
+                      <span className={styles.postLikes}>
+                        댓글 {post.commentCount}
+                      </span>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            ) : null}
           </section>
         </main>
 
@@ -207,12 +230,14 @@ export default function ReviewsPage() {
           isOpen={isComposeOpen}
           defaultBoard={activeTab}
           onClose={() => setIsComposeOpen(false)}
+          onCreated={handlePostCreated}
         />
 
         <HospitalReportSheet
           isOpen={isReportSheetOpen}
           onClose={closeReportSheet}
         />
+        <CommonFooter />
       </div>
     </>
   );

@@ -5,6 +5,10 @@ import {
   toCommentReactionSnapshot,
   validateReactionRequest,
 } from "@/src/shared/lib/reactions";
+import {
+  getBearerToken,
+  getQueryValue,
+} from "@/src/shared/lib/apiRequest";
 
 type HospitalCommentReactionResponse =
   | {
@@ -13,24 +17,6 @@ type HospitalCommentReactionResponse =
   | {
       error: string;
     };
-
-function getQueryValue(req: NextApiRequest, key: string) {
-  const value = req.query[key];
-  return Array.isArray(value) ? value[0] : value;
-}
-
-function getBearerToken(req: NextApiRequest) {
-  const authorization = req.headers.authorization;
-  const header = Array.isArray(authorization)
-    ? authorization[0]
-    : authorization;
-
-  if (!header?.startsWith("Bearer ")) {
-    return null;
-  }
-
-  return header.slice("Bearer ".length).trim() || null;
-}
 
 export default async function handler(
   req: NextApiRequest,
@@ -74,7 +60,7 @@ export default async function handler(
     if (userError || !user) {
       res.status(401).json({
         error: userError
-          ? `Supabase 사용자 확인 실패: ${userError.message}`
+          ? ` 사용자 확인 실패: ${userError.message}`
           : "로그인 사용자를 확인할 수 없습니다.",
       });
       return;
@@ -91,7 +77,7 @@ export default async function handler(
 
     if (error) {
       res.status(500).json({
-        error: `Supabase hospital_comment_reactions 저장 실패: ${error.message}`,
+        error: `hospital_comment_reactions 저장 실패: ${error.message}`,
       });
       return;
     }

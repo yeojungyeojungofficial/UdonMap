@@ -1,0 +1,41 @@
+.footer {
+  width: 100%;
+  margin-top: 28px;
+  padding-top: 16px;
+  position: relative;
+}
+
+.footer::before {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: 100vw;
+  border-top: 1px solid #ead8ca;
+  transform: translateX(-50%);
+  content: "";
+}
+
+.content {
+  width: 100%;
+  margin: 0;
+  display: grid;
+  gap: 4px;
+}
+
+.content p {
+  margin: 0;
+  color: #7d4b2a;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.content a {
+  color: #7d4b2a;
+  font-size: 12px;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.content a:hover {
+  text-decoration: underline;
+}

@@ -6,6 +6,8 @@
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  min-height: 100dvh;
+  padding-bottom: env(safe-area-inset-bottom);
 }
 
 .sheet {
@@ -127,6 +129,41 @@
 .titleInput::placeholder {
   color: #c8b8ac;
   font-weight: 600;
+}
+
+.filterSection {
+  margin: 0 16px 10px;
+}
+
+.filterLabel {
+  margin: 0;
+  color: #8a7566;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.filterTagList {
+  margin-top: 8px;
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.filterTagButton {
+  border: 1px solid #ead8ca;
+  border-radius: 999px;
+  padding: 6px 12px;
+  background: #fff9f5;
+  color: #7d4b2a;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.filterTagButtonActive {
+  border-color: #ff9645;
+  background: #ff9645;
+  color: #ffffff;
 }
 
 .divider {
@@ -277,12 +314,23 @@
   color: #383838;
 }
 
+.submitError {
+  margin: 0 16px 8px;
+  border-radius: 8px;
+  padding: 10px 12px;
+  background: #fff1e8;
+  color: #9d3217;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
 /* 하단 툴바 */
 .toolbar {
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 10px 12px 10px 8px;
+  padding-bottom: max(10px, env(safe-area-inset-bottom));
   border-top: 1px solid #f0e6dc;
   background: #ffffff;
   flex-shrink: 0;
@@ -337,6 +385,7 @@
   display: flex;
   align-items: center;
   gap: 10px;
+  min-width: 0;
 }
 
 .photoBadge {
@@ -357,10 +406,17 @@
   line-height: 1;
 }
 
+.uploadingMsg {
+  font-size: 12px;
+  color: #7d4b2a;
+  font-weight: 600;
+}
+
 .photoLimitMsg {
   font-size: 12px;
   color: #e5792d;
   font-weight: 600;
+  overflow-wrap: anywhere;
 }
 
 .charCount {
@@ -368,6 +424,10 @@
   color: #b0a090;
   font-weight: 600;
   white-space: nowrap;
+}
+
+.charCountOverLimit {
+  color: #c4361d;
 }
 
 @media (min-width: 641px) {
@@ -382,6 +442,10 @@
   .titleInput {
     padding: 16px 24px;
     font-size: 22px;
+  }
+
+  .filterSection {
+    margin: 0 24px 12px;
   }
 
   .divider {

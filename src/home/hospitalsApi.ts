@@ -7,6 +7,7 @@ import {
   toHospitalComment,
   type HospitalCommentRow,
 } from "@/src/shared/lib/hospitalComments";
+import { isMissingBookmarksTableError } from "@/src/shared/lib/bookmarkErrors";
 
 type HospitalRow = Database["public"]["Tables"]["hospitals"]["Row"];
 type HospitalListRow = Pick<
@@ -84,14 +85,6 @@ type HospitalBookmarkRow = Pick<
   "hospital_id"
 >;
 
-function isMissingBookmarksTableError(error: { code?: string; message: string }) {
-  return (
-    error.code === "42P01" ||
-    error.message.includes("hospital_bookmarks") ||
-    error.message.includes("schema cache")
-  );
-}
-
 function toReactionMap<IdKey extends string>(
   rows: Array<Record<IdKey, string> & { reaction_type: ReactionType }>,
   idKey: IdKey,
@@ -102,23 +95,12 @@ function toReactionMap<IdKey extends string>(
   }, new Map<string, ReactionType>());
 }
 
-function groupCommentsByHospitalId(
-  rows: HospitalCommentRow[],
-  reactionsByCommentId: Map<string, ReactionType>,
-) {
-  return rows.reduce((commentsByHospitalId, row) => {
-    const comments = commentsByHospitalId.get(row.hospital_id) ?? [];
-    comments.push(toHospitalComment(row, reactionsByCommentId.get(row.id) ?? null));
-    commentsByHospitalId.set(row.hospital_id, comments);
-    return commentsByHospitalId;
-  }, new Map<string, HospitalComment[]>());
-}
-
 function toHospital(
   row: HospitalListRow,
   comments: HospitalComment[] = [],
   reaction: ReactionType | null = null,
   isBookmarked = false,
+  commentsLoaded = false,
 ): Hospital {
   const animals =
     row.exotic_animals.length > 0 ? row.exotic_animals : ["특수동물"];
@@ -136,6 +118,7 @@ function toHospital(
     reviewCount: row.review_count,
     animals,
     comments,
+    commentsLoaded,
     mapPosition: getFallbackMapPosition(row.latitude, row.longitude),
     mapCoordinate: {
       lat: row.latitude,
@@ -169,23 +152,9 @@ export async function fetchHospitals() {
     return [];
   }
 
-  const { data: commentsData, error: commentsError } = await supabase
-    .from("hospital_comments")
-    .select(HOSPITAL_COMMENT_COLUMNS)
-    .in("hospital_id", hospitalIds)
-    .eq("status", "visible")
-    .order("created_at", { ascending: false });
-
-  if (commentsError) {
-    throw new Error(`Supabase hospital_comments 조회 실패: ${commentsError.message}`);
-  }
-
-  const comments = commentsData ?? [];
-  const commentIds = comments.map((comment) => comment.id);
   const session = await loadAuthSession(supabase);
 
   let reactionsByHospitalId = new Map<string, ReactionType>();
-  let reactionsByCommentId = new Map<string, ReactionType>();
   let bookmarkedHospitalIds = new Set<string>();
 
   if (session) {
@@ -207,26 +176,6 @@ export async function fetchHospitals() {
       "hospital_id",
     );
 
-    if (commentIds.length > 0) {
-      const { data: commentReactionData, error: commentReactionError } =
-        await supabase
-          .from("hospital_comment_reactions")
-          .select("comment_id,reaction_type")
-          .eq("user_id", session.user.id)
-          .in("comment_id", commentIds);
-
-      if (commentReactionError) {
-        throw new Error(
-          `Supabase hospital_comment_reactions 조회 실패: ${commentReactionError.message}`,
-        );
-      }
-
-      reactionsByCommentId = toReactionMap(
-        (commentReactionData ?? []) as HospitalCommentReactionRow[],
-        "comment_id",
-      );
-    }
-
     const { data: bookmarkData, error: bookmarkError } = await supabase
       .from("hospital_bookmarks")
       .select("hospital_id")
@@ -246,17 +195,57 @@ export async function fetchHospitals() {
     );
   }
 
-  const commentsByHospitalId = groupCommentsByHospitalId(
-    comments,
-    reactionsByCommentId,
-  );
-
   return hospitals.map((row) =>
     toHospital(
       row,
-      commentsByHospitalId.get(row.id) ?? [],
+      [],
       reactionsByHospitalId.get(row.id) ?? null,
       bookmarkedHospitalIds.has(row.id),
+      false,
     ),
+  );
+}
+
+export async function fetchHospitalComments(hospitalId: string) {
+  const supabase = getSupabaseBrowserClient();
+  const { data: commentsData, error: commentsError } = await supabase
+    .from("hospital_comments")
+    .select(HOSPITAL_COMMENT_COLUMNS)
+    .eq("hospital_id", hospitalId)
+    .eq("status", "visible")
+    .order("created_at", { ascending: false })
+    .limit(100);
+
+  if (commentsError) {
+    throw new Error(`Supabase hospital_comments 조회 실패: ${commentsError.message}`);
+  }
+
+  const comments = (commentsData ?? []) as HospitalCommentRow[];
+  const commentIds = comments.map((comment) => comment.id);
+  const session = await loadAuthSession(supabase);
+  let reactionsByCommentId = new Map<string, ReactionType>();
+
+  if (session && commentIds.length > 0) {
+    const { data: commentReactionData, error: commentReactionError } =
+      await supabase
+        .from("hospital_comment_reactions")
+        .select("comment_id,reaction_type")
+        .eq("user_id", session.user.id)
+        .in("comment_id", commentIds);
+
+    if (commentReactionError) {
+      throw new Error(
+        `Supabase hospital_comment_reactions 조회 실패: ${commentReactionError.message}`,
+      );
+    }
+
+    reactionsByCommentId = toReactionMap(
+      (commentReactionData ?? []) as HospitalCommentReactionRow[],
+      "comment_id",
+    );
+  }
+
+  return comments.map((comment) =>
+    toHospitalComment(comment, reactionsByCommentId.get(comment.id) ?? null),
   );
 }

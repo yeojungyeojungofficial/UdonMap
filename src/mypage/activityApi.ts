@@ -27,16 +27,27 @@ export type MyComment = {
   deletedAt: string | null;
 };
 
+export type MyPost = {
+  id: string;
+  board: string;
+  title: string;
+  createdAt: string;
+  updatedAt: string;
+};
+
 type MyActivityResponse =
   | {
-      reports: MyReport[];
-      comments: MyComment[];
+      reports?: MyReport[];
+      posts?: MyPost[];
+      comments?: MyComment[];
     }
   | {
       error: string;
     };
 
-export async function fetchMyActivity() {
+export type MyActivityTab = "reports" | "posts" | "comments";
+
+export async function fetchMyActivity(tab?: MyActivityTab) {
   const supabase = getSupabaseBrowserClient();
   const session = await loadAuthSession(supabase);
 
@@ -44,7 +55,8 @@ export async function fetchMyActivity() {
     throw new Error("로그인이 필요합니다.");
   }
 
-  const response = await fetch("/api/me/activity", {
+  const url = tab ? `/api/me/activity?tab=${tab}` : "/api/me/activity";
+  const response = await fetch(url, {
     headers: {
       Authorization: `Bearer ${session.access_token}`,
     },
@@ -61,5 +73,9 @@ export async function fetchMyActivity() {
     );
   }
 
-  return result;
+  return {
+    reports: result.reports ?? [],
+    posts: result.posts ?? [],
+    comments: result.comments ?? [],
+  };
 }

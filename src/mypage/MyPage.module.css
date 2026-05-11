@@ -1,5 +1,6 @@
 .page {
   min-height: 100vh;
+  min-height: 100dvh;
   padding: 20px;
   padding-top: 84px;
   background: linear-gradient(180deg, #fff0e5 0%, #f7f7f7 100%);
@@ -9,21 +10,24 @@
 .authSection {
   width: min(1120px, 100%);
   min-height: calc(100vh - 120px);
+  min-height: calc(100dvh - 120px);
   margin: 0 auto;
   display: grid;
   grid-template-columns: minmax(0, 1fr) 420px;
-  align-items: center;
+  align-items: start;
   gap: 42px;
 }
 
 .copyWrap {
   max-width: 620px;
+  padding-top: 86px;
 }
 
 
 .copyWrap h1 {
   margin: 0;
   max-width: 600px;
+  font-family: var(--display-font);
   font-size: clamp(34px, 5vw, 58px);
   line-height: 1.08;
   letter-spacing: 0;
@@ -31,15 +35,18 @@
 
 .description {
   margin: 20px 0 0;
+  font-family: var(--display-font);
   color: #383838;
   font-size: 16px;
   line-height: 1.8;
 }
 
 .benefitGrid {
-  margin-top: 28px;
+  margin: 28px 0 0 -20px;
+  width: 100%;
+  max-width: 640px;
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 10px;
 }
 
@@ -289,13 +296,15 @@
   display: flex;
   align-items: flex-end;
   justify-content: center;
-  padding: 24px 20px 0;
+  padding: 24px 20px 20px;
+  padding-bottom: max(20px, env(safe-area-inset-bottom));
   background: rgba(56, 56, 56, 0.42);
 }
 
 .bookmarkSheet {
-  width: min(640px, 100%);
-  max-height: calc(100vh - 32px);
+  width: min(760px, 100%);
+  max-height: calc(100vh - 72px);
+  max-height: calc(100dvh - 72px);
   overflow: auto;
   border-radius: 24px 24px 0 0;
   padding: 12px 20px 32px;
@@ -415,7 +424,7 @@
 .activityTabs {
   margin-top: 18px;
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 6px;
   border: 1px solid #ead8ca;
   border-radius: 8px;
@@ -498,6 +507,10 @@
   background: #ffffff;
 }
 
+.pageFooter {
+  margin-top: 28px;
+}
+
 .authDialog {
   width: min(360px, 100%);
   border: 1px solid #ead8ca;
@@ -532,6 +545,23 @@
   cursor: pointer;
 }
 
+@media (min-width: 641px) {
+  .sheetBackdrop {
+    align-items: center;
+    padding: 20px;
+  }
+
+  .bookmarkSheet {
+    width: min(600px, 100%);
+    max-height: 80vh;
+    border-radius: 16px;
+  }
+
+  .sheetHandle {
+    display: none;
+  }
+}
+
 @media (max-width: 860px) {
   .page {
     padding-top: 116px;
@@ -545,6 +575,7 @@
 
   .copyWrap {
     max-width: none;
+    padding-top: 0;
   }
 }
 
@@ -555,7 +586,7 @@
   }
 
   .benefitGrid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .authCard {

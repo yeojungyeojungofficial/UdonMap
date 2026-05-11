@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { validateCreateHospitalReport } from "@/src/shared/lib/hospitalReports";
 import { getSupabaseServerClient } from "@/src/shared/lib/supabaseServer";
+import { getBearerToken } from "@/src/shared/lib/apiRequest";
 
 type CreateHospitalReportResponse =
   | {
@@ -10,19 +11,6 @@ type CreateHospitalReportResponse =
   | {
       error: string;
     };
-
-function getBearerToken(req: NextApiRequest) {
-  const authorization = req.headers.authorization;
-  const header = Array.isArray(authorization)
-    ? authorization[0]
-    : authorization;
-
-  if (!header?.startsWith("Bearer ")) {
-    return null;
-  }
-
-  return header.slice("Bearer ".length).trim() || null;
-}
 
 export const config = {
   api: {

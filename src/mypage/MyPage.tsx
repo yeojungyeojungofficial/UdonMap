@@ -1,9 +1,17 @@
 import Head from "next/head";
 import Link from "next/link";
-import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
+import {
+  FormEvent,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import type { Session } from "@supabase/supabase-js";
 import HospitalReportSheet from "@/src/shared/components/HospitalReportSheet";
 import TopNav from "@/src/shared/components/TopNav";
+import CommonFooter from "@/src/shared/components/CommonFooter";
 import {
   clearCachedCurrentUserProfile,
   fetchCurrentUserProfile,
@@ -34,13 +42,15 @@ import {
 } from "@/src/mypage/bookmarksApi";
 import {
   fetchMyActivity,
+  type MyActivityTab,
   type MyComment,
+  type MyPost,
   type MyReport,
 } from "@/src/mypage/activityApi";
 import styles from "@/src/mypage/MyPage.module.css";
 
 type AuthMode = "login" | "signup";
-type ActivityTab = "reports" | "comments";
+type ActivityTab = MyActivityTab;
 
 const INVALID_AUTH_CODE_MESSAGE = "잘못된 인증번호입니다";
 const AUTH_ERROR_QUERY_KEYS = [
@@ -184,9 +194,11 @@ export default function MyPage() {
   const [isActivitySheetOpen, setIsActivitySheetOpen] = useState(false);
   const [activityTab, setActivityTab] = useState<ActivityTab>("comments");
   const [myReports, setMyReports] = useState<MyReport[]>([]);
+  const [myPosts, setMyPosts] = useState<MyPost[]>([]);
   const [myComments, setMyComments] = useState<MyComment[]>([]);
   const [isActivityLoading, setIsActivityLoading] = useState(false);
   const [activityError, setActivityError] = useState("");
+  const activityRequestIdRef = useRef(0);
 
   const openAuthDialog = useCallback((message: string) => {
     setAuthDialogMessage(message);
@@ -233,24 +245,48 @@ export default function MyPage() {
     }
   }, []);
 
-  const loadMyActivity = useCallback(async () => {
+  const loadMyActivity = useCallback(async (tab: ActivityTab) => {
+    const requestId = activityRequestIdRef.current + 1;
+    activityRequestIdRef.current = requestId;
     setIsActivityLoading(true);
     setActivityError("");
 
     try {
-      const nextActivity = await fetchMyActivity();
-      setMyReports(nextActivity.reports);
-      setMyComments(nextActivity.comments);
+      const nextActivity = await fetchMyActivity(tab);
+      if (activityRequestIdRef.current !== requestId) {
+        return;
+      }
+      if (tab === "reports") {
+        setMyReports(nextActivity.reports);
+      }
+      if (tab === "posts") {
+        setMyPosts(nextActivity.posts);
+      }
+      if (tab === "comments") {
+        setMyComments(nextActivity.comments);
+      }
     } catch (error) {
-      setMyReports([]);
-      setMyComments([]);
+      if (activityRequestIdRef.current !== requestId) {
+        return;
+      }
+      if (tab === "reports") {
+        setMyReports([]);
+      }
+      if (tab === "posts") {
+        setMyPosts([]);
+      }
+      if (tab === "comments") {
+        setMyComments([]);
+      }
       setActivityError(
         error instanceof Error
           ? error.message
           : "내 활동 내역 조회 중 알 수 없는 오류가 발생했습니다.",
       );
     } finally {
-      setIsActivityLoading(false);
+      if (activityRequestIdRef.current === requestId) {
+        setIsActivityLoading(false);
+      }
     }
   }, []);
 
@@ -270,7 +306,12 @@ export default function MyPage() {
 
     setActivityTab(nextTab);
     setIsActivitySheetOpen(true);
-    void loadMyActivity();
+    void loadMyActivity(nextTab);
+  };
+
+  const handleActivityTabChange = (nextTab: ActivityTab) => {
+    setActivityTab(nextTab);
+    void loadMyActivity(nextTab);
   };
 
   useEffect(() => {
@@ -313,12 +354,15 @@ export default function MyPage() {
         setIsAuthReady(true);
 
         if (!nextSession) {
+          activityRequestIdRef.current += 1;
           resetProfileState();
           setIsBookmarkSheetOpen(false);
           setBookmarkedHospitals([]);
           setBookmarkError("");
           setIsActivitySheetOpen(false);
+          setIsActivityLoading(false);
           setMyReports([]);
+          setMyPosts([]);
           setMyComments([]);
           setActivityError("");
         }
@@ -331,12 +375,15 @@ export default function MyPage() {
         setSession(nextSession);
 
         if (!nextSession) {
+          activityRequestIdRef.current += 1;
           resetProfileState();
           setIsBookmarkSheetOpen(false);
           setBookmarkedHospitals([]);
           setBookmarkError("");
           setIsActivitySheetOpen(false);
+          setIsActivityLoading(false);
           setMyReports([]);
+          setMyPosts([]);
           setMyComments([]);
           setActivityError("");
         }
@@ -624,13 +671,19 @@ export default function MyPage() {
                   type="button"
                   onClick={() => openActivitySheet("reports")}
                 >
-                  제보 내역
+                  내 제보
+                </button>
+                <button
+                  type="button"
+                  onClick={() => openActivitySheet("posts")}
+                >
+                  내 게시글
                 </button>
                 <button
                   type="button"
                   onClick={() => openActivitySheet("comments")}
                 >
-                  댓글 내역
+                  내 댓글
                 </button>
               </div>
             ) : null}
@@ -703,9 +756,6 @@ export default function MyPage() {
               >
                 로그아웃
               </button>
-              <Link href="/" className={styles.secondaryButton}>
-                비회원으로 둘러보기
-              </Link>
             </section>
           ) : (
             <form className={styles.authCard} onSubmit={handleSubmit}>
@@ -920,7 +970,7 @@ export default function MyPage() {
                 <div>
                   <h2 id="activity-sheet-title">내 활동 내역</h2>
                   <p>
-                    글 {myReports.length}개 · 댓글 {myComments.length}개
+                    제보 {myReports.length}개 · 게시글 {myPosts.length}개 · 댓글 {myComments.length}개
                   </p>
                 </div>
                 <button
@@ -940,9 +990,19 @@ export default function MyPage() {
                     activityTab === "reports" ? styles.activityTabActive : ""
                   }`}
                   aria-pressed={activityTab === "reports"}
-                  onClick={() => setActivityTab("reports")}
+                  onClick={() => handleActivityTabChange("reports")}
                 >
-                  내가 쓴 글
+                  내 제보
+                </button>
+                <button
+                  type="button"
+                  className={`${styles.activityTab} ${
+                    activityTab === "posts" ? styles.activityTabActive : ""
+                  }`}
+                  aria-pressed={activityTab === "posts"}
+                  onClick={() => handleActivityTabChange("posts")}
+                >
+                  내 게시글
                 </button>
                 <button
                   type="button"
@@ -950,9 +1010,9 @@ export default function MyPage() {
                     activityTab === "comments" ? styles.activityTabActive : ""
                   }`}
                   aria-pressed={activityTab === "comments"}
-                  onClick={() => setActivityTab("comments")}
+                  onClick={() => handleActivityTabChange("comments")}
                 >
-                  내가 쓴 댓글
+                  내 댓글
                 </button>
               </div>
 
@@ -970,7 +1030,14 @@ export default function MyPage() {
               !activityError &&
               activityTab === "reports" &&
               myReports.length === 0 ? (
-                <p className={styles.bookmarkState}>아직 작성한 글이 없습니다.</p>
+                <p className={styles.bookmarkState}>아직 제보 내역이 없습니다.</p>
+              ) : null}
+
+              {!isActivityLoading &&
+              !activityError &&
+              activityTab === "posts" &&
+              myPosts.length === 0 ? (
+                <p className={styles.bookmarkState}>아직 작성한 게시글이 없습니다.</p>
               ) : null}
 
               {!isActivityLoading &&
@@ -1013,6 +1080,23 @@ export default function MyPage() {
 
               {!isActivityLoading &&
               !activityError &&
+              activityTab === "posts" &&
+              myPosts.length > 0 ? (
+                <ul className={styles.activityList}>
+                  {myPosts.map((post) => (
+                    <li key={post.id} className={styles.activityItem}>
+                      <div className={styles.activityMeta}>
+                        <span>{formatProfileDate(post.createdAt)}</span>
+                        <em>{post.board}</em>
+                      </div>
+                      <strong>{post.title}</strong>
+                    </li>
+                  ))}
+                </ul>
+              ) : null}
+
+              {!isActivityLoading &&
+              !activityError &&
               activityTab === "comments" &&
               myComments.length > 0 ? (
                 <ul className={styles.activityList}>
@@ -1034,6 +1118,7 @@ export default function MyPage() {
             </section>
           </div>
         ) : null}
+        <CommonFooter className={styles.pageFooter} />
         {authDialogMessage ? (
           <div className={styles.dialogBackdrop} role="presentation">
             <section

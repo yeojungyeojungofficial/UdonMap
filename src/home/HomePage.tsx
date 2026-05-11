@@ -6,7 +6,11 @@ import MapPanel from "@/src/home/components/MapPanel";
 import RegionFilter from "@/src/home/components/RegionFilter";
 import HospitalReportSheet from "@/src/shared/components/HospitalReportSheet";
 import TopNav from "@/src/shared/components/TopNav";
-import { fetchHospitals } from "@/src/home/hospitalsApi";
+import CommonFooter from "@/src/shared/components/CommonFooter";
+import {
+  fetchHospitalComments,
+  fetchHospitals,
+} from "@/src/home/hospitalsApi";
 import { OTHER_REGION_FILTER, REGION_FILTERS } from "@/src/home/regions";
 import type {
   Hospital,
@@ -27,6 +31,13 @@ export default function HomePage() {
   );
   const [activeMenu, setActiveMenu] = useState("병원찾기");
   const [isReportSheetOpen, setIsReportSheetOpen] = useState(false);
+  const [loadingCommentsHospitalId, setLoadingCommentsHospitalId] = useState<
+    string | null
+  >(null);
+  const [commentLoadError, setCommentLoadError] = useState<{
+    hospitalId: string;
+    message: string;
+  } | null>(null);
 
   useEffect(() => {
     let isMounted = true;
@@ -105,6 +116,55 @@ export default function HomePage() {
     [filteredHospitals, selectedHospitalId],
   );
 
+  useEffect(() => {
+    if (!selectedHospital || selectedHospital.commentsLoaded) {
+      return;
+    }
+
+    let isMounted = true;
+    const hospitalId = selectedHospital.id;
+
+    const loadHospitalComments = async () => {
+      setLoadingCommentsHospitalId(hospitalId);
+      setCommentLoadError(null);
+
+      try {
+        const comments = await fetchHospitalComments(hospitalId);
+        if (!isMounted) return;
+        setHospitals((currentHospitals) =>
+          currentHospitals.map((hospital) =>
+            hospital.id === hospitalId
+              ? {
+                  ...hospital,
+                  comments,
+                  commentsLoaded: true,
+                }
+              : hospital,
+          ),
+        );
+      } catch (error) {
+        if (!isMounted) return;
+        setCommentLoadError({
+          hospitalId,
+          message:
+            error instanceof Error
+              ? error.message
+              : "댓글을 불러오는 중 알 수 없는 오류가 발생했습니다.",
+        });
+      } finally {
+        if (isMounted) {
+          setLoadingCommentsHospitalId(null);
+        }
+      }
+    };
+
+    void loadHospitalComments();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [selectedHospital]);
+
   const closeReportSheet = () => {
     setIsReportSheetOpen(false);
     setActiveMenu("병원찾기");
@@ -123,6 +183,7 @@ export default function HomePage() {
                 ...hospital,
                 comments: [comment, ...hospital.comments],
                 reviewCount: hospital.reviewCount + 1,
+                commentsLoaded: true,
               }
             : hospital,
         ),
@@ -142,6 +203,7 @@ export default function HomePage() {
                   (comment) => comment.id !== commentId,
                 ),
                 reviewCount: Math.max(0, hospital.reviewCount - 1),
+                commentsLoaded: true,
               }
             : hospital,
         ),
@@ -208,6 +270,11 @@ export default function HomePage() {
     },
     [],
   );
+
+  const selectedHospitalCommentLoadError =
+    commentLoadError && commentLoadError.hospitalId === selectedHospital?.id
+      ? commentLoadError.message
+      : "";
 
   return (
     <>
@@ -284,11 +351,14 @@ export default function HomePage() {
           onHospitalReactionChanged={handleHospitalReactionChanged}
           onCommentReactionChanged={handleCommentReactionChanged}
           onBookmarkChanged={handleBookmarkChanged}
+          isLoadingComments={loadingCommentsHospitalId === selectedHospital?.id}
+          commentLoadError={selectedHospitalCommentLoadError}
         />
         <HospitalReportSheet
           isOpen={isReportSheetOpen}
           onClose={closeReportSheet}
         />
+        <CommonFooter />
       </div>
     </>
   );
