@@ -9,6 +9,10 @@ import {
   type BoardPostSummary,
 } from "@/src/shared/lib/boardPosts";
 import { ensureUserProfile } from "@/src/shared/lib/userProfiles";
+import {
+  getSuspensionBlockedMessage,
+  getUserActiveSuspension,
+} from "@/src/shared/lib/suspensions";
 
 type BoardPostRow = Database["public"]["Tables"]["board_posts"]["Row"];
 
@@ -123,6 +127,18 @@ async function handlePost(
         error: userError
           ? `사용자 확인 실패: ${userError.message}`
           : "로그인 사용자를 확인할 수 없습니다.",
+      });
+      return;
+    }
+
+    const suspensionData = await getUserActiveSuspension(supabase, user.id);
+
+    if (suspensionData) {
+      res.status(403).json({
+        error: getSuspensionBlockedMessage(
+          suspensionData,
+          "게시글을 작성할 수 없습니다.",
+        ),
       });
       return;
     }

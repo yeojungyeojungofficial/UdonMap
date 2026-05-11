@@ -426,6 +426,10 @@
   white-space: nowrap;
 }
 
+.charCountOverLimit {
+  color: #c4361d;
+}
+
 @media (min-width: 641px) {
   .sheetHeader {
     padding: 16px 24px;

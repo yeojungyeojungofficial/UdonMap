@@ -10,6 +10,10 @@ import type { HospitalComment } from "@/src/home/types";
 import { getSupabaseServerClient } from "@/src/shared/lib/supabaseServer";
 import { ensureUserProfile } from "@/src/shared/lib/userProfiles";
 import { getBearerToken } from "@/src/shared/lib/apiRequest";
+import {
+  getSuspensionBlockedMessage,
+  getUserActiveSuspension,
+} from "@/src/shared/lib/suspensions";
 
 type HospitalCommentResponse =
   | {
@@ -26,23 +30,6 @@ function getHospitalId(req: NextApiRequest) {
   return Array.isArray(req.query.hospitalId)
     ? req.query.hospitalId[0]
     : req.query.hospitalId;
-}
-
-type ActiveSuspension = {
-  duration: string;
-  ends_at: string | null;
-};
-
-function getSuspensionMessage(suspension: ActiveSuspension) {
-  if (suspension.duration === "permanent" || !suspension.ends_at) {
-    return "영구 정지된 계정입니다. 댓글을 작성할 수 없습니다.";
-  }
-
-  return `${new Intl.DateTimeFormat("ko-KR", {
-    dateStyle: "medium",
-    timeStyle: "short",
-    timeZone: "Asia/Seoul",
-  }).format(new Date(suspension.ends_at))}까지 정지된 계정입니다. 댓글을 작성할 수 없습니다.`;
 }
 
 export default async function handler(
@@ -126,22 +113,14 @@ export default async function handler(
       return;
     }
 
-    const { data: suspensionData, error: suspensionError } = await supabase
-      .rpc("get_user_active_suspension", {
-        p_user_id: user.id,
-      })
-      .maybeSingle();
-
-    if (suspensionError) {
-      res.status(500).json({
-        error: `Supabase user_suspensions 조회 실패: ${suspensionError.message}`,
-      });
-      return;
-    }
+    const suspensionData = await getUserActiveSuspension(supabase, user.id);
 
     if (suspensionData) {
       res.status(403).json({
-        error: getSuspensionMessage(suspensionData),
+        error: getSuspensionBlockedMessage(
+          suspensionData,
+          "댓글을 작성할 수 없습니다.",
+        ),
       });
       return;
     }

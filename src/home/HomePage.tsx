@@ -34,7 +34,10 @@ export default function HomePage() {
   const [loadingCommentsHospitalId, setLoadingCommentsHospitalId] = useState<
     string | null
   >(null);
-  const [commentLoadError, setCommentLoadError] = useState("");
+  const [commentLoadError, setCommentLoadError] = useState<{
+    hospitalId: string;
+    message: string;
+  } | null>(null);
 
   useEffect(() => {
     let isMounted = true;
@@ -123,7 +126,7 @@ export default function HomePage() {
 
     const loadHospitalComments = async () => {
       setLoadingCommentsHospitalId(hospitalId);
-      setCommentLoadError("");
+      setCommentLoadError(null);
 
       try {
         const comments = await fetchHospitalComments(hospitalId);
@@ -141,11 +144,13 @@ export default function HomePage() {
         );
       } catch (error) {
         if (!isMounted) return;
-        setCommentLoadError(
-          error instanceof Error
-            ? error.message
-            : "댓글을 불러오는 중 알 수 없는 오류가 발생했습니다.",
-        );
+        setCommentLoadError({
+          hospitalId,
+          message:
+            error instanceof Error
+              ? error.message
+              : "댓글을 불러오는 중 알 수 없는 오류가 발생했습니다.",
+        });
       } finally {
         if (isMounted) {
           setLoadingCommentsHospitalId(null);
@@ -266,6 +271,11 @@ export default function HomePage() {
     [],
   );
 
+  const selectedHospitalCommentLoadError =
+    commentLoadError && commentLoadError.hospitalId === selectedHospital?.id
+      ? commentLoadError.message
+      : "";
+
   return (
     <>
       <Head>
@@ -342,11 +352,7 @@ export default function HomePage() {
           onCommentReactionChanged={handleCommentReactionChanged}
           onBookmarkChanged={handleBookmarkChanged}
           isLoadingComments={loadingCommentsHospitalId === selectedHospital?.id}
-          commentLoadError={
-            loadingCommentsHospitalId === selectedHospital?.id
-              ? ""
-              : commentLoadError
-          }
+          commentLoadError={selectedHospitalCommentLoadError}
         />
         <HospitalReportSheet
           isOpen={isReportSheetOpen}

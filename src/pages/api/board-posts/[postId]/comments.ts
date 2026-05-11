@@ -14,6 +14,10 @@ import {
   ensureUserProfile,
   getDefaultDisplayName,
 } from "@/src/shared/lib/userProfiles";
+import {
+  getSuspensionBlockedMessage,
+  getUserActiveSuspension,
+} from "@/src/shared/lib/suspensions";
 
 type BoardPostCommentRow =
   Database["public"]["Tables"]["board_post_comments"]["Row"];
@@ -29,11 +33,6 @@ type BoardPostCommentResponse =
 const BOARD_POST_COMMENT_COLUMNS =
   "id,post_id,user_id,author_name,body,like_count,dislike_count,status,deleted_at,deleted_by,deleted_reason,created_at,updated_at";
 
-type ActiveSuspension = {
-  duration: string;
-  ends_at: string | null;
-};
-
 function getAuthorName(
   profile: Awaited<ReturnType<typeof ensureUserProfile>>,
   userEmail: string | null | undefined,
@@ -44,18 +43,6 @@ function getAuthorName(
     getDefaultDisplayName(userEmail) ||
     "익명 사용자"
   );
-}
-
-function getSuspensionMessage(suspension: ActiveSuspension) {
-  if (suspension.duration === "permanent" || !suspension.ends_at) {
-    return "영구 정지된 계정입니다. 댓글을 작성할 수 없습니다.";
-  }
-
-  return `${new Intl.DateTimeFormat("ko-KR", {
-    dateStyle: "medium",
-    timeStyle: "short",
-    timeZone: "Asia/Seoul",
-  }).format(new Date(suspension.ends_at))}까지 정지된 계정입니다. 댓글을 작성할 수 없습니다.`;
 }
 
 export default async function handler(
@@ -124,22 +111,14 @@ export default async function handler(
       return;
     }
 
-    const { data: suspensionData, error: suspensionError } = await supabase
-      .rpc("get_user_active_suspension", {
-        p_user_id: user.id,
-      })
-      .maybeSingle();
-
-    if (suspensionError) {
-      res.status(500).json({
-        error: `Supabase user_suspensions 조회 실패: ${suspensionError.message}`,
-      });
-      return;
-    }
+    const suspensionData = await getUserActiveSuspension(supabase, user.id);
 
     if (suspensionData) {
       res.status(403).json({
-        error: getSuspensionMessage(suspensionData),
+        error: getSuspensionBlockedMessage(
+          suspensionData,
+          "댓글을 작성할 수 없습니다.",
+        ),
       });
       return;
     }

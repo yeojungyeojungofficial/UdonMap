@@ -121,9 +121,10 @@ function PostComposeSheetContent({
   const countPhotos = () =>
     editorRef.current?.querySelectorAll("[data-img-wrapper]").length ?? 0;
 
+  const getEditorTextLength = () => editorRef.current?.innerText.length ?? 0;
+
   const updateBodyLength = () => {
-    const text = editorRef.current?.innerText ?? "";
-    setBodyLength(Math.min(text.length, MAX_BODY));
+    setBodyLength(getEditorTextLength());
   };
 
   const saveSelection = () => {
@@ -375,12 +376,25 @@ function PostComposeSheetContent({
     if (isSubmitting) return;
 
     const body = editorRef.current?.innerHTML ?? "";
+    const nextBodyLength = getEditorTextLength();
     const filterTag =
       selectedBoard === "병원후기 게시판"
         ? (selectedReviewTag ?? null)
         : selectedBoard === "꿀팁 게시판"
           ? (selectedTipTag ?? null)
           : null;
+
+    setBodyLength(nextBodyLength);
+
+    if (nextBodyLength === 0) {
+      setSubmitError("내용을 입력해주세요.");
+      return;
+    }
+
+    if (nextBodyLength > MAX_BODY) {
+      setSubmitError(`본문은 ${MAX_BODY.toLocaleString()}자 이하로 입력해주세요.`);
+      return;
+    }
 
     setIsSubmitting(true);
     setSubmitError("");
@@ -405,6 +419,7 @@ function PostComposeSheetContent({
   };
 
   const atPhotoLimit = photoCount >= MAX_PHOTOS;
+  const isBodyTooLong = bodyLength > MAX_BODY;
 
   return (
     <div className={styles.overlay} role="dialog" aria-modal="true" aria-label="글쓰기">
@@ -420,6 +435,7 @@ function PostComposeSheetContent({
             disabled={
               !title.trim() ||
               bodyLength === 0 ||
+              isBodyTooLong ||
               isSubmitting ||
               uploadingCount > 0
             }
@@ -597,7 +613,11 @@ function PostComposeSheetContent({
             {photoLimitMsg && !uploadingCount && (
               <span className={styles.photoLimitMsg}>{photoLimitMsg}</span>
             )}
-            <span className={styles.charCount}>
+            <span
+              className={`${styles.charCount} ${
+                isBodyTooLong ? styles.charCountOverLimit : ""
+              }`}
+            >
               {bodyLength.toLocaleString()}/{MAX_BODY.toLocaleString()}
             </span>
           </div>

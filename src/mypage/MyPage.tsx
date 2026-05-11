@@ -1,6 +1,13 @@
 import Head from "next/head";
 import Link from "next/link";
-import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
+import {
+  FormEvent,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import type { Session } from "@supabase/supabase-js";
 import HospitalReportSheet from "@/src/shared/components/HospitalReportSheet";
 import TopNav from "@/src/shared/components/TopNav";
@@ -191,6 +198,7 @@ export default function MyPage() {
   const [myComments, setMyComments] = useState<MyComment[]>([]);
   const [isActivityLoading, setIsActivityLoading] = useState(false);
   const [activityError, setActivityError] = useState("");
+  const activityRequestIdRef = useRef(0);
 
   const openAuthDialog = useCallback((message: string) => {
     setAuthDialogMessage(message);
@@ -238,11 +246,16 @@ export default function MyPage() {
   }, []);
 
   const loadMyActivity = useCallback(async (tab: ActivityTab) => {
+    const requestId = activityRequestIdRef.current + 1;
+    activityRequestIdRef.current = requestId;
     setIsActivityLoading(true);
     setActivityError("");
 
     try {
       const nextActivity = await fetchMyActivity(tab);
+      if (activityRequestIdRef.current !== requestId) {
+        return;
+      }
       if (tab === "reports") {
         setMyReports(nextActivity.reports);
       }
@@ -253,6 +266,9 @@ export default function MyPage() {
         setMyComments(nextActivity.comments);
       }
     } catch (error) {
+      if (activityRequestIdRef.current !== requestId) {
+        return;
+      }
       if (tab === "reports") {
         setMyReports([]);
       }
@@ -268,7 +284,9 @@ export default function MyPage() {
           : "내 활동 내역 조회 중 알 수 없는 오류가 발생했습니다.",
       );
     } finally {
-      setIsActivityLoading(false);
+      if (activityRequestIdRef.current === requestId) {
+        setIsActivityLoading(false);
+      }
     }
   }, []);
 
@@ -336,11 +354,13 @@ export default function MyPage() {
         setIsAuthReady(true);
 
         if (!nextSession) {
+          activityRequestIdRef.current += 1;
           resetProfileState();
           setIsBookmarkSheetOpen(false);
           setBookmarkedHospitals([]);
           setBookmarkError("");
           setIsActivitySheetOpen(false);
+          setIsActivityLoading(false);
           setMyReports([]);
           setMyPosts([]);
           setMyComments([]);
@@ -355,11 +375,13 @@ export default function MyPage() {
         setSession(nextSession);
 
         if (!nextSession) {
+          activityRequestIdRef.current += 1;
           resetProfileState();
           setIsBookmarkSheetOpen(false);
           setBookmarkedHospitals([]);
           setBookmarkError("");
           setIsActivitySheetOpen(false);
+          setIsActivityLoading(false);
           setMyReports([]);
           setMyPosts([]);
           setMyComments([]);
