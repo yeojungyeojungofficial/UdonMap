@@ -45,7 +45,7 @@ export default function DesktopHomePage() {
   return (
     <>
       <Head>
-        <title>우리들의 동물병원</title>
+        <title>우리동네 동물병원</title>
         <meta
           name="description"
           content="동물병원 지도, 지역 필터, 후기와 좋아요를 한 화면에서 확인합니다."
