@@ -1,18 +1,18 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import { getSupabaseServerClient } from "@/src/shared/lib/supabaseServer";
-import type { Database } from "@/src/shared/lib/database.types";
-import { getBearerToken } from "@/src/shared/lib/apiRequest";
+import { getSupabaseServerClient } from "@/src/core/supabaseServer";
+import type { Database } from "@/src/core/database.types";
+import { getBearerToken } from "@/src/core/apiRequest";
 import {
   isBoardTab,
   toBoardPostSummary,
   validateCreateBoardPost,
   type BoardPostSummary,
-} from "@/src/shared/lib/boardPosts";
-import { ensureUserProfile } from "@/src/shared/lib/userProfiles";
+} from "@/src/features/reviews/boardPosts";
+import { ensureUserProfile } from "@/src/core/userProfiles";
 import {
   getSuspensionBlockedMessage,
   getUserActiveSuspension,
-} from "@/src/shared/lib/suspensions";
+} from "@/src/core/suspensions";
 
 type BoardPostRow = Database["public"]["Tables"]["board_posts"]["Row"];
 

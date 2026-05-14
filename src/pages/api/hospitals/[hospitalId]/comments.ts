@@ -5,15 +5,15 @@ import {
   toHospitalComment,
   validateCreateHospitalComment,
   validateDeleteHospitalComment,
-} from "@/src/shared/lib/hospitalComments";
-import type { HospitalComment } from "@/src/home/types";
-import { getSupabaseServerClient } from "@/src/shared/lib/supabaseServer";
-import { ensureUserProfile } from "@/src/shared/lib/userProfiles";
-import { getBearerToken } from "@/src/shared/lib/apiRequest";
+} from "@/src/features/hospitals/comments";
+import type { HospitalComment } from "@/src/features/hospitals/types";
+import { getSupabaseServerClient } from "@/src/core/supabaseServer";
+import { ensureUserProfile } from "@/src/core/userProfiles";
+import { getBearerToken } from "@/src/core/apiRequest";
 import {
   getSuspensionBlockedMessage,
   getUserActiveSuspension,
-} from "@/src/shared/lib/suspensions";
+} from "@/src/core/suspensions";
 
 type HospitalCommentResponse =
   | {
