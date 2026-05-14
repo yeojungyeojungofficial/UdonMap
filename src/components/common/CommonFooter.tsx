@@ -1,4 +1,4 @@
-import styles from "@/src/shared/components/CommonFooter.module.css";
+import styles from "@/src/components/common/CommonFooter.module.css";
 
 type CommonFooterProps = {
   className?: string;

@@ -1,6 +1,6 @@
 import { useCallback, useRef, useState, type ChangeEvent } from "react";
-import { loadAuthSession } from "@/src/shared/lib/authSession";
-import { getSupabaseBrowserClient } from "@/src/shared/lib/supabase";
+import { loadAuthSession } from "@/src/core/authSession";
+import { getSupabaseBrowserClient } from "@/src/core/supabase";
 import {
   MAX_POST_PHOTOS,
   POST_IMAGE_STORAGE_BUCKET,

@@ -1,85 +1,38 @@
 import Head from "next/head";
 import Link from "next/link";
-import { useEffect, useState } from "react";
-import HospitalReportSheet from "@/src/shared/components/HospitalReportSheet";
-import LoadingScreen from "@/src/shared/components/LoadingScreen";
-import TopNav from "@/src/shared/components/TopNav";
+import { useState } from "react";
+import HospitalReportSheet from "@/src/components/common/HospitalReportSheet";
+import LoadingScreen from "@/src/components/common/LoadingScreen";
+import TopNav from "@/src/components/common/TopNav";
 import PostComposeSheet from "@/src/components/reviews/PostComposeSheet";
-import CommonFooter from "@/src/shared/components/CommonFooter";
+import CommonFooter from "@/src/components/common/CommonFooter";
 import { REGION_FILTERS } from "@/src/constants/regions";
 import type { Region } from "@/src/features/hospitals/types";
 import {
   BOARD_TABS,
   TIP_CATEGORIES,
-  type BoardPostSummary,
-  type BoardTab,
-  type TipCategory,
 } from "@/src/features/reviews/boardPosts";
-import { fetchBoardPosts } from "@/src/core/api/reviews/boardPostsApi";
+import { useReviewBoardPosts } from "@/src/features/reviews/hooks/useReviewBoardPosts";
 import styles from "@/src/components/reviews/ReviewsPage.module.css";
 
 const REVIEW_REGION_OPTIONS: readonly Region[] = REGION_FILTERS;
 
 export default function ReviewsPage() {
   const [activeMenu, setActiveMenu] = useState("병원후기");
-  const [activeTab, setActiveTab] = useState<BoardTab>("병원후기 게시판");
-  const [selectedRegion, setSelectedRegion] = useState<Region>("전체");
-  const [selectedTipCategory, setSelectedTipCategory] =
-    useState<TipCategory>("전체");
   const [isReportSheetOpen, setIsReportSheetOpen] = useState(false);
   const [isComposeOpen, setIsComposeOpen] = useState(false);
-  const [posts, setPosts] = useState<BoardPostSummary[]>([]);
-  const [isLoadingPosts, setIsLoadingPosts] = useState(true);
-  const [postLoadError, setPostLoadError] = useState("");
-
-  useEffect(() => {
-    let isMounted = true;
-    const filterTag =
-      activeTab === "병원후기 게시판"
-        ? selectedRegion
-        : activeTab === "꿀팁 게시판"
-          ? selectedTipCategory
-          : null;
-
-    const loadPosts = async () => {
-      setIsLoadingPosts(true);
-      setPostLoadError("");
-
-      try {
-        const nextPosts = await fetchBoardPosts(activeTab, filterTag);
-        if (!isMounted) return;
-        setPosts(nextPosts);
-      } catch (error) {
-        if (!isMounted) return;
-        setPosts([]);
-        setPostLoadError(
-          error instanceof Error
-            ? error.message
-            : "게시글 목록을 불러오는 중 알 수 없는 오류가 발생했습니다.",
-        );
-      } finally {
-        if (isMounted) {
-          setIsLoadingPosts(false);
-        }
-      }
-    };
-
-    void loadPosts();
-
-    return () => {
-      isMounted = false;
-    };
-  }, [activeTab, selectedRegion, selectedTipCategory]);
-
-  const handleSelectTab = (tab: BoardTab) => {
-    setActiveTab(tab);
-    if (tab !== "병원후기 게시판") {
-      setSelectedRegion("전체");
-    }
-    if (tab !== "꿀팁 게시판") {
-      setSelectedTipCategory("전체");
-    }
-  };
+  const {
+    activeTab,
+    handlePostCreated,
+    handleSelectTab,
+    isLoadingPosts,
+    postLoadError,
+    posts,
+    selectedRegion,
+    selectedTipCategory,
+    setSelectedRegion,
+    setSelectedTipCategory,
+  } = useReviewBoardPosts();
 
   const closeReportSheet = () => {
     setIsReportSheetOpen(false);
@@ -88,17 +41,6 @@ export default function ReviewsPage() {
 
   const handleWritePost = () => {
     setIsComposeOpen(true);
-  };
-
-  const handlePostCreated = (post: BoardPostSummary) => {
-    setActiveTab(post.board);
-    if (post.board === "병원후기 게시판") {
-      setSelectedRegion((post.filterTag as Region | null) ?? "전체");
-    }
-    if (post.board === "꿀팁 게시판") {
-      setSelectedTipCategory((post.filterTag as TipCategory | null) ?? "전체");
-    }
-    setPosts((currentPosts) => [post, ...currentPosts]);
   };
 
   return (

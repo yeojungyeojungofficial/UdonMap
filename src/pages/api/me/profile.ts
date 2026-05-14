@@ -1,13 +1,13 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import { getSupabaseServerClient } from "@/src/shared/lib/supabaseServer";
+import { getSupabaseServerClient } from "@/src/core/supabaseServer";
 import { updateHospitalCommentAuthorNames } from "@/src/features/hospitals/comments";
-import { getBearerToken } from "@/src/shared/lib/apiRequest";
+import { getBearerToken } from "@/src/core/apiRequest";
 import {
   ensureUserProfile,
   updateUserProfile,
   validateUserProfileUpdate,
   type UserProfile,
-} from "@/src/shared/lib/userProfiles";
+} from "@/src/core/userProfiles";
 
 type UserProfileResponse =
   | {

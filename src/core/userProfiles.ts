@@ -1,5 +1,5 @@
 import type { SupabaseClient, User } from "@supabase/supabase-js";
-import type { Database } from "@/src/shared/lib/database.types";
+import type { Database } from "@/src/core/database.types";
 
 export const USER_PROFILE_COLUMNS =
   "id,email,display_name,created_at,updated_at";

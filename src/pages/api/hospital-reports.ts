@@ -1,7 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { validateCreateHospitalReport } from "@/src/features/hospitals/reports";
-import { getSupabaseServerClient } from "@/src/shared/lib/supabaseServer";
-import { getBearerToken } from "@/src/shared/lib/apiRequest";
+import { getSupabaseServerClient } from "@/src/core/supabaseServer";
+import { getBearerToken } from "@/src/core/apiRequest";
 
 type CreateHospitalReportResponse =
   | {

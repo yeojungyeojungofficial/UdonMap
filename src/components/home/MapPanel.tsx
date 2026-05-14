@@ -1,5 +1,6 @@
 import Script from "next/script";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { INITIAL_HOSPITAL_MAP_LEVEL } from "@/src/constants/map";
 import type { Hospital } from "@/src/features/hospitals/types";
 import styles from "@/src/components/home/Home.module.css";
 
@@ -59,7 +60,9 @@ declare global {
 
 type MapPanelProps = {
   hospitals: Hospital[];
+  mapLevel: number;
   selectedHospitalId: string | null;
+  onMapLevelChange: (mapLevel: number) => void;
   onSelectHospital: (hospital: Hospital) => void;
 };
 
@@ -68,7 +71,6 @@ const SEOUL_CENTER = {
   lng: 126.978,
 };
 
-const INITIAL_MAP_LEVEL = 9;
 const CLUSTER_MIN_LEVEL = 10;
 const CLUSTER_BASE_GRID_DEGREES = 0.8;
 
@@ -146,7 +148,9 @@ function groupHospitalsByMapLevel(
 
 export default function MapPanel({
   hospitals,
+  mapLevel,
   selectedHospitalId,
+  onMapLevelChange,
   onSelectHospital,
 }: MapPanelProps) {
   const kakaoMapJsKey =
@@ -168,7 +172,6 @@ export default function MapPanel({
   const [isSdkReady, setIsSdkReady] = useState(false);
   const [isMapReady, setIsMapReady] = useState(false);
   const [hasSdkLoadError, setHasSdkLoadError] = useState(false);
-  const [mapLevel, setMapLevel] = useState(INITIAL_MAP_LEVEL);
 
   useEffect(() => {
     if (!scriptSrc || !isSdkReady || !mapContainerRef.current || !window.kakao) {
@@ -181,14 +184,14 @@ export default function MapPanel({
           SEOUL_CENTER.lat,
           SEOUL_CENTER.lng,
         ),
-        level: INITIAL_MAP_LEVEL,
+        level: INITIAL_HOSPITAL_MAP_LEVEL,
       });
-      setMapLevel(mapRef.current.getLevel());
+      onMapLevelChange(mapRef.current.getLevel());
       setIsMapReady(true);
     }
 
     mapRef.current.relayout();
-  }, [hospitals, isSdkReady, scriptSrc]);
+  }, [hospitals, isSdkReady, onMapLevelChange, scriptSrc]);
 
   useEffect(() => {
     if (!isMapReady || !mapRef.current || !window.kakao) {
@@ -198,16 +201,16 @@ export default function MapPanel({
     const map = mapRef.current;
     const kakaoMaps = window.kakao.maps;
     const handleZoomChanged = () => {
-      setMapLevel(map.getLevel());
+      onMapLevelChange(map.getLevel());
     };
 
     kakaoMaps.event.addListener(map, "zoom_changed", handleZoomChanged);
-    setMapLevel(map.getLevel());
+    onMapLevelChange(map.getLevel());
 
     return () => {
       kakaoMaps.event.removeListener(map, "zoom_changed", handleZoomChanged);
     };
-  }, [isMapReady]);
+  }, [isMapReady, onMapLevelChange]);
 
   useEffect(() => {
     if (!isMapReady || !mapRef.current || !window.kakao) {

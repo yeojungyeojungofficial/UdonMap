@@ -1,4 +1,4 @@
-import type { Database } from "@/src/shared/lib/database.types";
+import type { Database } from "@/src/core/database.types";
 import type { BoardTab } from "@/src/features/reviews/constants";
 
 export type { BoardTab, TipCategory } from "@/src/features/reviews/constants";

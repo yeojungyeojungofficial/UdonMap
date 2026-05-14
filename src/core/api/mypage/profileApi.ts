@@ -1,5 +1,5 @@
 import type { Session } from "@supabase/supabase-js";
-import type { UserProfile } from "@/src/shared/lib/userProfiles";
+import type { UserProfile } from "@/src/core/userProfiles";
 
 let cachedUserProfile: UserProfile | null = null;
 

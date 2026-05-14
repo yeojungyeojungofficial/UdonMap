@@ -1,0 +1,188 @@
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+  type ChangeEvent,
+  type FormEvent,
+} from "react";
+import { createHospitalReport } from "@/src/core/api/hospitals/hospitalReportsApi";
+
+export const HOSPITAL_REPORT_ANIMAL_OPTIONS = [
+  "포유류",
+  "양서류",
+  "파충류",
+  "조류",
+  "어류",
+] as const;
+export const MAX_HOSPITAL_REPORT_FILE_COUNT = 3;
+
+type UseHospitalReportFormOptions = {
+  onClose: () => void;
+};
+
+export function useHospitalReportForm({ onClose }: UseHospitalReportFormOptions) {
+  const [hospitalName, setHospitalName] = useState("");
+  const [streetAddress, setStreetAddress] = useState("");
+  const [selectedAnimals, setSelectedAnimals] = useState<string[]>([]);
+  const [animalSpecies, setAnimalSpecies] = useState("");
+  const [details, setDetails] = useState("");
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+  const [fileLimitMessage, setFileLimitMessage] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitMessage, setSubmitMessage] = useState("");
+  const [submitError, setSubmitError] = useState("");
+
+  const selectedFilePreviews = useMemo(
+    () =>
+      selectedFiles.map((file) => ({
+        file,
+        url: URL.createObjectURL(file),
+      })),
+    [selectedFiles],
+  );
+
+  useEffect(() => {
+    return () => {
+      selectedFilePreviews.forEach(({ url }) => URL.revokeObjectURL(url));
+    };
+  }, [selectedFilePreviews]);
+
+  const clearSubmitFeedback = useCallback(() => {
+    setSubmitMessage("");
+    setSubmitError("");
+  }, []);
+
+  const resetFields = useCallback(() => {
+    setHospitalName("");
+    setStreetAddress("");
+    setSelectedAnimals([]);
+    setAnimalSpecies("");
+    setDetails("");
+    setSelectedFiles([]);
+    setFileLimitMessage("");
+  }, []);
+
+  const handleClose = useCallback(() => {
+    resetFields();
+    setIsSubmitting(false);
+    clearSubmitFeedback();
+    onClose();
+  }, [clearSubmitFeedback, onClose, resetFields]);
+
+  const toggleAnimal = useCallback(
+    (animal: string) => {
+      clearSubmitFeedback();
+      setSelectedAnimals((current) =>
+        current.includes(animal)
+          ? current.filter((item) => item !== animal)
+          : [...current, animal],
+      );
+    },
+    [clearSubmitFeedback],
+  );
+
+  const handleSubmit = useCallback(
+    async (event: FormEvent<HTMLFormElement>) => {
+      event.preventDefault();
+      setIsSubmitting(true);
+      clearSubmitFeedback();
+
+      try {
+        await createHospitalReport({
+          hospitalName,
+          streetAddress,
+          animalCategories: selectedAnimals,
+          animalSpecies,
+          details,
+          attachments: selectedFiles.map((file) => ({
+            name: file.name,
+            size: file.size,
+            type: file.type,
+            lastModified: file.lastModified,
+          })),
+        });
+
+        resetFields();
+        setSubmitMessage(
+          "제보가 저장되었습니다. 관리자 확인 전까지 병원 목록에는 공개되지 않습니다.",
+        );
+      } catch (error) {
+        setSubmitError(
+          error instanceof Error
+            ? error.message
+            : "제보 저장 중 알 수 없는 오류가 발생했습니다.",
+        );
+      } finally {
+        setIsSubmitting(false);
+      }
+    },
+    [
+      animalSpecies,
+      clearSubmitFeedback,
+      details,
+      hospitalName,
+      resetFields,
+      selectedAnimals,
+      selectedFiles,
+      streetAddress,
+    ],
+  );
+
+  const handleSelectFiles = useCallback(
+    (event: ChangeEvent<HTMLInputElement>) => {
+      const newFiles = Array.from(event.currentTarget.files ?? []);
+      const availableCount =
+        MAX_HOSPITAL_REPORT_FILE_COUNT - selectedFiles.length;
+      const nextFiles = [
+        ...selectedFiles,
+        ...newFiles.slice(0, Math.max(availableCount, 0)),
+      ];
+
+      setSelectedFiles(nextFiles);
+      setFileLimitMessage(
+        newFiles.length > availableCount
+          ? `사진은 최대 ${MAX_HOSPITAL_REPORT_FILE_COUNT}개까지 첨부됩니다.`
+          : "",
+      );
+      clearSubmitFeedback();
+      event.currentTarget.value = "";
+    },
+    [clearSubmitFeedback, selectedFiles],
+  );
+
+  const handleRemoveFile = useCallback(
+    (targetIndex: number) => {
+      setSelectedFiles((current) =>
+        current.filter((_, index) => index !== targetIndex),
+      );
+      setFileLimitMessage("");
+      clearSubmitFeedback();
+    },
+    [clearSubmitFeedback],
+  );
+
+  return {
+    animalSpecies,
+    clearSubmitFeedback,
+    details,
+    fileLimitMessage,
+    handleClose,
+    handleRemoveFile,
+    handleSelectFiles,
+    handleSubmit,
+    hospitalName,
+    isSubmitting,
+    selectedAnimals,
+    selectedFilePreviews,
+    selectedFiles,
+    setAnimalSpecies,
+    setDetails,
+    setHospitalName,
+    setStreetAddress,
+    streetAddress,
+    submitError,
+    submitMessage,
+    toggleAnimal,
+  };
+}

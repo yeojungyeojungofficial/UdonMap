@@ -1,5 +1,5 @@
 import Link from "next/link";
-import styles from "@/src/shared/components/TopNav.module.css";
+import styles from "@/src/components/common/TopNav.module.css";
 
 const MENUS = [
   { label: "병원찾기", href: "/" },

@@ -1,6 +1,6 @@
 import type { Session } from "@supabase/supabase-js";
-import { getSupabaseBrowserClient } from "@/src/shared/lib/supabase";
-import type { Database } from "@/src/shared/lib/database.types";
+import { getSupabaseBrowserClient } from "@/src/core/supabase";
+import type { Database } from "@/src/core/database.types";
 import { isMissingBookmarksTableError } from "@/src/features/hospitals/bookmarkErrors";
 import type { BookmarkedHospital } from "@/src/features/mypage/types";
 

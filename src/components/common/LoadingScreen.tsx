@@ -1,4 +1,4 @@
-import styles from "@/src/shared/components/LoadingScreen.module.css";
+import styles from "@/src/components/common/LoadingScreen.module.css";
 
 type LoadingScreenProps = {
   message?: string;

@@ -1,19 +1,15 @@
 import Head from "next/head";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { useEffect, useMemo, useRef, useState } from "react";
-import TopNav from "@/src/shared/components/TopNav";
-import HospitalReportSheet from "@/src/shared/components/HospitalReportSheet";
-import LoadingScreen from "@/src/shared/components/LoadingScreen";
-import {
-  createBoardPostComment,
-  fetchBoardPostDetail,
-} from "@/src/core/api/reviews/boardPostsApi";
+import { useMemo, useRef, useState } from "react";
+import TopNav from "@/src/components/common/TopNav";
+import HospitalReportSheet from "@/src/components/common/HospitalReportSheet";
+import LoadingScreen from "@/src/components/common/LoadingScreen";
 import {
   MAX_BOARD_COMMENT_LENGTH,
   type BoardPostComment,
-  type BoardPostDetail,
 } from "@/src/features/reviews/boardPosts";
+import { useBoardPostDetail } from "@/src/features/reviews/hooks/useBoardPostDetail";
 import styles from "@/src/components/reviews/PostDetailPage.module.css";
 
 function formatBoardDate(value: string) {
@@ -61,84 +57,26 @@ export default function PostDetailPage() {
   }, [router.query.postId]);
   const commentInputRef = useRef<HTMLTextAreaElement>(null);
   const [activeMenu, setActiveMenu] = useState("병원후기");
-  const [post, setPost] = useState<BoardPostDetail | null>(null);
-  const [isLoadingPost, setIsLoadingPost] = useState(true);
-  const [postLoadError, setPostLoadError] = useState("");
-  const [commentText, setCommentText] = useState("");
-  const [isCommentSubmitting, setIsCommentSubmitting] = useState(false);
-  const [commentError, setCommentError] = useState("");
-  const [commentMessage, setCommentMessage] = useState("");
   const [isReportSheetOpen, setIsReportSheetOpen] = useState(false);
-
-  useEffect(() => {
-    if (!router.isReady || !postId) {
-      return;
-    }
-
-    let isMounted = true;
-
-    const loadPostDetail = async () => {
-      setIsLoadingPost(true);
-      setPostLoadError("");
-      setPost(null);
-
-      try {
-        const nextPost = await fetchBoardPostDetail(postId);
-        if (!isMounted) return;
-        setPost(nextPost);
-      } catch (error) {
-        if (!isMounted) return;
-        setPostLoadError(
-          error instanceof Error
-            ? error.message
-            : "게시글을 불러오는 중 알 수 없는 오류가 발생했습니다.",
-        );
-      } finally {
-        if (isMounted) {
-          setIsLoadingPost(false);
-        }
-      }
-    };
-
-    void loadPostDetail();
-
-    return () => {
-      isMounted = false;
-    };
-  }, [postId, router.isReady]);
+  const {
+    commentError,
+    commentMessage,
+    commentText,
+    handleAddComment: submitComment,
+    handleCommentTextChange,
+    isCommentSubmitting,
+    isLoadingPost,
+    post,
+    postLoadError,
+  } = useBoardPostDetail({
+    isReady: router.isReady,
+    postId,
+  });
 
   const handleAddComment = async () => {
-    if (!post || isCommentSubmitting) return;
-
-    const content = commentText.trim();
-    if (!content) return;
-
-    setIsCommentSubmitting(true);
-    setCommentError("");
-    setCommentMessage("");
-
-    try {
-      const result = await createBoardPostComment(post.id, content);
-      setPost((currentPost) =>
-        currentPost
-          ? {
-              ...currentPost,
-              commentCount: currentPost.commentCount + 1,
-              comments: [...currentPost.comments, result.comment],
-            }
-          : currentPost,
-      );
-      setCommentText("");
-      setCommentMessage("댓글을 등록했습니다.");
+    const isCreated = await submitComment();
+    if (isCreated) {
       commentInputRef.current?.focus();
-    } catch (error) {
-      setCommentError(
-        error instanceof Error
-          ? error.message
-          : "댓글 저장 중 알 수 없는 오류가 발생했습니다.",
-      );
-    } finally {
-      setIsCommentSubmitting(false);
     }
   };
 
@@ -241,9 +179,7 @@ export default function PostDetailPage() {
                   maxLength={MAX_BOARD_COMMENT_LENGTH}
                   disabled={isCommentSubmitting}
                   onChange={(e) => {
-                    setCommentText(e.target.value);
-                    setCommentError("");
-                    setCommentMessage("");
+                    handleCommentTextChange(e.target.value);
                   }}
                   onKeyDown={(e) => {
                     if (e.key === "Enter" && !e.shiftKey) {

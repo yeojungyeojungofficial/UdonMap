@@ -1,5 +1,5 @@
 import type { Session, SupabaseClient } from "@supabase/supabase-js";
-import type { Database } from "@/src/shared/lib/database.types";
+import type { Database } from "@/src/core/database.types";
 
 type AuthSession = Session | null;
 

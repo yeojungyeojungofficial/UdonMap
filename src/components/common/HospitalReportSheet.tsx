@@ -1,11 +1,10 @@
 import Image from "next/image";
-import { ChangeEvent, FormEvent, useEffect, useMemo, useState } from "react";
-import { loadAuthSession } from "@/src/shared/lib/authSession";
-import { supabase } from "@/src/shared/lib/supabase";
-import styles from "@/src/shared/components/HospitalReportSheet.module.css";
-
-const ANIMAL_OPTIONS = ["포유류", "양서류", "파충류", "조류", "어류"];
-const MAX_FILE_COUNT = 3;
+import {
+  HOSPITAL_REPORT_ANIMAL_OPTIONS,
+  MAX_HOSPITAL_REPORT_FILE_COUNT,
+  useHospitalReportForm,
+} from "@/src/features/hospitals/hooks/useHospitalReportForm";
+import styles from "@/src/components/common/HospitalReportSheet.module.css";
 
 type HospitalReportSheetProps = {
   isOpen: boolean;
@@ -16,150 +15,33 @@ export default function HospitalReportSheet({
   isOpen,
   onClose,
 }: HospitalReportSheetProps) {
-  const [hospitalName, setHospitalName] = useState("");
-  const [streetAddress, setStreetAddress] = useState("");
-  const [selectedAnimals, setSelectedAnimals] = useState<string[]>([]);
-  const [animalSpecies, setAnimalSpecies] = useState("");
-  const [details, setDetails] = useState("");
-  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
-  const [fileLimitMessage, setFileLimitMessage] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submitMessage, setSubmitMessage] = useState("");
-  const [submitError, setSubmitError] = useState("");
-
-  const selectedFilePreviews = useMemo(
-    () =>
-      selectedFiles.map((file) => ({
-        file,
-        url: URL.createObjectURL(file),
-      })),
-    [selectedFiles],
-  );
-
-  useEffect(() => {
-    return () => {
-      selectedFilePreviews.forEach(({ url }) => URL.revokeObjectURL(url));
-    };
-  }, [selectedFilePreviews]);
+  const {
+    animalSpecies,
+    clearSubmitFeedback,
+    details,
+    fileLimitMessage,
+    handleClose,
+    handleRemoveFile,
+    handleSelectFiles,
+    handleSubmit,
+    hospitalName,
+    isSubmitting,
+    selectedAnimals,
+    selectedFilePreviews,
+    selectedFiles,
+    setAnimalSpecies,
+    setDetails,
+    setHospitalName,
+    setStreetAddress,
+    streetAddress,
+    submitError,
+    submitMessage,
+    toggleAnimal,
+  } = useHospitalReportForm({ onClose });
 
   if (!isOpen) {
     return null;
   }
-
-  const clearSubmitFeedback = () => {
-    setSubmitMessage("");
-    setSubmitError("");
-  };
-
-  const resetFields = () => {
-    setHospitalName("");
-    setStreetAddress("");
-    setSelectedAnimals([]);
-    setAnimalSpecies("");
-    setDetails("");
-    setSelectedFiles([]);
-    setFileLimitMessage("");
-  };
-
-  const handleClose = () => {
-    resetFields();
-    setIsSubmitting(false);
-    clearSubmitFeedback();
-    onClose();
-  };
-
-  const toggleAnimal = (animal: string) => {
-    clearSubmitFeedback();
-    setSelectedAnimals((current) =>
-      current.includes(animal)
-        ? current.filter((item) => item !== animal)
-        : [...current, animal],
-    );
-  };
-
-  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    setIsSubmitting(true);
-    clearSubmitFeedback();
-
-    try {
-      const headers: Record<string, string> = {
-        "Content-Type": "application/json",
-      };
-
-      if (supabase) {
-        const session = await loadAuthSession(supabase);
-
-        if (session) {
-          headers.Authorization = `Bearer ${session.access_token}`;
-        }
-      }
-
-      const response = await fetch("/api/hospital-reports", {
-        method: "POST",
-        headers,
-        body: JSON.stringify({
-          hospitalName,
-          streetAddress,
-          animalCategories: selectedAnimals,
-          animalSpecies,
-          details,
-          attachments: selectedFiles.map((file) => ({
-            name: file.name,
-            size: file.size,
-            type: file.type,
-            lastModified: file.lastModified,
-          })),
-        }),
-      });
-      const result = (await response.json().catch(() => null)) as
-        | { error?: string }
-        | null;
-
-      if (!response.ok) {
-        throw new Error(result?.error ?? "제보 저장에 실패했습니다.");
-      }
-
-      resetFields();
-      setSubmitMessage(
-        "제보가 저장되었습니다. 관리자 확인 전까지 병원 목록에는 공개되지 않습니다.",
-      );
-    } catch (error) {
-      setSubmitError(
-        error instanceof Error
-          ? error.message
-          : "제보 저장 중 알 수 없는 오류가 발생했습니다.",
-      );
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const handleSelectFiles = (event: ChangeEvent<HTMLInputElement>) => {
-    const newFiles = Array.from(event.currentTarget.files ?? []);
-    const availableCount = MAX_FILE_COUNT - selectedFiles.length;
-    const nextFiles = [
-      ...selectedFiles,
-      ...newFiles.slice(0, Math.max(availableCount, 0)),
-    ];
-
-    setSelectedFiles(nextFiles);
-    setFileLimitMessage(
-      newFiles.length > availableCount
-        ? `사진은 최대 ${MAX_FILE_COUNT}개까지 첨부됩니다.`
-        : "",
-    );
-    clearSubmitFeedback();
-    event.currentTarget.value = "";
-  };
-
-  const handleRemoveFile = (targetIndex: number) => {
-    setSelectedFiles((current) =>
-      current.filter((_, index) => index !== targetIndex),
-    );
-    setFileLimitMessage("");
-    clearSubmitFeedback();
-  };
 
   return (
     <div className={styles.overlay} role="presentation" onClick={handleClose}>
@@ -212,7 +94,7 @@ export default function HospitalReportSheet({
           <fieldset className={styles.fieldset}>
             <legend>진료 가능 동물</legend>
             <div className={styles.animalChoiceGrid}>
-              {ANIMAL_OPTIONS.map((animal) => {
+              {HOSPITAL_REPORT_ANIMAL_OPTIONS.map((animal) => {
                 const isSelected = selectedAnimals.includes(animal);
                 return (
                   <button
@@ -249,7 +131,7 @@ export default function HospitalReportSheet({
             <div className={styles.photoUploadRail}>
               <label
                 className={`${styles.photoAddTile} ${
-                  selectedFiles.length >= MAX_FILE_COUNT
+                  selectedFiles.length >= MAX_HOSPITAL_REPORT_FILE_COUNT
                     ? styles.photoAddTileDisabled
                     : ""
                 }`}
@@ -260,13 +142,15 @@ export default function HospitalReportSheet({
                   multiple
                   className={styles.fileInput}
                   onChange={handleSelectFiles}
-                  disabled={selectedFiles.length >= MAX_FILE_COUNT}
+                  disabled={
+                    selectedFiles.length >= MAX_HOSPITAL_REPORT_FILE_COUNT
+                  }
                 />
                 <span>
                   {selectedFiles.length > 0 ? "사진 추가" : "선택"}
                 </span>
                 <small>
-                  {selectedFiles.length}/{MAX_FILE_COUNT}
+                  {selectedFiles.length}/{MAX_HOSPITAL_REPORT_FILE_COUNT}
                 </small>
               </label>
 

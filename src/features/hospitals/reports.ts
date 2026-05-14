@@ -1,4 +1,4 @@
-import type { Database, Json } from "@/src/shared/lib/database.types";
+import type { Database, Json } from "@/src/core/database.types";
 
 export const HOSPITAL_REPORT_STATUSES = [
   "pending",

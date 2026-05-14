@@ -2,13 +2,13 @@ import type {
   HospitalComment,
   ReactionType,
 } from "@/src/features/hospitals/types";
-import type { Database } from "@/src/shared/lib/database.types";
+import type { Database } from "@/src/core/database.types";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { User } from "@supabase/supabase-js";
 import {
   getDefaultDisplayName,
   type UserProfile,
-} from "@/src/shared/lib/userProfiles";
+} from "@/src/core/userProfiles";
 
 export const HOSPITAL_COMMENT_COLUMNS =
   "id,hospital_id,user_id,author_name,body,like_count,dislike_count,status,deleted_at,deleted_by,deleted_reason,created_at,updated_at";

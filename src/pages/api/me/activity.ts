@@ -1,7 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import { getSupabaseServerClient } from "@/src/shared/lib/supabaseServer";
-import type { Database } from "@/src/shared/lib/database.types";
-import { getBearerToken } from "@/src/shared/lib/apiRequest";
+import { getSupabaseServerClient } from "@/src/core/supabaseServer";
+import type { Database } from "@/src/core/database.types";
+import { getBearerToken } from "@/src/core/apiRequest";
 
 type ReportRow = Pick<
   Database["public"]["Tables"]["hospital_reports"]["Row"],

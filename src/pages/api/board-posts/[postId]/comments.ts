@@ -2,9 +2,9 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import {
   getBearerToken,
   getQueryValue,
-} from "@/src/shared/lib/apiRequest";
-import { getSupabaseServerClient } from "@/src/shared/lib/supabaseServer";
-import type { Database } from "@/src/shared/lib/database.types";
+} from "@/src/core/apiRequest";
+import { getSupabaseServerClient } from "@/src/core/supabaseServer";
+import type { Database } from "@/src/core/database.types";
 import {
   toBoardPostComment,
   validateCreateBoardComment,
@@ -13,11 +13,11 @@ import {
 import {
   ensureUserProfile,
   getDefaultDisplayName,
-} from "@/src/shared/lib/userProfiles";
+} from "@/src/core/userProfiles";
 import {
   getSuspensionBlockedMessage,
   getUserActiveSuspension,
-} from "@/src/shared/lib/suspensions";
+} from "@/src/core/suspensions";
 
 type BoardPostCommentRow =
   Database["public"]["Tables"]["board_post_comments"]["Row"];

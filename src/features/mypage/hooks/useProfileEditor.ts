@@ -13,21 +13,21 @@ import {
   saveCurrentUserProfile,
   setCachedCurrentUserProfile,
 } from "@/src/core/api/mypage/profileApi";
-import {
-  MAX_DISPLAY_NAME_LENGTH,
-  type UserProfile,
-} from "@/src/shared/lib/userProfiles";
+import { MAX_DISPLAY_NAME_LENGTH } from "@/src/core/userProfiles";
+import { useAuthStore } from "@/src/store/authStore";
 
 export function useProfileEditor(
   session: Session | null,
-  initialSession: Session | null | undefined,
+  initialSession?: Session | null,
 ) {
-  const initialProfile = initialSession
-    ? getCachedCurrentUserProfile(initialSession.user.id)
-    : null;
-  const [profile, setProfile] = useState<UserProfile | null>(initialProfile);
-  const [displayName, setDisplayName] = useState(
-    initialProfile?.display_name ?? "",
+  const [initialProfile] = useState(() =>
+    initialSession ? getCachedCurrentUserProfile(initialSession.user.id) : null,
+  );
+  const profile = useAuthStore((state) => state.profile);
+  const clearStoredProfile = useAuthStore((state) => state.clearProfile);
+  const setStoredProfile = useAuthStore((state) => state.setProfile);
+  const [displayNameInput, setDisplayNameInput] = useState<string | null>(
+    initialProfile?.display_name ?? null,
   );
   const [isProfileLoading, setIsProfileLoading] = useState(false);
   const [isProfileSaving, setIsProfileSaving] = useState(false);
@@ -35,14 +35,14 @@ export function useProfileEditor(
   const [profileError, setProfileError] = useState("");
 
   const resetProfileState = useCallback(() => {
-    setProfile(null);
-    setDisplayName("");
+    clearStoredProfile();
+    setDisplayNameInput(null);
     clearCachedCurrentUserProfile();
     setProfileMessage("");
     setProfileError("");
     setIsProfileLoading(false);
     setIsProfileSaving(false);
-  }, []);
+  }, [clearStoredProfile]);
 
   const clearProfileFeedback = useCallback(() => {
     setProfileMessage("");
@@ -50,7 +50,7 @@ export function useProfileEditor(
   }, []);
 
   const handleDisplayNameChange = useCallback((value: string) => {
-    setDisplayName(value);
+    setDisplayNameInput(value);
     setProfileMessage("");
     setProfileError("");
   }, []);
@@ -62,9 +62,15 @@ export function useProfileEditor(
 
     let isMounted = true;
     const activeSession = session;
+
+    if (profile?.id === activeSession.user.id) {
+      return;
+    }
+
     const cachedProfile = getCachedCurrentUserProfile(activeSession.user.id);
 
     if (cachedProfile) {
+      setStoredProfile(cachedProfile);
       return;
     }
 
@@ -77,8 +83,8 @@ export function useProfileEditor(
         const nextProfile = await fetchCurrentUserProfile(activeSession);
         if (!isMounted) return;
         setCachedCurrentUserProfile(nextProfile);
-        setProfile(nextProfile);
-        setDisplayName(nextProfile.display_name ?? "");
+        setStoredProfile(nextProfile);
+        setDisplayNameInput(nextProfile.display_name ?? "");
       } catch (error) {
         if (!isMounted) return;
         setProfileError(
@@ -98,8 +104,9 @@ export function useProfileEditor(
     return () => {
       isMounted = false;
     };
-  }, [session]);
+  }, [profile, session, setStoredProfile]);
 
+  const displayName = displayNameInput ?? profile?.display_name ?? "";
   const currentDisplayName = profile?.display_name ?? "";
   const canSaveProfile = useMemo(
     () =>
@@ -132,8 +139,8 @@ export function useProfileEditor(
       try {
         const nextProfile = await saveCurrentUserProfile(session, displayName);
         setCachedCurrentUserProfile(nextProfile);
-        setProfile(nextProfile);
-        setDisplayName(nextProfile.display_name ?? "");
+        setStoredProfile(nextProfile);
+        setDisplayNameInput(nextProfile.display_name ?? "");
         setProfileMessage("프로필을 저장했습니다.");
       } catch (error) {
         setProfileError(
@@ -145,7 +152,7 @@ export function useProfileEditor(
         setIsProfileSaving(false);
       }
     },
-    [canSaveProfile, displayName, session],
+    [canSaveProfile, displayName, session, setStoredProfile],
   );
 
   return {

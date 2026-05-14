@@ -1,27 +1,11 @@
 "use client";
 
-import { FormEvent, useEffect, useState } from "react";
-import {
-  createHospitalComment,
-  deleteHospitalComment,
-} from "@/src/core/api/hospitals/commentApi";
-import {
-  updateHospitalCommentReaction,
-  updateHospitalReaction,
-} from "@/src/core/api/hospitals/reactionApi";
-import { updateHospitalBookmark } from "@/src/core/api/hospitals/bookmarkApi";
 import type {
   Hospital,
   HospitalComment,
   ReactionSnapshot,
-  ReactionType,
 } from "@/src/features/hospitals/types";
-import { supabase } from "@/src/shared/lib/supabase";
-import {
-  getCachedAuthSession,
-  loadAuthSession,
-  subscribeToAuthSession,
-} from "@/src/shared/lib/authSession";
+import { useHospitalBottomSheetActions } from "@/src/features/hospitals/hooks/useHospitalBottomSheetActions";
 import styles from "@/src/components/home/Home.module.css";
 
 const WEEKDAY_LABELS = ["월", "화", "수", "목", "금", "토", "일"];
@@ -225,68 +209,34 @@ export default function HospitalBottomSheet({
   isLoadingComments = false,
   commentLoadError = "",
 }: HospitalBottomSheetProps) {
-  const initialAuthSession = getCachedAuthSession();
-  const [commentContent, setCommentContent] = useState("");
-  const [isCommentSubmitting, setIsCommentSubmitting] = useState(false);
-  const [commentMessage, setCommentMessage] = useState("");
-  const [commentError, setCommentError] = useState("");
-  const [bookmarkError, setBookmarkError] = useState("");
-  const [isBookmarkSubmitting, setIsBookmarkSubmitting] = useState(false);
-  const [isLoggedIn, setIsLoggedIn] = useState(Boolean(initialAuthSession));
-  const [isAuthReady, setIsAuthReady] = useState(
-    !supabase || initialAuthSession !== undefined,
-  );
-  const [currentUserId, setCurrentUserId] = useState<string | null>(
-    initialAuthSession?.user.id ?? null,
-  );
-  const [hospitalReactionSubmitting, setHospitalReactionSubmitting] =
-    useState<ReactionType | null>(null);
-  const [commentReactionSubmittingId, setCommentReactionSubmittingId] =
-    useState<string | null>(null);
-  const [deletingCommentId, setDeletingCommentId] = useState<string | null>(
-    null,
-  );
-
-  useEffect(() => {
-    if (!supabase) {
-      return;
-    }
-
-    let isMounted = true;
-
-    const unsubscribe = subscribeToAuthSession(supabase, (nextSession) => {
-      if (isMounted) {
-        setIsLoggedIn(Boolean(nextSession));
-        setCurrentUserId(nextSession?.user.id ?? null);
-        setIsAuthReady(true);
-      }
-    });
-
-    void loadAuthSession(supabase)
-      .then((nextSession) => {
-        if (!isMounted) return;
-        setIsLoggedIn(Boolean(nextSession));
-        setCurrentUserId(nextSession?.user.id ?? null);
-      })
-      .catch((error) => {
-        if (!isMounted) return;
-        setCommentError(
-          error instanceof Error
-            ? error.message
-            : "로그인 상태 확인 중 알 수 없는 오류가 발생했습니다.",
-        );
-      })
-      .finally(() => {
-        if (isMounted) {
-          setIsAuthReady(true);
-        }
-      });
-
-    return () => {
-      isMounted = false;
-      unsubscribe();
-    };
-  }, []);
+  const {
+    bookmarkError,
+    commentContent,
+    commentError,
+    commentMessage,
+    commentReactionSubmittingId,
+    currentUserId,
+    deletingCommentId,
+    handleBookmarkClick,
+    handleCommentContentChange,
+    handleCommentDelete,
+    handleCommentReaction,
+    handleCommentSubmit,
+    handleReaction,
+    handleShare,
+    hospitalReactionSubmitting,
+    isAuthReady,
+    isBookmarkSubmitting,
+    isCommentSubmitting,
+    isLoggedIn,
+  } = useHospitalBottomSheetActions({
+    hospital,
+    onBookmarkChanged,
+    onCommentCreated,
+    onCommentDeleted,
+    onCommentReactionChanged,
+    onHospitalReactionChanged,
+  });
 
   if (!hospital) {
     return null;
@@ -296,170 +246,6 @@ export default function HospitalBottomSheet({
   const operationStatus = getOperationStatus(hoursRows);
   const isClosed = operationStatus === "휴무";
   const isSpecialtyHospital = hospital.isSpecialty || hospital.animals.length > 0;
-
-  const handleShare = async () => {
-    if (typeof window === "undefined") {
-      return;
-    }
-
-    const shareText = `${hospital.name}\n${hospital.address}`;
-    const shareUrl = window.location.href;
-
-    if (navigator.share) {
-      try {
-        await navigator.share({
-          title: hospital.name,
-          text: shareText,
-          url: shareUrl,
-        });
-        return;
-      } catch {
-        return;
-      }
-    }
-
-    await navigator.clipboard?.writeText(`${shareText}\n${shareUrl}`);
-  };
-
-  const handleBookmarkClick = async () => {
-    setBookmarkError("");
-    setCommentMessage("");
-    setCommentError("");
-
-    if (!isLoggedIn) {
-      setBookmarkError("로그인 후 찜할 수 있습니다.");
-      return;
-    }
-
-    const nextIsBookmarked = !hospital.isBookmarked;
-    setIsBookmarkSubmitting(true);
-
-    try {
-      const savedIsBookmarked = await updateHospitalBookmark(
-        hospital.id,
-        nextIsBookmarked,
-      );
-      onBookmarkChanged?.(hospital.id, savedIsBookmarked);
-    } catch (error) {
-      setBookmarkError(
-        error instanceof Error
-          ? error.message
-          : "찜 저장 중 알 수 없는 오류가 발생했습니다.",
-      );
-    } finally {
-      setIsBookmarkSubmitting(false);
-    }
-  };
-
-  const handleCommentSubmit = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    setCommentMessage("");
-    setCommentError("");
-
-    if (!isLoggedIn) {
-      setCommentError("로그인 후 댓글을 남길 수 있습니다.");
-      return;
-    }
-
-    if (!commentContent.trim()) {
-      setCommentError("댓글 내용을 입력해주세요.");
-      return;
-    }
-
-    setIsCommentSubmitting(true);
-
-    try {
-      const comment = await createHospitalComment(hospital.id, commentContent);
-      onCommentCreated?.(hospital.id, comment);
-      setCommentContent("");
-      setCommentMessage("댓글을 등록했습니다.");
-    } catch (error) {
-      setCommentError(
-        error instanceof Error
-          ? error.message
-          : "댓글 저장 중 알 수 없는 오류가 발생했습니다.",
-      );
-    } finally {
-      setIsCommentSubmitting(false);
-    }
-  };
-
-  const handleReaction = async (type: ReactionType) => {
-    setCommentMessage("");
-    setCommentError("");
-
-    if (!isLoggedIn) {
-      setCommentError("로그인 후 반응을 남길 수 있습니다.");
-      return;
-    }
-
-    setHospitalReactionSubmitting(type);
-
-    try {
-      const reaction = await updateHospitalReaction(hospital.id, type);
-      onHospitalReactionChanged?.(hospital.id, reaction);
-    } catch (error) {
-      setCommentError(
-        error instanceof Error
-          ? error.message
-          : "반응 저장 중 알 수 없는 오류가 발생했습니다.",
-      );
-    } finally {
-      setHospitalReactionSubmitting(null);
-    }
-  };
-
-  const handleCommentReaction = async (
-    commentId: string,
-    type: ReactionType,
-  ) => {
-    setCommentMessage("");
-    setCommentError("");
-
-    if (!isLoggedIn) {
-      setCommentError("로그인 후 반응을 남길 수 있습니다.");
-      return;
-    }
-
-    setCommentReactionSubmittingId(commentId);
-
-    try {
-      const reaction = await updateHospitalCommentReaction(
-        hospital.id,
-        commentId,
-        type,
-      );
-      onCommentReactionChanged?.(hospital.id, commentId, reaction);
-    } catch (error) {
-      setCommentError(
-        error instanceof Error
-          ? error.message
-          : "반응 저장 중 알 수 없는 오류가 발생했습니다.",
-      );
-    } finally {
-      setCommentReactionSubmittingId(null);
-    }
-  };
-
-  const handleCommentDelete = async (commentId: string) => {
-    setCommentMessage("");
-    setCommentError("");
-    setDeletingCommentId(commentId);
-
-    try {
-      const deletedCommentId = await deleteHospitalComment(hospital.id, commentId);
-      onCommentDeleted?.(hospital.id, deletedCommentId);
-      setCommentMessage("댓글을 삭제했습니다.");
-    } catch (error) {
-      setCommentError(
-        error instanceof Error
-          ? error.message
-          : "댓글 삭제 중 알 수 없는 오류가 발생했습니다.",
-      );
-    } finally {
-      setDeletingCommentId(null);
-    }
-  };
 
   return (
     <div className={styles.sheetOverlay} role="presentation" onClick={onClose}>
@@ -687,11 +473,7 @@ export default function HospitalBottomSheet({
               <textarea
                 className={styles.commentTextarea}
                 value={commentContent}
-                onChange={(event) => {
-                  setCommentContent(event.currentTarget.value);
-                  setCommentMessage("");
-                  setCommentError("");
-                }}
+                onChange={handleCommentContentChange}
                 placeholder={
                   isLoggedIn
                     ? "댓글을 입력하세요"
@@ -743,7 +525,7 @@ export default function HospitalBottomSheet({
                         <button
                           type="button"
                           className={styles.commentDeleteButton}
-                          onClick={() => handleCommentDelete(comment.id)}
+                          onClick={() => void handleCommentDelete(comment.id)}
                           disabled={deletingCommentId === comment.id}
                         >
                           {deletingCommentId === comment.id ? "삭제 중" : "삭제"}

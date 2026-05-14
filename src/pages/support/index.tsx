@@ -1,7 +1,7 @@
 import Head from "next/head";
 import { useState } from "react";
-import HospitalReportSheet from "@/src/shared/components/HospitalReportSheet";
-import TopNav from "@/src/shared/components/TopNav";
+import HospitalReportSheet from "@/src/components/common/HospitalReportSheet";
+import TopNav from "@/src/components/common/TopNav";
 import styles from "@/src/components/support/SupportPage.module.css";
 
 const DONATION_ACCOUNT = {

@@ -1,6 +1,6 @@
-import { getSupabaseBrowserClient } from "@/src/shared/lib/supabase";
-import { loadAuthSession } from "@/src/shared/lib/authSession";
-import type { Database } from "@/src/shared/lib/database.types";
+import { getSupabaseBrowserClient } from "@/src/core/supabase";
+import { loadAuthSession } from "@/src/core/authSession";
+import type { Database } from "@/src/core/database.types";
 import type {
   Hospital,
   HospitalComment,

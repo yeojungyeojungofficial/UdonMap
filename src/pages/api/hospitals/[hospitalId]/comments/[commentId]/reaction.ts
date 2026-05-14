@@ -1,6 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import type { ReactionSnapshot } from "@/src/features/hospitals/types";
-import { getSupabaseServerClient } from "@/src/shared/lib/supabaseServer";
+import { getSupabaseServerClient } from "@/src/core/supabaseServer";
 import {
   toCommentReactionSnapshot,
   validateReactionRequest,
@@ -8,7 +8,7 @@ import {
 import {
   getBearerToken,
   getQueryValue,
-} from "@/src/shared/lib/apiRequest";
+} from "@/src/core/apiRequest";
 
 type HospitalCommentReactionResponse =
   | {

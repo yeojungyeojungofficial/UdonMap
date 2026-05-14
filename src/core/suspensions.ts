@@ -1,5 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import type { Database } from "@/src/shared/lib/database.types";
+import type { Database } from "@/src/core/database.types";
 
 export type ActiveSuspension =
   Database["public"]["Functions"]["get_user_active_suspension"]["Returns"][number];

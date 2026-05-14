@@ -1,316 +1,66 @@
 import Head from "next/head";
 import Link from "next/link";
-import {
-  FormEvent,
-  useCallback,
-  useEffect,
-  useMemo,
-  useState,
-} from "react";
-import type { Session } from "@supabase/supabase-js";
+import { useState } from "react";
 import ActivitySheet from "@/src/components/mypage/ActivitySheet";
 import AuthDialog from "@/src/components/mypage/AuthDialog";
 import BookmarkSheet from "@/src/components/mypage/BookmarkSheet";
-import HospitalReportSheet from "@/src/shared/components/HospitalReportSheet";
-import TopNav from "@/src/shared/components/TopNav";
-import CommonFooter from "@/src/shared/components/CommonFooter";
-import {
-  getSupabaseBrowserClient,
-  supabase,
-} from "@/src/shared/lib/supabase";
-import {
-  clearAutoLogin,
-  enableAutoLoginFor24Hours,
-  getCachedAuthSession,
-  hasActiveAutoLogin,
-  loadAuthSession,
-  setCachedAuthSession,
-  subscribeToAuthSession,
-} from "@/src/shared/lib/authSession";
-import { MAX_DISPLAY_NAME_LENGTH } from "@/src/shared/lib/userProfiles";
-import {
-  clearAuthErrorFromUrl,
-  getAuthRedirectErrorMessage,
-} from "@/src/features/mypage/authRedirect";
+import HospitalReportSheet from "@/src/components/common/HospitalReportSheet";
+import TopNav from "@/src/components/common/TopNav";
+import CommonFooter from "@/src/components/common/CommonFooter";
 import { formatProfileDate } from "@/src/features/mypage/formatters";
-import { useBookmarkedHospitals } from "@/src/features/mypage/hooks/useBookmarkedHospitals";
-import { useMyActivity } from "@/src/features/mypage/hooks/useMyActivity";
-import { useProfileEditor } from "@/src/features/mypage/hooks/useProfileEditor";
-import type { AuthMode } from "@/src/features/mypage/types";
+import { useMyPageState } from "@/src/features/mypage/hooks/useMyPageState";
 import styles from "@/src/components/mypage/MyPage.module.css";
 
 export default function MyPage() {
-  const isSupabaseConfigured = Boolean(supabase);
-  const initialAuthSession = getCachedAuthSession();
   const [activeMenu, setActiveMenu] = useState("마이페이지");
-  const [authMode, setAuthMode] = useState<AuthMode>("login");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [passwordConfirm, setPasswordConfirm] = useState("");
-  const [session, setSession] = useState<Session | null>(
-    initialAuthSession ?? null,
-  );
-  const [isAuthReady, setIsAuthReady] = useState(
-    !isSupabaseConfigured || initialAuthSession !== undefined,
-  );
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isAutoLoginChecked, setIsAutoLoginChecked] = useState(() =>
-    hasActiveAutoLogin(),
-  );
-  const [authMessage, setAuthMessage] = useState("");
-  const [authDialogMessage, setAuthDialogMessage] = useState("");
   const [isReportSheetOpen, setIsReportSheetOpen] = useState(false);
-  const {
-    canSaveProfile,
-    clearProfileFeedback,
-    displayName,
-    handleDisplayNameChange,
-    handleProfileSubmit,
-    isProfileLoading,
-    isProfileSaving,
-    profile,
-    profileError,
-    profileMessage,
-    resetProfileState,
-  } = useProfileEditor(session, initialAuthSession);
-  const {
-    bookmarkedHospitals,
-    bookmarkError,
-    closeBookmarkSheet,
-    isBookmarkLoading,
-    isBookmarkSheetOpen,
-    openBookmarkSheet,
-    resetBookmarks,
-  } = useBookmarkedHospitals();
   const {
     activityError,
     activityTab,
+    authDialogMessage,
+    authMessage,
+    authMode,
+    bookmarkedHospitals,
+    bookmarkError,
+    canSaveProfile,
+    canSubmit,
     closeActivitySheet,
+    closeAuthDialog,
+    closeBookmarkSheet,
+    displayName,
+    email,
     handleActivityTabChange,
+    handleAuthModeChange,
+    handleAutoLoginChange,
+    handleDisplayNameChange,
+    handleEmailChange,
+    handleLogout,
+    handlePasswordChange,
+    handlePasswordConfirmChange,
+    handleProfileSubmit,
+    handleSubmit,
     isActivityLoading,
     isActivitySheetOpen,
+    isAuthReady,
+    isAutoLoginChecked,
+    isBookmarkLoading,
+    isBookmarkSheetOpen,
+    isProfileLoading,
+    isProfileSaving,
+    isSubmitting,
+    maxDisplayNameLength,
     myComments,
     myPosts,
     myReports,
     openActivitySheet,
-    resetActivity,
-  } = useMyActivity();
-
-  const openAuthDialog = useCallback((message: string) => {
-    setAuthDialogMessage(message);
-  }, []);
-
-  const closeAuthDialog = () => {
-    setAuthDialogMessage("");
-  };
-
-  useEffect(() => {
-    let nextAuthDialogMessage = "";
-
-    if (!isSupabaseConfigured) {
-      nextAuthDialogMessage =
-        "Supabase 환경변수 NEXT_PUBLIC_SUPABASE_URL 또는 NEXT_PUBLIC_SUPABASE_ANON_KEY가 없습니다.";
-    } else {
-      nextAuthDialogMessage = getAuthRedirectErrorMessage();
-    }
-
-    if (!nextAuthDialogMessage) {
-      return;
-    }
-
-    const timeoutId = window.setTimeout(() => {
-      openAuthDialog(nextAuthDialogMessage);
-    }, 0);
-
-    if (isSupabaseConfigured) {
-      clearAuthErrorFromUrl();
-    }
-
-    return () => {
-      window.clearTimeout(timeoutId);
-    };
-  }, [isSupabaseConfigured, openAuthDialog]);
-
-  useEffect(() => {
-    if (!supabase) {
-      return;
-    }
-
-    let isMounted = true;
-
-    const unsubscribe = subscribeToAuthSession(supabase, (nextSession) => {
-      if (isMounted) {
-        setSession(nextSession);
-        setIsAuthReady(true);
-
-        if (!nextSession) {
-          resetProfileState();
-          resetBookmarks();
-          resetActivity();
-        }
-      }
-    });
-
-    void loadAuthSession(supabase)
-      .then((nextSession) => {
-        if (!isMounted) return;
-        setSession(nextSession);
-
-        if (!nextSession) {
-          resetProfileState();
-          resetBookmarks();
-          resetActivity();
-        }
-      })
-      .catch((error) => {
-        if (!isMounted) return;
-        openAuthDialog(
-          error instanceof Error
-            ? error.message
-            : "Supabase 세션 조회 중 알 수 없는 오류가 발생했습니다.",
-        );
-      })
-      .finally(() => {
-        if (isMounted) {
-          setIsAuthReady(true);
-        }
-      });
-
-    return () => {
-      isMounted = false;
-      unsubscribe();
-    };
-  }, [openAuthDialog, resetActivity, resetBookmarks, resetProfileState]);
-
-  const canSubmit = useMemo(() => {
-    const hasValidEmail = email.trim().includes("@");
-    const hasValidPassword = password.length >= 6;
-
-    if (authMode === "login") {
-      return hasValidEmail && hasValidPassword;
-    }
-
-    return (
-      hasValidEmail &&
-      hasValidPassword &&
-      passwordConfirm.length >= 6 &&
-      password === passwordConfirm
-    );
-  }, [authMode, email, password, passwordConfirm]);
-  const handleAuthModeChange = (nextAuthMode: AuthMode) => {
-    setAuthMode(nextAuthMode);
-    setPassword("");
-    setPasswordConfirm("");
-    setAuthMessage("");
-    closeAuthDialog();
-  };
-
-  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    if (!canSubmit) return;
-
-    setIsSubmitting(true);
-    setAuthMessage("");
-    closeAuthDialog();
-
-    try {
-      const supabase = getSupabaseBrowserClient();
-      const redirectTo =
-        typeof window !== "undefined"
-          ? `${window.location.origin}/mypage`
-          : undefined;
-      const trimmedEmail = email.trim();
-
-      if (authMode === "login") {
-        const { data, error } = await supabase.auth.signInWithPassword({
-          email: trimmedEmail,
-          password,
-        });
-
-        if (error) {
-          openAuthDialog(`Supabase 로그인 실패: ${error.message}`);
-          return;
-        }
-
-        if (!data.user.email_confirmed_at) {
-          await supabase.auth.signOut();
-          clearAutoLogin();
-          setCachedAuthSession(null);
-          openAuthDialog("이메일 인증을 완료한 뒤 로그인해주세요.");
-          return;
-        }
-
-        if (isAutoLoginChecked) {
-          enableAutoLoginFor24Hours();
-        } else {
-          clearAutoLogin();
-        }
-
-        setCachedAuthSession(data.session);
-        setSession(data.session);
-        setAuthMessage("로그인했습니다.");
-      } else {
-        const { data, error } = await supabase.auth.signUp({
-          email: trimmedEmail,
-          password,
-          options: {
-            emailRedirectTo: redirectTo,
-          },
-        });
-
-        if (error) {
-          openAuthDialog(`Supabase 회원가입 실패: ${error.message}`);
-          return;
-        }
-
-        if (data.session) {
-          await supabase.auth.signOut();
-          clearAutoLogin();
-          setCachedAuthSession(null);
-          setSession(null);
-        }
-
-        setAuthMessage("회원가입 인증 메일을 보냈습니다. 인증 후 로그인하세요.");
-      }
-    } catch (error) {
-      openAuthDialog(
-        error instanceof Error
-          ? error.message
-          : "인증 요청 중 알 수 없는 오류가 발생했습니다.",
-      );
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const handleLogout = async () => {
-    setAuthMessage("");
-    closeAuthDialog();
-    clearProfileFeedback();
-
-    try {
-      const supabase = getSupabaseBrowserClient();
-      const { error } = await supabase.auth.signOut();
-
-      if (error) {
-        openAuthDialog(`Supabase 로그아웃 실패: ${error.message}`);
-        return;
-      }
-
-      setSession(null);
-      clearAutoLogin();
-      setCachedAuthSession(null);
-      resetProfileState();
-      setPassword("");
-      setPasswordConfirm("");
-    } catch (error) {
-      openAuthDialog(
-        error instanceof Error
-          ? error.message
-          : "로그아웃 중 알 수 없는 오류가 발생했습니다.",
-      );
-    }
-  };
+    openBookmarkSheet,
+    password,
+    passwordConfirm,
+    profile,
+    profileError,
+    profileMessage,
+    session,
+  } = useMyPageState();
 
   const closeReportSheet = () => {
     setIsReportSheetOpen(false);
@@ -347,7 +97,7 @@ export default function MyPage() {
               <div className={styles.benefitGrid} aria-label="마이페이지 기능 요약">
                 <button
                   type="button"
-                  onClick={() => openBookmarkSheet(session)}
+                  onClick={openBookmarkSheet}
                 >
                   찜한 병원
                 </button>
@@ -403,12 +153,12 @@ export default function MyPage() {
                     }}
                     placeholder="닉네임을 입력하세요"
                     autoComplete="nickname"
-                    maxLength={MAX_DISPLAY_NAME_LENGTH}
+                    maxLength={maxDisplayNameLength}
                     disabled={isProfileLoading}
                   />
                 </label>
                 <p className={styles.profileHint}>
-                  {displayName.trim().length}/{MAX_DISPLAY_NAME_LENGTH}
+                  {displayName.trim().length}/{maxDisplayNameLength}
                 </p>
                 <button
                   type="submit"
@@ -474,9 +224,7 @@ export default function MyPage() {
                   type="email"
                   value={email}
                   onChange={(event) => {
-                    setEmail(event.target.value);
-                    setAuthMessage("");
-                    closeAuthDialog();
+                    handleEmailChange(event.target.value);
                   }}
                   placeholder="이메일을 입력하세요"
                   autoComplete="email"
@@ -490,9 +238,7 @@ export default function MyPage() {
                   type="password"
                   value={password}
                   onChange={(event) => {
-                    setPassword(event.target.value);
-                    setAuthMessage("");
-                    closeAuthDialog();
+                    handlePasswordChange(event.target.value);
                   }}
                   placeholder="비밀번호를 입력하세요"
                   autoComplete={
@@ -510,9 +256,7 @@ export default function MyPage() {
                     type="password"
                     value={passwordConfirm}
                     onChange={(event) => {
-                      setPasswordConfirm(event.target.value);
-                      setAuthMessage("");
-                      closeAuthDialog();
+                      handlePasswordConfirmChange(event.target.value);
                     }}
                     placeholder="비밀번호를 다시 입력하세요"
                     autoComplete="new-password"
@@ -528,8 +272,7 @@ export default function MyPage() {
                     type="checkbox"
                     checked={isAutoLoginChecked}
                     onChange={(event) => {
-                      setIsAutoLoginChecked(event.currentTarget.checked);
-                      closeAuthDialog();
+                      handleAutoLoginChange(event.currentTarget.checked);
                     }}
                   />
                   <span>자동로그인</span>

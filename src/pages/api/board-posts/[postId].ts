@@ -1,14 +1,14 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import { getQueryValue } from "@/src/shared/lib/apiRequest";
-import { getSupabaseServerClient } from "@/src/shared/lib/supabaseServer";
-import type { Database } from "@/src/shared/lib/database.types";
+import { getQueryValue } from "@/src/core/apiRequest";
+import { getSupabaseServerClient } from "@/src/core/supabaseServer";
+import type { Database } from "@/src/core/database.types";
 import {
   sanitizeBoardPostHtml,
   toBoardPostComment,
   toBoardPostSummary,
   type BoardPostDetail,
 } from "@/src/features/reviews/boardPosts";
-import { getDefaultDisplayName } from "@/src/shared/lib/userProfiles";
+import { getDefaultDisplayName } from "@/src/core/userProfiles";
 
 type BoardPostRow = Database["public"]["Tables"]["board_posts"]["Row"];
 type BoardPostCommentRow =
