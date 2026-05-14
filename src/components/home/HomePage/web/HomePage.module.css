@@ -1,0 +1,96 @@
+.page {
+  position: relative;
+  min-height: 100vh;
+  min-height: 100dvh;
+  padding: 20px;
+  padding-top: 84px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.heroSection {
+  position: relative;
+  padding: 0;
+  background: linear-gradient(130deg, #ff9645 0%, #f07d2f 52%, #d96a24 100%);
+  border-radius: 30px;
+  box-shadow: 0 20px 40px rgba(135, 75, 31, 0.22);
+  overflow: hidden;
+}
+
+.searchWrap {
+  width: min(680px, 100%);
+  margin: 0 auto;
+}
+
+.searchLabel {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  border: 0;
+}
+
+.searchInput {
+  width: 100%;
+  border: 0;
+  border-radius: 16px;
+  padding: 14px 18px;
+  font-size: 15px;
+  background: rgba(255, 255, 255, 0.94);
+  color: var(--text-primary);
+  box-shadow: 0 10px 24px rgba(56, 56, 56, 0.16);
+}
+
+.searchInput:focus {
+  outline: 2px solid rgba(255, 150, 69, 0.52);
+  outline-offset: 1px;
+}
+
+.statusBanner {
+  width: min(680px, 100%);
+  margin: 0 auto;
+  border: 1px solid #ead8ca;
+  border-radius: 8px;
+  padding: 10px 12px;
+  background: #fff8f2;
+  color: #7d4b2a;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.mainSection {
+  background: rgba(255, 255, 255, 0.78);
+  backdrop-filter: blur(8px);
+  border-radius: 24px;
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.listSection {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.sectionHeader {
+  display: flex;
+  justify-content: flex-end;
+  align-items: baseline;
+}
+
+.sectionTitle {
+  margin: 0;
+  font-size: 26px;
+}
+
+.sectionCount {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 14px;
+}

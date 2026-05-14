@@ -16,6 +16,47 @@
 
 ---
 
+## 웹/모바일 반응형 기준
+
+뷰포트 너비가 `MOBILE_BREAKPOINT` 이하이면 모바일 트랙, 초과이면 웹 트랙으로 본다.
+푸터는 필요할 때만 `FOOTER_BREAKPOINT`를 따로 조정한다.
+
+### 단일 원본
+
+반응형 숫자는 `src/constants/responsive-values.json`에만 둔다.
+TS에서는 `src/constants/responsive.ts`를 import해서 사용하고, CSS Modules에서는 PostCSS가 아래 미디어 토큰을 실제 px 값으로 변환한다.
+
+```css
+@media --mobile {
+  /* max-width: MOBILE_BREAKPOINT */
+}
+
+@media --desktop {
+  /* min-width: MOBILE_BREAKPOINT + 1 */
+}
+
+@media --footer-mobile {
+  /* max-width: FOOTER_BREAKPOINT */
+}
+```
+
+스타일 파일에 `640px`, `670px`, `860px`, `960px` 같은 분기 숫자를 직접 쓰지 않는다.
+기준을 바꿔야 하면 `responsive-values.json`만 수정한다.
+
+### 컴포넌트 분기
+
+공통 셸의 헤더/푸터처럼 골격은 같고 일부 컴포넌트만 바뀌는 경우 `useIsMobile`을 사용한다.
+
+```ts
+const isMobileNav = useIsMobile(MOBILE_BREAKPOINT);
+const isMobileFooter = useIsMobile(FOOTER_BREAKPOINT);
+```
+
+페이지 전체가 웹/모바일에서 완전히 달라질 때만 `index.tsx`가 `web`/`mob` 진입 컴포넌트를 고르는 구조로 분리한다.
+현재 CSS Modules 기반에서는 세부 간격 조정은 `@media --mobile` 토큰으로 처리한다.
+
+---
+
 ## 폴더 책임
 
 ### `src/components/`

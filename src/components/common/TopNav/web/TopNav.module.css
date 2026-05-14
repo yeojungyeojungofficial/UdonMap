@@ -19,20 +19,6 @@
   gap: 10px;
 }
 
-.logoMark {
-  width: 42px;
-  height: 42px;
-  border-radius: 12px;
-  background: #383838;
-  color: #ffffff;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 14px;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-}
-
 .logoText {
   margin: 0;
   color: #1a1a1a;
@@ -77,31 +63,4 @@
 
 .menuButtonActive:hover {
   background: #e5792d;
-}
-
-@media (max-width: 960px) {
-  .topNav {
-    flex-direction: column;
-    align-items: flex-start;
-    padding: 10px 20px 12px;
-  }
-
-  .menuWrap {
-    justify-content: flex-start;
-    width: 100%;
-    flex-wrap: nowrap;
-    overflow-x: auto;
-    padding-bottom: 2px;
-  }
-}
-
-@media (max-width: 640px) {
-  .logoText {
-    font-size: 19px;
-  }
-
-  .menuButton {
-    padding: 7px 11px;
-    font-size: 12px;
-  }
 }
