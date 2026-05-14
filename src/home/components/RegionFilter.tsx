@@ -1,4 +1,4 @@
-import type { Region } from "@/src/home/types";
+import type { Region } from "@/src/features/hospitals/types";
 import styles from "@/src/home/Home.module.css";
 
 type RegionFilterProps = {

@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { loadAuthSession } from "@/src/shared/lib/authSession";
 import { getSupabaseBrowserClient } from "@/src/shared/lib/supabase";
-import { REGION_FILTERS } from "@/src/home/regions";
-import type { Region } from "@/src/home/types";
+import { REGION_FILTERS } from "@/src/constants/regions";
+import type { Region } from "@/src/features/hospitals/types";
 import {
   BOARD_TABS,
   type BoardPostSummary,

@@ -5,8 +5,8 @@ import {
   toHospitalComment,
   validateCreateHospitalComment,
   validateDeleteHospitalComment,
-} from "@/src/shared/lib/hospitalComments";
-import type { HospitalComment } from "@/src/home/types";
+} from "@/src/features/hospitals/comments";
+import type { HospitalComment } from "@/src/features/hospitals/types";
 import { getSupabaseServerClient } from "@/src/shared/lib/supabaseServer";
 import { ensureUserProfile } from "@/src/shared/lib/userProfiles";
 import { getBearerToken } from "@/src/shared/lib/apiRequest";

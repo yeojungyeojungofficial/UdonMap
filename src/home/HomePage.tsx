@@ -11,13 +11,13 @@ import {
   fetchHospitalComments,
   fetchHospitals,
 } from "@/src/home/hospitalsApi";
-import { OTHER_REGION_FILTER, REGION_FILTERS } from "@/src/home/regions";
+import { OTHER_REGION_FILTER, REGION_FILTERS } from "@/src/constants/regions";
 import type {
   Hospital,
   HospitalComment,
   ReactionSnapshot,
   Region,
-} from "@/src/home/types";
+} from "@/src/features/hospitals/types";
 import styles from "@/src/home/Home.module.css";
 
 export default function HomePage() {

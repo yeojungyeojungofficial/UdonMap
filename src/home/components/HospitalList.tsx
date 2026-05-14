@@ -1,4 +1,4 @@
-import type { Hospital } from "@/src/home/types";
+import type { Hospital } from "@/src/features/hospitals/types";
 import styles from "@/src/home/Home.module.css";
 
 type HospitalListProps = {

@@ -1,6 +1,6 @@
 import Script from "next/script";
 import { useEffect, useMemo, useRef, useState } from "react";
-import type { Hospital } from "@/src/home/types";
+import type { Hospital } from "@/src/features/hospitals/types";
 import styles from "@/src/home/Home.module.css";
 
 type KakaoLatLng = object;

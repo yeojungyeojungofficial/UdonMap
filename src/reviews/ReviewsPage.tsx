@@ -6,8 +6,8 @@ import LoadingScreen from "@/src/shared/components/LoadingScreen";
 import TopNav from "@/src/shared/components/TopNav";
 import PostComposeSheet from "@/src/reviews/PostComposeSheet";
 import CommonFooter from "@/src/shared/components/CommonFooter";
-import { REGION_FILTERS } from "@/src/home/regions";
-import type { Region } from "@/src/home/types";
+import { REGION_FILTERS } from "@/src/constants/regions";
+import type { Region } from "@/src/features/hospitals/types";
 import {
   BOARD_TABS,
   TIP_CATEGORIES,

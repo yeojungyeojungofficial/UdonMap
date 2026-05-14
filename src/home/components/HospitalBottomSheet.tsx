@@ -15,7 +15,7 @@ import type {
   HospitalComment,
   ReactionSnapshot,
   ReactionType,
-} from "@/src/home/types";
+} from "@/src/features/hospitals/types";
 import { supabase } from "@/src/shared/lib/supabase";
 import {
   getCachedAuthSession,

@@ -1,6 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { getSupabaseServerClient } from "@/src/shared/lib/supabaseServer";
-import { updateHospitalCommentAuthorNames } from "@/src/shared/lib/hospitalComments";
+import { updateHospitalCommentAuthorNames } from "@/src/features/hospitals/comments";
 import { getBearerToken } from "@/src/shared/lib/apiRequest";
 import {
   ensureUserProfile,

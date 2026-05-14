@@ -1,4 +1,7 @@
-import type { ReactionSnapshot, ReactionType } from "@/src/home/types";
+import type {
+  ReactionSnapshot,
+  ReactionType,
+} from "@/src/features/hospitals/types";
 import { getSupabaseBrowserClient } from "@/src/shared/lib/supabase";
 import { loadAuthSession } from "@/src/shared/lib/authSession";
 

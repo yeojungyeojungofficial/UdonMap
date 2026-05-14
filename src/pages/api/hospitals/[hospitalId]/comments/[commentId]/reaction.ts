@@ -1,10 +1,10 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import type { ReactionSnapshot } from "@/src/home/types";
+import type { ReactionSnapshot } from "@/src/features/hospitals/types";
 import { getSupabaseServerClient } from "@/src/shared/lib/supabaseServer";
 import {
   toCommentReactionSnapshot,
   validateReactionRequest,
-} from "@/src/shared/lib/reactions";
+} from "@/src/features/hospitals/reactions";
 import {
   getBearerToken,
   getQueryValue,

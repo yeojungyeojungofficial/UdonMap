@@ -1,12 +1,16 @@
 import { getSupabaseBrowserClient } from "@/src/shared/lib/supabase";
 import { loadAuthSession } from "@/src/shared/lib/authSession";
 import type { Database } from "@/src/shared/lib/database.types";
-import type { Hospital, HospitalComment, ReactionType } from "@/src/home/types";
+import type {
+  Hospital,
+  HospitalComment,
+  ReactionType,
+} from "@/src/features/hospitals/types";
 import {
   HOSPITAL_COMMENT_COLUMNS,
   toHospitalComment,
   type HospitalCommentRow,
-} from "@/src/shared/lib/hospitalComments";
+} from "@/src/features/hospitals/comments";
 import { isMissingBookmarksTableError } from "@/src/shared/lib/bookmarkErrors";
 
 type HospitalRow = Database["public"]["Tables"]["hospitals"]["Row"];
