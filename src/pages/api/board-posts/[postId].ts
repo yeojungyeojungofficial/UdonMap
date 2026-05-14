@@ -7,7 +7,7 @@ import {
   toBoardPostComment,
   toBoardPostSummary,
   type BoardPostDetail,
-} from "@/src/shared/lib/boardPosts";
+} from "@/src/features/reviews/boardPosts";
 import { getDefaultDisplayName } from "@/src/shared/lib/userProfiles";
 
 type BoardPostRow = Database["public"]["Tables"]["board_posts"]["Row"];

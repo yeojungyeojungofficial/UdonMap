@@ -9,7 +9,7 @@ import {
   toBoardPostComment,
   validateCreateBoardComment,
   type BoardPostComment,
-} from "@/src/shared/lib/boardPosts";
+} from "@/src/features/reviews/boardPosts";
 import {
   ensureUserProfile,
   getDefaultDisplayName,

@@ -7,7 +7,7 @@ import {
   toBoardPostSummary,
   validateCreateBoardPost,
   type BoardPostSummary,
-} from "@/src/shared/lib/boardPosts";
+} from "@/src/features/reviews/boardPosts";
 import { ensureUserProfile } from "@/src/shared/lib/userProfiles";
 import {
   getSuspensionBlockedMessage,
