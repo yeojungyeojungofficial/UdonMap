@@ -15,46 +15,22 @@ import {
   type ReviewTag,
   type TipTag,
 } from "@/src/features/reviews/postComposeConfig";
-import styles from "@/src/components/reviews/PostComposeSheet.module.css";
+import styles from "./PostComposeSheet.module.css";
 
-type PostComposeSheetProps = {
-  isOpen: boolean;
+type PostComposeSheetContentProps = {
   defaultBoard?: BoardTab;
   onClose: () => void;
   onCreated?: (post: BoardPostSummary) => void;
 };
 
-type PostComposeSheetContentProps = Omit<PostComposeSheetProps, "isOpen">;
-
-export default function PostComposeSheet({
-  isOpen,
-  defaultBoard,
-  onClose,
-  onCreated,
-}: PostComposeSheetProps) {
-  if (!isOpen) {
-    return null;
-  }
-
-  return (
-    <PostComposeSheetContent
-      key={defaultBoard ?? "자유게시판"}
-      defaultBoard={defaultBoard}
-      onClose={onClose}
-      onCreated={onCreated}
-    />
-  );
-}
-
-function PostComposeSheetContent({
+export default function MobilePostComposeSheetContent({
   defaultBoard = "자유게시판",
   onClose,
   onCreated,
 }: PostComposeSheetContentProps) {
   const [selectedBoard, setSelectedBoard] = useState<BoardTab>(defaultBoard);
   const [title, setTitle] = useState("");
-  const [selectedReviewTag, setSelectedReviewTag] =
-    useState<ReviewTag | null>(null);
+  const [selectedReviewTag, setSelectedReviewTag] = useState<ReviewTag | null>(null);
   const [selectedTipTag, setSelectedTipTag] = useState<TipTag | null>(null);
   const [bodyLength, setBodyLength] = useState(0);
   const [linkUrl, setLinkUrl] = useState("");
@@ -85,47 +61,32 @@ function PostComposeSheetContent({
     onBodyLengthChange: setBodyLength,
   });
 
-  const {
-    hasSubmitted,
-    isSubmitting,
-    setSubmitError,
-    submitError,
-    submitPost,
-  } = usePostComposeSubmit({
-    getHtml,
-    getTextLength,
-    onBodyLengthChange: setBodyLength,
-    onClose,
-    onCreated,
-  });
+  const { hasSubmitted, isSubmitting, setSubmitError, submitError, submitPost } =
+    usePostComposeSubmit({
+      getHtml,
+      getTextLength,
+      onBodyLengthChange: setBodyLength,
+      onClose,
+      onCreated,
+    });
 
-  const {
-    cleanupUploadedImages,
-    handleFileChange,
-    photoCount,
-    photoLimitMsg,
-    uploadingCount,
-  } = usePostImageUpload({
-    buildResizableImage,
-    countPhotos,
-    insertNodeAtCursor,
-    onErrorMessage: setSubmitError,
-  });
+  const { cleanupUploadedImages, handleFileChange, photoCount, photoLimitMsg, uploadingCount } =
+    usePostImageUpload({
+      buildResizableImage,
+      countPhotos,
+      insertNodeAtCursor,
+      onErrorMessage: setSubmitError,
+    });
 
   const handleClose = useCallback(() => {
     revokeEditorObjectUrls();
-
-    if (!hasSubmitted()) {
-      void cleanupUploadedImages();
-    }
-
+    if (!hasSubmitted()) void cleanupUploadedImages();
     onClose();
   }, [cleanupUploadedImages, hasSubmitted, onClose, revokeEditorObjectUrls]);
 
   const handleLinkInsert = () => {
     const url = linkUrl.trim();
     if (!url) return;
-
     insertLink(url);
     setLinkUrl("");
     setIsLinkInputOpen(false);
@@ -185,12 +146,7 @@ function PostComposeSheetContent({
               uploadingCount > 0
             }
             onClick={() =>
-              void submitPost({
-                selectedBoard,
-                selectedReviewTag,
-                selectedTipTag,
-                title,
-              })
+              void submitPost({ selectedBoard, selectedReviewTag, selectedTipTag, title })
             }
           >
             {isSubmitting ? "등록 중" : "등록"}
@@ -206,9 +162,7 @@ function PostComposeSheetContent({
               aria-label="게시판 선택"
             >
               {BOARD_TABS.map((tab) => (
-                <option key={tab} value={tab}>
-                  {tab}
-                </option>
+                <option key={tab} value={tab}>{tab}</option>
               ))}
             </select>
             <svg className={styles.boardSelectChevron} viewBox="0 0 24 24" aria-hidden="true">
@@ -225,6 +179,7 @@ function PostComposeSheetContent({
             value={title}
             onChange={(e) => setTitle(e.target.value)}
           />
+
           {selectedBoard === "병원후기 게시판" ? (
             <div className={styles.filterSection}>
               <p className={styles.filterLabel}>태그</p>
@@ -244,6 +199,7 @@ function PostComposeSheetContent({
               </div>
             </div>
           ) : null}
+
           {selectedBoard === "꿀팁 게시판" ? (
             <div className={styles.filterSection}>
               <p className={styles.filterLabel}>필터 태그</p>
@@ -306,10 +262,7 @@ function PostComposeSheetContent({
                 type="button"
                 className={styles.linkClear}
                 aria-label="링크 닫기"
-                onClick={() => {
-                  setLinkUrl("");
-                  setIsLinkInputOpen(false);
-                }}
+                onClick={() => { setLinkUrl(""); setIsLinkInputOpen(false); }}
               >
                 ✕
               </button>
@@ -317,9 +270,7 @@ function PostComposeSheetContent({
           )}
         </div>
 
-        {submitError ? (
-          <p className={styles.submitError}>{submitError}</p>
-        ) : null}
+        {submitError ? <p className={styles.submitError}>{submitError}</p> : null}
 
         <div className={styles.toolbar}>
           <div className={styles.toolbarLeft}>
@@ -328,19 +279,14 @@ function PostComposeSheetContent({
               className={styles.toolbarButton}
               aria-label={`사진 첨부 (${photoCount}/${MAX_POST_PHOTOS})`}
               disabled={atPhotoLimit || isSubmitting}
-              onClick={() => {
-                saveSelection();
-                fileInputRef.current?.click();
-              }}
+              onClick={() => { saveSelection(); fileInputRef.current?.click(); }}
             >
               <svg viewBox="0 0 24 24" aria-hidden="true">
                 <rect x="3" y="3" width="18" height="18" rx="3" ry="3" fill="none" stroke="currentColor" strokeWidth="2" />
                 <circle cx="8.5" cy="8.5" r="1.5" fill="currentColor" />
                 <path d="M21 15l-5-5L5 21" stroke="currentColor" strokeWidth="2" fill="none" strokeLinejoin="round" />
               </svg>
-              {photoCount > 0 && (
-                <span className={styles.photoBadge}>{photoCount}</span>
-              )}
+              {photoCount > 0 && <span className={styles.photoBadge}>{photoCount}</span>}
             </button>
             <button
               type="button"
@@ -358,18 +304,12 @@ function PostComposeSheetContent({
           </div>
           <div className={styles.toolbarRight}>
             {uploadingCount > 0 && (
-              <span className={styles.uploadingMsg}>
-                이미지 업로드 중 {uploadingCount}개…
-              </span>
+              <span className={styles.uploadingMsg}>이미지 업로드 중 {uploadingCount}개…</span>
             )}
             {photoLimitMsg && !uploadingCount && (
               <span className={styles.photoLimitMsg}>{photoLimitMsg}</span>
             )}
-            <span
-              className={`${styles.charCount} ${
-                isBodyTooLong ? styles.charCountOverLimit : ""
-              }`}
-            >
+            <span className={`${styles.charCount} ${isBodyTooLong ? styles.charCountOverLimit : ""}`}>
               {bodyLength.toLocaleString()}/{MAX_POST_BODY.toLocaleString()}
             </span>
           </div>

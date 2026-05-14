@@ -17,7 +17,6 @@
   overflow: hidden;
 }
 
-/* 스크롤 영역 */
 .scrollArea {
   flex: 1;
   overflow-y: auto;
@@ -25,12 +24,11 @@
   flex-direction: column;
 }
 
-/* 헤더 */
 .sheetHeader {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 14px 16px;
+  padding: 16px 24px;
   border-bottom: 1px solid #f0e6dc;
 }
 
@@ -76,12 +74,11 @@
   cursor: default;
 }
 
-/* 게시판 선택 */
 .boardSelectRow {
   position: relative;
   display: inline-flex;
   align-items: center;
-  margin: 14px 16px 4px;
+  margin: 16px 24px 4px;
   width: fit-content;
 }
 
@@ -113,12 +110,11 @@
   pointer-events: none;
 }
 
-/* 제목 */
 .titleInput {
   border: 0;
   outline: none;
-  padding: 14px 16px;
-  font-size: 20px;
+  padding: 16px 24px;
+  font-size: 22px;
   font-weight: 800;
   color: #383838;
   width: 100%;
@@ -132,7 +128,7 @@
 }
 
 .filterSection {
-  margin: 0 16px 10px;
+  margin: 0 24px 12px;
 }
 
 .filterLabel {
@@ -169,16 +165,15 @@
 .divider {
   height: 1px;
   background: #f0e6dc;
-  margin: 0 16px;
+  margin: 0 24px;
   flex-shrink: 0;
 }
 
-/* contenteditable 본문 에디터 */
 .bodyEditor {
   flex: 1;
   outline: none;
-  padding: 16px;
-  font-size: 15px;
+  padding: 18px 24px;
+  font-size: 16px;
   line-height: 1.8;
   color: #383838;
   min-height: 200px;
@@ -192,7 +187,6 @@
   pointer-events: none;
 }
 
-/* 에디터 내부 인라인 이미지 래퍼 */
 .imgWrapper {
   display: inline-block;
   position: relative;
@@ -215,7 +209,6 @@
   border-color: #ff9645;
 }
 
-/* 리사이즈 핸들 */
 .imgResizeHandle {
   position: absolute;
   bottom: 0;
@@ -236,19 +229,17 @@
   opacity: 1;
 }
 
-/* 에디터 내부 인라인 링크 */
 .inlineLink {
   color: #ff9645;
   text-decoration: underline;
   word-break: break-all;
 }
 
-/* 링크 입력 */
 .linkInputRow {
   display: flex;
   align-items: center;
   gap: 8px;
-  margin: 0 16px 8px;
+  margin: 0 24px 8px;
   border: 1.5px solid #ff9645;
   border-radius: 10px;
   padding: 10px 12px;
@@ -324,13 +315,12 @@
   line-height: 1.5;
 }
 
-/* 하단 툴바 */
 .toolbar {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 10px 12px 10px 8px;
-  padding-bottom: max(10px, env(safe-area-inset-bottom));
+  padding: 12px 20px 12px 14px;
+  padding-bottom: max(12px, env(safe-area-inset-bottom));
   border-top: 1px solid #f0e6dc;
   background: #ffffff;
   flex-shrink: 0;
@@ -428,40 +418,4 @@
 
 .charCountOverLimit {
   color: #c4361d;
-}
-
-@media (min-width: 641px) {
-  .sheetHeader {
-    padding: 16px 24px;
-  }
-
-  .boardSelectRow {
-    margin: 16px 24px 4px;
-  }
-
-  .titleInput {
-    padding: 16px 24px;
-    font-size: 22px;
-  }
-
-  .filterSection {
-    margin: 0 24px 12px;
-  }
-
-  .divider {
-    margin: 0 24px;
-  }
-
-  .bodyEditor {
-    padding: 18px 24px;
-    font-size: 16px;
-  }
-
-  .linkInputRow {
-    margin: 0 24px 8px;
-  }
-
-  .toolbar {
-    padding: 12px 20px 12px 14px;
-  }
 }

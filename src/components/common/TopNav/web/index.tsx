@@ -1,21 +1,25 @@
 import Link from "next/link";
-import styles from "@/src/components/common/TopNav.module.css";
+import styles from "./TopNav.module.css";
 
-const MENUS = [
+type MenuItem =
+  | { label: string; href: string; action?: never }
+  | { label: string; action: "report"; href?: never };
+
+const MENUS: MenuItem[] = [
   { label: "병원찾기", href: "/" },
-  { label: "후원하기", href: "/support" },
   { label: "병원후기", href: "/reviews" },
   { label: "병원제보", action: "report" },
   { label: "마이페이지", href: "/mypage" },
+  { label: "후원하기", href: "/support" },
 ];
 
-type TopNavProps = {
+export type TopNavProps = {
   activeMenu: string;
   onSelectMenu?: (menu: string) => void;
   onOpenReport?: () => void;
 };
 
-export default function TopNav({
+export default function DesktopTopNav({
   activeMenu,
   onSelectMenu,
   onOpenReport,
@@ -23,12 +27,14 @@ export default function TopNav({
   return (
     <header className={styles.topNav}>
       <div className={styles.logoWrap}>
-        <p className={styles.logoText}> <span>우</span>리동네 <span>동</span>물병원</p>
+        <p className={styles.logoText}>
+          <span>우</span>리동네 <span>동</span>물병원
+        </p>
       </div>
       <nav className={styles.menuWrap} aria-label="상단 메뉴">
         {MENUS.map((menu) => {
           const isActive = activeMenu === menu.label;
-          const menuClassName = `${styles.menuButton} ${
+          const className = `${styles.menuButton} ${
             isActive ? styles.menuButtonActive : ""
           }`;
 
@@ -37,7 +43,7 @@ export default function TopNav({
               <Link
                 key={menu.label}
                 href={menu.href}
-                className={menuClassName}
+                className={className}
                 onClick={() => onSelectMenu?.(menu.label)}
                 aria-current={isActive ? "page" : undefined}
               >
@@ -50,12 +56,10 @@ export default function TopNav({
             <button
               key={menu.label}
               type="button"
-              className={menuClassName}
+              className={className}
               onClick={() => {
                 onSelectMenu?.(menu.label);
-                if (menu.action === "report") {
-                  onOpenReport?.();
-                }
+                if (menu.action === "report") onOpenReport?.();
               }}
               aria-pressed={isActive}
             >

@@ -1,0 +1,326 @@
+/* ── 공통 셸 (모바일 마이페이지와 동일 구조, 데스크톱 폭) ── */
+.page {
+  min-height: 100vh;
+  min-height: 100dvh;
+  padding: 24px 20px 40px;
+  padding-top: 88px;
+  background: #f2f2f2;
+  color: #383838;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-width: 680px;
+  margin: 0 auto;
+  box-sizing: border-box;
+}
+
+.heroCard {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 24px 24px 22px;
+}
+
+.heroTitle {
+  margin: 0;
+  font-size: 28px;
+  font-weight: 800;
+  line-height: 1.25;
+  color: #1a1a1a;
+}
+
+.heroDesc {
+  margin: 14px 0 0;
+  font-size: 15px;
+  line-height: 1.7;
+  color: #666666;
+}
+
+.sessionEmail {
+  margin: 12px 0 0;
+  font-size: 14px;
+  color: #ff9645;
+  font-weight: 700;
+}
+
+.menuCard {
+  background: #ffffff;
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.divider {
+  height: 1px;
+  background: #f0f0f0;
+  margin: 0 16px;
+}
+
+.menuItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 16px;
+  border: 0;
+  background: none;
+  font-size: 15px;
+  font-weight: 700;
+  color: #1a1a1a;
+  cursor: pointer;
+  text-align: left;
+  width: 100%;
+  text-decoration: none;
+  box-sizing: border-box;
+}
+
+.menuItem:hover {
+  background: #f9f9f9;
+}
+
+.menuItemDanger {
+  color: #e03030;
+}
+
+.subItems {
+  display: flex;
+  flex-direction: column;
+  background: #fafafa;
+  border-top: 1px solid #f0f0f0;
+}
+
+.subItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 15px 16px 15px 24px;
+  border: 0;
+  border-bottom: 1px solid #f0f0f0;
+  background: none;
+  font-size: 14px;
+  font-weight: 500;
+  color: #383838;
+  cursor: pointer;
+  text-align: left;
+  width: 100%;
+  text-decoration: none;
+  box-sizing: border-box;
+}
+
+.subItem:hover {
+  background: #f2f2f2;
+}
+
+.subDivider {
+  height: 1px;
+  background: #f4f4f4;
+  margin: 0 16px 0 24px;
+}
+
+.chevron {
+  width: 18px;
+  height: 18px;
+  flex: 0 0 auto;
+  color: #bbbbbb;
+  transition: transform 0.2s ease;
+}
+
+.chevronDown {
+  transform: rotate(90deg);
+}
+
+.contentArea {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 20px;
+}
+
+.pageFooter {
+  margin-top: auto;
+  padding-top: 24px;
+}
+
+/* ── 계정 서브페이지 ── */
+.accountInfo {
+  padding: 16px 24px;
+  border-bottom: 1px solid #f0f0f0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.accountInfo span {
+  font-size: 12px;
+  color: #999999;
+  font-weight: 600;
+}
+
+.accountInfo strong {
+  font-size: 15px;
+  color: #1a1a1a;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.joinDate {
+  margin-top: 4px;
+  font-size: 12px !important;
+  color: #bbbbbb !important;
+}
+
+.profileFormSection {
+  padding: 22px 24px;
+}
+
+.sectionLabel {
+  margin: 0 0 14px;
+  font-size: 15px;
+  font-weight: 800;
+  color: #383838;
+}
+
+.authInline {
+  padding: 20px 24px 24px;
+}
+
+.contactLink {
+  display: inline-block;
+  margin-top: 10px;
+  color: #ff9645;
+  font-size: 15px;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.contactLink:hover {
+  text-decoration: underline;
+}
+
+/* ── 폼 (계정 페이지 등) ── */
+.modeTabs {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+  border: 1px solid #ead8ca;
+  border-radius: 8px;
+  padding: 4px;
+  background: #fff8f2;
+}
+
+.modeTab {
+  min-height: 40px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: #7d4b2a;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.modeTabActive {
+  background: #ffffff;
+  color: #383838;
+  box-shadow: 0 2px 8px rgba(135, 75, 31, 0.12);
+}
+
+.field {
+  display: grid;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.field span {
+  color: #383838;
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.field input {
+  width: 100%;
+  box-sizing: border-box;
+  border: 1px solid #dcc8b8;
+  border-radius: 8px;
+  padding: 14px 15px;
+  color: #383838;
+  background: #fffdfb;
+  font-size: 15px;
+}
+
+.field input:focus {
+  outline: 2px solid rgba(255, 150, 69, 0.42);
+  border-color: #ff9645;
+}
+
+.checkboxField {
+  margin-top: 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #4a3f38;
+  font-size: 14px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.checkboxField input {
+  width: 18px;
+  height: 18px;
+  accent-color: #ff9645;
+}
+
+.submitButton,
+.secondaryButton {
+  width: 100%;
+  min-height: 48px;
+  border-radius: 8px;
+  font-weight: 800;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  box-sizing: border-box;
+}
+
+.submitButton {
+  margin-top: 24px;
+  border: 0;
+  background: #ff9645;
+  color: #ffffff;
+}
+
+.submitButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.46;
+}
+
+.secondaryButton {
+  margin-top: 10px;
+  border: 1px solid #ead8ca;
+  background: #fff8f2;
+  color: #7d4b2a;
+}
+
+.submitMessage {
+  margin: 14px 0 0;
+  border-radius: 8px;
+  padding: 12px;
+  background: #fff1e8;
+  color: #8a4a1d;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.errorMessage {
+  margin: 14px 0 0;
+  border-radius: 8px;
+  padding: 12px;
+  background: #fff1e8;
+  color: #9d3217;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.profileHint {
+  margin: 8px 0 0;
+  text-align: right;
+  color: #999999;
+  font-size: 12px;
+}

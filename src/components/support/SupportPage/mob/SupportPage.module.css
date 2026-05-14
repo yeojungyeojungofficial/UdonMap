@@ -1,7 +1,8 @@
 .page {
   min-height: 100vh;
-  padding: 20px;
-  padding-top: 84px;
+  padding: 14px;
+  padding-top: 64px;
+  padding-bottom: calc(64px + env(safe-area-inset-bottom));
   background: linear-gradient(180deg, #fff0e5 0%, #f7f7f7 100%);
   color: #383838;
 }
@@ -11,26 +12,19 @@
   min-height: calc(100vh - 120px);
   margin: 0 auto;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 420px;
-  align-items: center;
-  gap: 42px;
+  grid-template-columns: 1fr;
+  align-items: start;
+  gap: 24px;
 }
 
 .copyWrap {
-  max-width: 620px;
+  max-width: none;
 }
 
 .title {
   margin: 0;
   font-size: 30px;
   font-weight: 600;
-  line-height: 1.08;
-  letter-spacing: 0;
-}
-
-.copyWrap h1 {
-  margin: 0;
-  font-size: clamp(36px, 5vw, 58px);
   line-height: 1.08;
   letter-spacing: 0;
 }
@@ -45,20 +39,13 @@
 .accountCard {
   border: 1px solid #ead8ca;
   border-radius: 8px;
-  padding: 28px;
+  padding: 22px;
   background: #ffffff;
   box-shadow: 0 22px 44px rgba(135, 75, 31, 0.16);
 }
 
 .cardHeader {
   margin-bottom: 24px;
-}
-
-.cardHeader p {
-  margin: 0 0 6px;
-  color: #e5792d;
-  font-size: 13px;
-  font-weight: 800;
 }
 
 .cardHeader h2 {
@@ -117,31 +104,4 @@
   color: #8a4a1d;
   font-size: 13px;
   line-height: 1.6;
-}
-
-@media (max-width: 860px) {
-  .page {
-    padding-top: 116px;
-  }
-
-  .supportSection {
-    grid-template-columns: 1fr;
-    align-items: start;
-    gap: 24px;
-  }
-
-  .copyWrap {
-    max-width: none;
-  }
-}
-
-@media (max-width: 640px) {
-  .page {
-    padding: 14px;
-    padding-top: 112px;
-  }
-
-  .accountCard {
-    padding: 22px;
-  }
 }
