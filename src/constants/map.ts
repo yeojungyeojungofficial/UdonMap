@@ -1,0 +1,1 @@
+export const INITIAL_HOSPITAL_MAP_LEVEL = 9;
