@@ -1,0 +1,236 @@
+.page {
+  min-height: 100vh;
+  min-height: 100dvh;
+  padding: 0 2ch;
+  padding-top: 52px;
+  padding-bottom: calc(60px + env(safe-area-inset-bottom));
+  background: #ffffff;
+  color: #383838;
+}
+
+.content {
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  min-height: calc(100vh - 52px);
+  min-height: calc(100dvh - 52px);
+}
+
+.boardSurface {
+  flex: 1;
+  border: none;
+  border-radius: 0;
+  padding: 14px 0;
+  display: flex;
+  flex-direction: column;
+  background: #ffffff;
+  box-shadow: none;
+}
+
+.tabBar {
+  position: relative;
+}
+
+.tabButton {
+  border: 1px solid #ead8ca;
+  border-radius: 999px;
+  background: #f5f5f5;
+  color: #383838;
+  font-weight: 800;
+  cursor: pointer;
+  min-height: 44px;
+  padding: 0 14px;
+  font-size: 14px;
+}
+
+.tabButtonActive {
+  border-color: #ff9645;
+  background: #ff9645;
+  color: #ffffff;
+}
+
+.tabButtonDropdown {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.tabDropdownIcon {
+  width: 20px;
+  height: 20px;
+  flex: 0 0 auto;
+  transition: transform 0.2s ease;
+}
+
+.tabDropdownIconOpen {
+  transform: rotate(180deg);
+}
+
+.tabDropdownList {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  background: #ffffff;
+  border: 1px solid #ead8ca;
+  border-radius: 14px;
+  padding: 6px;
+  box-shadow: 0 4px 16px rgba(56, 56, 56, 0.12);
+  min-width: 180px;
+}
+
+.tabDropdownItem {
+  border: 0;
+  border-radius: 10px;
+  padding: 10px 14px;
+  background: transparent;
+  color: #383838;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  text-align: left;
+  transition: background-color 0.15s ease;
+}
+
+.tabDropdownItem:hover {
+  background: #fff3e8;
+  color: #e5792d;
+}
+
+.filterRowBelowTabs {
+  margin-top: 12px;
+}
+
+.postList {
+  list-style: none;
+  padding: 0;
+  margin: 18px 0 0;
+  display: grid;
+  gap: 10px;
+}
+
+.boardState,
+.boardError {
+  margin: 18px 0 0;
+  border-radius: 8px;
+  padding: 14px 16px;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.boardState {
+  background: #fff8f2;
+  color: #7d4b2a;
+}
+
+.boardError {
+  background: #fff1e8;
+  color: #9d3217;
+}
+
+.boardEmpty {
+  flex: 1;
+  min-height: 280px;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  color: #7d4b2a;
+  font-size: 15px;
+  font-weight: 800;
+}
+
+.postItem {
+  display: flex;
+  align-items: flex-start;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 16px;
+  width: 100%;
+  min-height: 58px;
+  border: 1px solid #ead8ca;
+  border-radius: 8px;
+  padding: 14px 16px;
+  background: #fffdfb;
+  color: #383838;
+  text-decoration: none;
+  cursor: pointer;
+  box-sizing: border-box;
+}
+
+.postItem:hover {
+  border-color: #ff9645;
+}
+
+.postTitle {
+  min-width: 0;
+  font-size: 15px;
+  font-weight: 800;
+}
+
+.postLikes {
+  flex: 0 0 auto;
+  color: #ff9645;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.writeFab {
+  position: fixed;
+  right: 18px;
+  bottom: calc(90px + env(safe-area-inset-bottom));
+  z-index: 90;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  border: none;
+  border-radius: 999px;
+  padding: 0;
+  width: 56px;
+  height: 56px;
+  background: #ff9645;
+  color: #ffffff;
+  font-size: 15px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
+}
+
+.writeFab:hover {
+  background: #e5792d;
+  transform: translateY(-1px);
+}
+
+.writeFab:active {
+  transform: translateY(0);
+}
+
+.writeFab:focus-visible {
+  outline: 3px solid rgba(255, 150, 69, 0.4);
+  outline-offset: 3px;
+}
+
+.writeFabIcon {
+  width: 22px;
+  height: 22px;
+  flex: 0 0 auto;
+}
+
+.writeFabLabel {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}

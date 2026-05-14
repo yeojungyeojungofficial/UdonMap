@@ -545,7 +545,7 @@
   cursor: pointer;
 }
 
-@media (min-width: 641px) {
+@media --desktop {
   .sheetBackdrop {
     align-items: center;
     padding: 20px;
@@ -562,9 +562,10 @@
   }
 }
 
-@media (max-width: 860px) {
+@media --mobile {
   .page {
-    padding-top: 116px;
+    padding: 14px;
+    padding-top: 112px;
   }
 
   .authSection {
@@ -576,13 +577,6 @@
   .copyWrap {
     max-width: none;
     padding-top: 0;
-  }
-}
-
-@media (max-width: 640px) {
-  .page {
-    padding: 14px;
-    padding-top: 112px;
   }
 
   .benefitGrid {
