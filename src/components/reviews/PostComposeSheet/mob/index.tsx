@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import FilterChipGroup from "@/src/components/common/FilterChipGroup";
 import {
   BOARD_TABS,
+  type BoardPostDetail,
   type BoardPostSummary,
   type BoardTab,
 } from "@/src/features/reviews/boardPosts";
@@ -19,19 +21,32 @@ import styles from "./PostComposeSheet.module.css";
 
 type PostComposeSheetContentProps = {
   defaultBoard?: BoardTab;
+  editPost?: BoardPostDetail | null;
   onClose: () => void;
   onCreated?: (post: BoardPostSummary) => void;
+  onUpdated?: (post: BoardPostDetail) => void;
 };
 
 export default function MobilePostComposeSheetContent({
   defaultBoard = "자유게시판",
+  editPost = null,
   onClose,
   onCreated,
+  onUpdated,
 }: PostComposeSheetContentProps) {
-  const [selectedBoard, setSelectedBoard] = useState<BoardTab>(defaultBoard);
-  const [title, setTitle] = useState("");
-  const [selectedReviewTag, setSelectedReviewTag] = useState<ReviewTag | null>(null);
-  const [selectedTipTag, setSelectedTipTag] = useState<TipTag | null>(null);
+  const initialBoard = editPost?.board ?? defaultBoard;
+  const [selectedBoard, setSelectedBoard] = useState<BoardTab>(initialBoard);
+  const [title, setTitle] = useState(editPost?.title ?? "");
+  const [selectedReviewTag, setSelectedReviewTag] = useState<ReviewTag | null>(
+    editPost?.board === "병원후기 게시판"
+      ? ((editPost.filterTag as ReviewTag | null) ?? null)
+      : null,
+  );
+  const [selectedTipTag, setSelectedTipTag] = useState<TipTag | null>(
+    editPost?.board === "꿀팁 게시판"
+      ? ((editPost.filterTag as TipTag | null) ?? null)
+      : null,
+  );
   const [bodyLength, setBodyLength] = useState(0);
   const [linkUrl, setLinkUrl] = useState("");
   const [isLinkInputOpen, setIsLinkInputOpen] = useState(false);
@@ -68,9 +83,17 @@ export default function MobilePostComposeSheetContent({
       onBodyLengthChange: setBodyLength,
       onClose,
       onCreated,
+      onUpdated,
     });
 
-  const { cleanupUploadedImages, handleFileChange, photoCount, photoLimitMsg, uploadingCount } =
+  const {
+    cleanupUploadedImages,
+    handleFileChange,
+    photoCount,
+    photoLimitMsg,
+    syncPhotoCount,
+    uploadingCount,
+  } =
     usePostImageUpload({
       buildResizableImage,
       countPhotos,
@@ -121,11 +144,24 @@ export default function MobilePostComposeSheetContent({
   }, []);
 
   useEffect(() => {
+    if (!editPost || !editorRef.current) return;
+    editorRef.current.innerHTML = editPost.body;
+    updateBodyLength();
+    syncPhotoCount();
+  }, [editPost, editorRef, syncPhotoCount, updateBodyLength]);
+
+  useEffect(() => {
     return revokeEditorObjectUrls;
   }, [revokeEditorObjectUrls]);
 
   const atPhotoLimit = photoCount >= MAX_POST_PHOTOS;
   const isBodyTooLong = bodyLength > MAX_POST_BODY;
+  const isFilterMissing =
+    selectedBoard === "병원후기 게시판"
+      ? !selectedReviewTag
+      : selectedBoard === "꿀팁 게시판"
+        ? !selectedTipTag
+        : false;
 
   return (
     <div className={styles.overlay} role="dialog" aria-modal="true" aria-label="글쓰기">
@@ -134,22 +170,29 @@ export default function MobilePostComposeSheetContent({
           <button type="button" className={styles.cancelButton} onClick={handleClose}>
             취소
           </button>
-          <span className={styles.sheetTitle}>글쓰기</span>
+          <span className={styles.sheetTitle}>{editPost ? "글수정" : "글쓰기"}</span>
           <button
             type="button"
             className={styles.submitButton}
             disabled={
               !title.trim() ||
               bodyLength === 0 ||
+              isFilterMissing ||
               isBodyTooLong ||
               isSubmitting ||
               uploadingCount > 0
             }
             onClick={() =>
-              void submitPost({ selectedBoard, selectedReviewTag, selectedTipTag, title })
+              void submitPost({
+                postId: editPost?.id,
+                selectedBoard,
+                selectedReviewTag,
+                selectedTipTag,
+                title,
+              })
             }
           >
-            {isSubmitting ? "등록 중" : "등록"}
+            {isSubmitting ? (editPost ? "수정 중" : "등록 중") : editPost ? "수정" : "등록"}
           </button>
         </div>
 
@@ -183,40 +226,26 @@ export default function MobilePostComposeSheetContent({
           {selectedBoard === "병원후기 게시판" ? (
             <div className={styles.filterSection}>
               <p className={styles.filterLabel}>태그</p>
-              <div className={styles.filterTagList}>
-                {REVIEW_TAG_OPTIONS.map((region) => (
-                  <button
-                    key={region}
-                    type="button"
-                    className={`${styles.filterTagButton} ${
-                      selectedReviewTag === region ? styles.filterTagButtonActive : ""
-                    }`}
-                    onClick={() => setSelectedReviewTag(region)}
-                  >
-                    {region}
-                  </button>
-                ))}
-              </div>
+              <FilterChipGroup
+                ariaLabel="지역 태그 선택"
+                className={styles.filterTagList}
+                options={REVIEW_TAG_OPTIONS}
+                selectedOption={selectedReviewTag}
+                onSelectOption={setSelectedReviewTag}
+              />
             </div>
           ) : null}
 
           {selectedBoard === "꿀팁 게시판" ? (
             <div className={styles.filterSection}>
               <p className={styles.filterLabel}>필터 태그</p>
-              <div className={styles.filterTagList}>
-                {TIP_TAG_OPTIONS.map((tag) => (
-                  <button
-                    key={tag}
-                    type="button"
-                    className={`${styles.filterTagButton} ${
-                      selectedTipTag === tag ? styles.filterTagButtonActive : ""
-                    }`}
-                    onClick={() => setSelectedTipTag(tag)}
-                  >
-                    {tag}
-                  </button>
-                ))}
-              </div>
+              <FilterChipGroup
+                ariaLabel="꿀팁 태그 선택"
+                className={styles.filterTagList}
+                options={TIP_TAG_OPTIONS}
+                selectedOption={selectedTipTag}
+                onSelectOption={setSelectedTipTag}
+              />
             </div>
           ) : null}
 

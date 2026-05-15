@@ -17,7 +17,7 @@ import {
 type BoardPostRow = Database["public"]["Tables"]["board_posts"]["Row"];
 
 const BOARD_POST_SUMMARY_COLUMNS =
-  "id,board,filter_tag,title,comment_count,status,created_at,updated_at";
+  "id,user_id,board,filter_tag,title,comment_count,view_count,status,created_at,updated_at";
 const DEFAULT_PAGE_SIZE = 30;
 const MAX_PAGE_SIZE = 50;
 
@@ -68,6 +68,7 @@ async function handleGet(req: NextApiRequest, res: NextApiResponse<PostResponse>
       .from("board_posts")
       .select(BOARD_POST_SUMMARY_COLUMNS)
       .eq("status", "visible")
+      .not("user_id", "is", null)
       .order("created_at", { ascending: false })
       .limit(getPageSize(req));
 

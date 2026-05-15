@@ -13,8 +13,8 @@
   max-height: min(86vh, 760px);
   max-height: min(86dvh, 760px);
   overflow: auto;
-  border-radius: 24px 24px 0 0;
-  background: #ffffff;
+  border-radius: var(--radius-panel) var(--radius-panel) 0 0;
+  background: var(--color-surface);
   padding: 12px 18px max(24px, env(safe-area-inset-bottom));
   animation: slideUp 0.26s ease;
 }
@@ -22,8 +22,8 @@
 .handle {
   width: 48px;
   height: 5px;
-  border-radius: 999px;
-  background: #383838;
+  border-radius: var(--radius-pill);
+  background: var(--color-text);
   margin: 2px auto 14px;
 }
 
@@ -35,7 +35,7 @@
 
 .eyebrow {
   margin: 0;
-  color: #e5792d;
+  color: var(--color-brand-strong);
   font-size: 12px;
   font-weight: 800;
 }
@@ -43,7 +43,8 @@
 .title {
   margin: 4px 0 0;
   font-size: 24px;
-  color: #383838;
+  color: var(--color-text);
+  font-weight: 700;
 }
 
 .closeButton {
@@ -51,8 +52,7 @@
   border-radius: 10px;
   padding: 8px 12px;
   height: fit-content;
-  background: #f5f5f5;
-  color: #383838;
+  color: var(--color-text);
   cursor: pointer;
 }
 
@@ -69,7 +69,7 @@
 
 .field span,
 .fieldset legend {
-  color: #383838;
+  color: var(--color-text);
   font-size: 14px;
   font-weight: 800;
 }
@@ -77,11 +77,11 @@
 .field input,
 .field textarea {
   width: 100%;
-  border: 1px solid #ead8ca;
+  border: 1px solid var(--color-field-border-neutral);
   border-radius: 10px;
   padding: 13px 14px;
-  background: #fffdfb;
-  color: #383838;
+  background: var(--color-field-surface);
+  color: var(--color-text);
 }
 
 .field textarea {
@@ -90,7 +90,7 @@
 
 .field input:focus,
 .field textarea:focus {
-  border-color: #ff9645;
+  border-color: var(--color-brand);
   outline: 2px solid rgba(255, 150, 69, 0.3);
 }
 
@@ -108,15 +108,15 @@
 .photoUploadRail {
   width: 100%;
   min-height: 142px;
-  border: 1px solid #ead8ca;
+  border: 1px solid var(--color-field-border-neutral);
   border-radius: 10px;
   padding: 12px;
   display: flex;
   align-items: stretch;
   gap: 10px;
   overflow-x: auto;
-  background: #fffdfb;
-  color: #383838;
+  background: var(--color-field-surface);
+  color: var(--color-text);
 }
 
 .photoAddTile,
@@ -128,14 +128,14 @@
 }
 
 .photoAddTile {
-  border: 1px dashed #ff9645;
+  border: 1px dashed var(--color-brand);
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   gap: 6px;
-  background: #fff8f2;
-  color: #e5792d;
+  background: var(--color-brand-surface);
+  color: var(--color-brand-strong);
   font-weight: 800;
   cursor: pointer;
 }
@@ -145,7 +145,7 @@
 }
 
 .photoAddTile small {
-  color: #7d4b2a;
+  color: var(--color-brand-deep);
   font-size: 12px;
   font-weight: 800;
 }
@@ -158,7 +158,7 @@
 .photoPreviewCard {
   margin: 0;
   overflow: hidden;
-  background: #f5f5f5;
+  background: var(--color-neutral-surface);
 }
 
 .photoPreviewCard img {
@@ -180,7 +180,7 @@
   align-items: center;
   justify-content: center;
   background: rgba(56, 56, 56, 0.82);
-  color: #ffffff;
+  color: var(--color-surface);
   font-size: 18px;
   line-height: 1;
   cursor: pointer;
@@ -188,13 +188,13 @@
 
 .fileLimitMessage {
   margin: -2px 0 0;
-  color: #8a4a1d;
+  color: var(--color-warning-text);
   font-size: 12px;
   line-height: 1.5;
 }
 
 .field:focus-within .photoUploadRail {
-  border-color: #ff9645;
+  border-color: var(--color-brand);
   outline: 2px solid rgba(255, 150, 69, 0.3);
 }
 
@@ -213,28 +213,27 @@
 }
 
 .animalChoiceButton {
-  border: 1px solid #ead8ca;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   padding: 9px 14px;
-  background: #fff8f2;
-  color: #7d4b2a;
+  background: var(--color-neutral-surface);
+  color: black;
   font-size: 14px;
-  font-weight: 800;
+  font-weight: 500;
   cursor: pointer;
 }
 
 .animalChoiceButtonActive {
-  border-color: #ff9645;
-  background: #ff9645;
-  color: #ffffff;
+  border-color: var(--color-brand);
+  background: var(--color-brand);
+  color: var(--color-surface);
 }
 
 .submitButton {
   min-height: 48px;
   border: 0;
   border-radius: 10px;
-  background: #ff9645;
-  color: #ffffff;
+  background: var(--color-brand);
+  color: var(--color-surface);
   font-weight: 800;
   cursor: pointer;
 }
@@ -248,8 +247,8 @@
   margin: 0;
   border-radius: 10px;
   padding: 12px;
-  background: #fff1e8;
-  color: #8a4a1d;
+  background: var(--color-warning-surface);
+  color: var(--color-warning-text);
   font-size: 13px;
   line-height: 1.6;
 }
@@ -258,8 +257,8 @@
   margin: 0;
   border-radius: 10px;
   padding: 12px;
-  background: #fff0f0;
-  color: #a02d2d;
+  background: var(--color-danger-surface);
+  color: var(--color-danger-text);
   font-size: 13px;
   line-height: 1.6;
 }

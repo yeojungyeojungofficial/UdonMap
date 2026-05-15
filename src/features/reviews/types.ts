@@ -10,10 +10,12 @@ export type BoardPostCommentRow =
 
 export type BoardPostSummary = {
   id: string;
+  authorId: string | null;
   board: BoardTab;
   filterTag: string | null;
   title: string;
   commentCount: number;
+  viewCount: number;
   createdAt: string;
   updatedAt: string;
 };
@@ -53,6 +55,18 @@ export type CreateBoardCommentValidationResult =
       ok: true;
       value: {
         content: string;
+      };
+    }
+  | {
+      ok: false;
+      message: string;
+    };
+
+export type DeleteBoardCommentValidationResult =
+  | {
+      ok: true;
+      value: {
+        commentId: string;
       };
     }
   | {

@@ -2,6 +2,7 @@ import Head from "next/head";
 import Link from "next/link";
 import { useState } from "react";
 import AuthDialog from "@/src/components/mypage/AuthDialog";
+import AccountAuthInline from "@/src/components/mypage/AccountAuthInline";
 import HospitalReportSheet from "@/src/components/common/HospitalReportSheet";
 import TopNav from "@/src/components/common/TopNav";
 import CommonFooter from "@/src/components/common/CommonFooter";
@@ -41,7 +42,26 @@ export default function DesktopMyPage() {
   const toggleSection = (key: SectionKey) =>
     setOpenSection((prev) => (prev === key ? null : key));
 
-  const { authDialogMessage, closeAuthDialog, session } = useMyPageState();
+  const {
+    authDialogMessage,
+    authMessage,
+    authMode,
+    canSubmit,
+    closeAuthDialog,
+    email,
+    handleAuthModeChange,
+    handleAutoLoginChange,
+    handleEmailChange,
+    handlePasswordChange,
+    handlePasswordConfirmChange,
+    handleSubmit,
+    isAuthReady,
+    isAutoLoginChecked,
+    isSubmitting,
+    password,
+    passwordConfirm,
+    session,
+  } = useMyPageState();
 
   const closeReportSheet = () => {
     setIsReportSheetOpen(false);
@@ -79,6 +99,29 @@ export default function DesktopMyPage() {
             <p className={styles.sessionEmail}>{session.user.email}</p>
           ) : null}
         </section>
+
+        {!session ? (
+          <div className={styles.menuCard}>
+            <AccountAuthInline
+              authMessage={authMessage}
+              authMode={authMode}
+              canSubmit={canSubmit}
+              classNames={styles}
+              email={email}
+              handleAuthModeChange={handleAuthModeChange}
+              handleAutoLoginChange={handleAutoLoginChange}
+              handleEmailChange={handleEmailChange}
+              handlePasswordChange={handlePasswordChange}
+              handlePasswordConfirmChange={handlePasswordConfirmChange}
+              handleSubmit={handleSubmit}
+              isAuthReady={isAuthReady}
+              isAutoLoginChecked={isAutoLoginChecked}
+              isSubmitting={isSubmitting}
+              password={password}
+              passwordConfirm={passwordConfirm}
+            />
+          </div>
+        ) : null}
 
         <div className={styles.menuCard}>
           <button

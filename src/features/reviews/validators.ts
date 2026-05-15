@@ -3,12 +3,15 @@ import {
   MAX_BOARD_COMMENT_LENGTH,
   MAX_BOARD_POST_BODY_LENGTH,
   MAX_BOARD_POST_TITLE_LENGTH,
+  TIP_CATEGORIES,
   type BoardTab,
 } from "@/src/features/reviews/constants";
+import { REGION_FILTERS } from "@/src/constants/regions";
 import { sanitizeBoardPostHtml } from "@/src/features/reviews/sanitize";
 import type {
   CreateBoardCommentValidationResult,
   CreateBoardPostValidationResult,
+  DeleteBoardCommentValidationResult,
 } from "@/src/features/reviews/types";
 
 function normalizeText(value: unknown) {
@@ -33,11 +36,35 @@ export function validateCreateBoardPost(
     body?: unknown;
   };
   const title = normalizeText(request.title);
+  const filterTag = normalizeText(request.filterTag) || null;
   const rawBody = typeof request.body === "string" ? request.body : "";
   const plainBody = rawBody.replace(/<[^>]*>/g, "").trim();
 
   if (!isBoardTab(request.board)) {
     return { ok: false, message: "올바른 게시판을 선택해주세요." };
+  }
+
+  if (request.board === "병원후기 게시판") {
+    if (!filterTag) {
+      return { ok: false, message: "지역 태그를 선택해주세요." };
+    }
+
+    if (filterTag === "전체" || !REGION_FILTERS.some((region) => region === filterTag)) {
+      return { ok: false, message: "올바른 지역 태그를 선택해주세요." };
+    }
+  }
+
+  if (request.board === "꿀팁 게시판") {
+    if (!filterTag) {
+      return { ok: false, message: "필터 태그를 선택해주세요." };
+    }
+
+    if (
+      filterTag === "전체" ||
+      !TIP_CATEGORIES.some((category) => category === filterTag)
+    ) {
+      return { ok: false, message: "올바른 필터 태그를 선택해주세요." };
+    }
   }
 
   if (!title) {
@@ -66,7 +93,7 @@ export function validateCreateBoardPost(
     ok: true,
     value: {
       board: request.board,
-      filterTag: normalizeText(request.filterTag) || null,
+      filterTag: request.board === "자유게시판" ? null : filterTag,
       title,
       body: sanitizeBoardPostHtml(rawBody),
     },
@@ -97,6 +124,27 @@ export function validateCreateBoardComment(
     ok: true,
     value: {
       content,
+    },
+  };
+}
+
+export function validateDeleteBoardComment(
+  body: unknown,
+): DeleteBoardCommentValidationResult {
+  if (!body || typeof body !== "object") {
+    return { ok: false, message: "요청 본문이 올바르지 않습니다." };
+  }
+
+  const commentId = normalizeText((body as { commentId?: unknown }).commentId);
+
+  if (!commentId) {
+    return { ok: false, message: "댓글 ID가 필요합니다." };
+  }
+
+  return {
+    ok: true,
+    value: {
+      commentId,
     },
   };
 }

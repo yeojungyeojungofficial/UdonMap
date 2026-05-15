@@ -1,6 +1,10 @@
 import { useCallback, useRef, useState } from "react";
-import { createBoardPost } from "@/src/core/api/reviews/boardPostsApi";
+import {
+  createBoardPost,
+  updateBoardPost,
+} from "@/src/core/api/reviews/boardPostsApi";
 import type {
+  BoardPostDetail,
   BoardPostSummary,
   BoardTab,
 } from "@/src/features/reviews/boardPosts";
@@ -11,6 +15,7 @@ import {
 } from "@/src/features/reviews/postComposeConfig";
 
 type SubmitPostInput = {
+  postId?: string;
   selectedBoard: BoardTab;
   selectedReviewTag: ReviewTag | null;
   selectedTipTag: TipTag | null;
@@ -23,6 +28,7 @@ type UsePostComposeSubmitOptions = {
   onBodyLengthChange: (length: number) => void;
   onClose: () => void;
   onCreated?: (post: BoardPostSummary) => void;
+  onUpdated?: (post: BoardPostDetail) => void;
 };
 
 export function usePostComposeSubmit({
@@ -31,6 +37,7 @@ export function usePostComposeSubmit({
   onBodyLengthChange,
   onClose,
   onCreated,
+  onUpdated,
 }: UsePostComposeSubmitOptions) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState("");
@@ -40,6 +47,7 @@ export function usePostComposeSubmit({
 
   const submitPost = useCallback(
     async ({
+      postId,
       selectedBoard,
       selectedReviewTag,
       selectedTipTag,
@@ -58,6 +66,16 @@ export function usePostComposeSubmit({
 
       onBodyLengthChange(nextBodyLength);
 
+      if (selectedBoard === "병원후기 게시판" && !selectedReviewTag) {
+        setSubmitError("지역 태그를 선택해주세요.");
+        return;
+      }
+
+      if (selectedBoard === "꿀팁 게시판" && !selectedTipTag) {
+        setSubmitError("필터 태그를 선택해주세요.");
+        return;
+      }
+
       if (nextBodyLength === 0) {
         setSubmitError("내용을 입력해주세요.");
         return;
@@ -74,14 +92,22 @@ export function usePostComposeSubmit({
       setSubmitError("");
 
       try {
-        const post = await createBoardPost({
+        const input = {
           board: selectedBoard,
           filterTag,
           title: title.trim(),
           body,
-        });
+        };
+        const post = postId
+          ? await updateBoardPost(postId, input)
+          : await createBoardPost(input);
+
         hasSubmittedRef.current = true;
-        onCreated?.(post);
+        if (postId) {
+          onUpdated?.(post as BoardPostDetail);
+        } else {
+          onCreated?.(post as BoardPostSummary);
+        }
         onClose();
       } catch (error) {
         setSubmitError(
@@ -100,6 +126,7 @@ export function usePostComposeSubmit({
       onBodyLengthChange,
       onClose,
       onCreated,
+      onUpdated,
     ],
   );
 

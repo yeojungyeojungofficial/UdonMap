@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { getSupabaseServerClient } from "@/src/core/supabaseServer";
 import { updateHospitalCommentAuthorNames } from "@/src/features/hospitals/comments";
+import { updateBoardPostCommentAuthorNames } from "@/src/features/reviews/comments";
 import { getBearerToken } from "@/src/core/apiRequest";
 import {
   ensureUserProfile,
@@ -67,6 +68,7 @@ export default async function handler(
       display_name: validation.value.displayName,
     });
     await updateHospitalCommentAuthorNames(supabase, user, profile);
+    await updateBoardPostCommentAuthorNames(supabase, user, profile);
 
     res.status(200).json({ profile });
   } catch (error) {
