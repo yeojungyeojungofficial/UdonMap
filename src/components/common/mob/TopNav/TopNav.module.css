@@ -8,13 +8,13 @@
   align-items: center;
   padding: 0 20px;
   height: 52px;
-  background: #ffffff;
-  box-shadow: 0 1px 8px rgba(0, 0, 0, 0.08);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-nav);
 }
 
 .logoText {
   margin: 0;
-  color: #1a1a1a;
+  color: var(--color-heading);
   font-size: 19px;
   line-height: 1;
   font-weight: 800;
@@ -23,7 +23,7 @@
 }
 
 .logoText span {
-  color: #e5792d;
+  color: var(--color-brand-strong);
 }
 
 .bottomNav {
@@ -34,8 +34,8 @@
   z-index: 100;
   display: flex;
   align-items: stretch;
-  background: #ffffff;
-  border-top: 1px solid #ebebeb;
+  background: var(--color-surface);
+  border-top: 1px solid var(--color-border-muted);
   padding-bottom: env(safe-area-inset-bottom);
 }
 
@@ -49,7 +49,7 @@
   padding: 10px 4px 10px;
   border: 0;
   background: none;
-  color: #aaaaaa;
+  color: var(--color-text-subtle);
   font-size: 10px;
   font-weight: 600;
   cursor: pointer;
@@ -59,11 +59,11 @@
 }
 
 .navItem:hover {
-  color: #888888;
+  color: var(--color-text-muted);
 }
 
 .navItemActive {
-  color: #ff9645;
+  color: var(--color-brand);
 }
 
 .navIcon {

@@ -435,6 +435,7 @@ export type Database = {
           title: string;
           body: string;
           comment_count: number;
+          view_count: number;
           status: "visible" | "hidden" | "deleted";
           created_at: string;
           updated_at: string;
@@ -447,6 +448,7 @@ export type Database = {
           title: string;
           body?: string;
           comment_count?: number;
+          view_count?: number;
           status?: "visible" | "hidden" | "deleted";
           created_at?: string;
           updated_at?: string;
@@ -459,7 +461,71 @@ export type Database = {
           title?: string;
           body?: string;
           comment_count?: number;
+          view_count?: number;
           status?: "visible" | "hidden" | "deleted";
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      board_post_reports: {
+        Row: {
+          id: string;
+          post_id: string;
+          reporter_id: string | null;
+          reason: string | null;
+          status: "pending" | "reviewed" | "dismissed";
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          post_id: string;
+          reporter_id?: string | null;
+          reason?: string | null;
+          status?: "pending" | "reviewed" | "dismissed";
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          post_id?: string;
+          reporter_id?: string | null;
+          reason?: string | null;
+          status?: "pending" | "reviewed" | "dismissed";
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      board_post_comment_reports: {
+        Row: {
+          id: string;
+          comment_id: string;
+          post_id: string;
+          reporter_id: string | null;
+          reason: string | null;
+          status: "pending" | "reviewed" | "dismissed";
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          comment_id: string;
+          post_id: string;
+          reporter_id?: string | null;
+          reason?: string | null;
+          status?: "pending" | "reviewed" | "dismissed";
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          comment_id?: string;
+          post_id?: string;
+          reporter_id?: string | null;
+          reason?: string | null;
+          status?: "pending" | "reviewed" | "dismissed";
           created_at?: string;
           updated_at?: string;
         };
@@ -710,6 +776,24 @@ export type Database = {
           ends_at: string | null;
           created_by: string | null;
           created_at: string;
+        }[];
+      };
+      increment_board_post_view_count: {
+        Args: {
+          p_post_id: string;
+        };
+        Returns: {
+          id: string;
+          user_id: string | null;
+          board: "병원후기 게시판" | "자유게시판" | "꿀팁 게시판";
+          filter_tag: string | null;
+          title: string;
+          body: string;
+          comment_count: number;
+          view_count: number;
+          status: "visible" | "hidden" | "deleted";
+          created_at: string;
+          updated_at: string;
         }[];
       };
       is_user_currently_suspended: {

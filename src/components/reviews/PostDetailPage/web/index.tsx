@@ -5,6 +5,7 @@ import { useMemo, useRef, useState } from "react";
 import TopNav from "@/src/components/common/TopNav";
 import HospitalReportSheet from "@/src/components/common/HospitalReportSheet";
 import LoadingScreen from "@/src/components/common/LoadingScreen";
+import PostComposeSheet from "@/src/components/reviews/PostComposeSheet";
 import {
   MAX_BOARD_COMMENT_LENGTH,
   type BoardPostComment,
@@ -18,24 +19,50 @@ function formatBoardDate(value: string) {
   return new Intl.DateTimeFormat("ko-KR", { dateStyle: "medium" }).format(date);
 }
 
-function Avatar({ name }: { name: string }) {
-  return (
-    <span className={styles.avatar} aria-hidden="true">
-      {name.slice(0, 1) || "익"}
-    </span>
-  );
-}
+function CommentItem({
+  comment,
+  currentUserId,
+  deletingCommentId,
+  reportingCommentId,
+  onDelete,
+  onReport,
+}: {
+  comment: BoardPostComment;
+  currentUserId: string | null;
+  deletingCommentId: string | null;
+  reportingCommentId: string | null;
+  onDelete: (commentId: string) => void;
+  onReport: (commentId: string) => void;
+}) {
+  const isMyComment = comment.authorId === currentUserId;
 
-function CommentItem({ comment }: { comment: BoardPostComment }) {
   return (
     <div className={styles.commentItem}>
-      <Avatar name={comment.author} />
       <div className={styles.commentBody}>
-        <div className={styles.commentMeta}>
-          <span className={styles.commentAuthor}>{comment.author}</span>
-          <span className={styles.commentDate}>
-            {formatBoardDate(comment.createdAt)}
-          </span>
+        <div className={styles.commentHeader}>
+          <div className={styles.commentMeta}>
+            <span className={styles.commentAuthor}>{comment.author}</span>
+            <span className={styles.commentRole}>작성자</span>
+          </div>
+          {isMyComment ? (
+            <button
+              type="button"
+              className={styles.commentDeleteButton}
+              disabled={deletingCommentId === comment.id}
+              onClick={() => onDelete(comment.id)}
+            >
+              {deletingCommentId === comment.id ? "삭제 중" : "삭제"}
+            </button>
+          ) : (
+            <button
+              type="button"
+              className={styles.commentReportButton}
+              disabled={reportingCommentId === comment.id}
+              onClick={() => onReport(comment.id)}
+            >
+              {reportingCommentId === comment.id ? "신고 중" : "신고"}
+            </button>
+          )}
         </div>
         <p className={styles.commentContent}>{comment.content}</p>
       </div>
@@ -52,17 +79,33 @@ export default function DesktopPostDetailPage() {
   const commentInputRef = useRef<HTMLTextAreaElement>(null);
   const [activeMenu, setActiveMenu] = useState("병원후기");
   const [isReportSheetOpen, setIsReportSheetOpen] = useState(false);
+  const [isActionMenuOpen, setIsActionMenuOpen] = useState(false);
+  const [isEditSheetOpen, setIsEditSheetOpen] = useState(false);
   const {
     commentError,
     commentMessage,
     commentText,
+    currentUserId,
+    deletingCommentId,
+    reportingCommentId,
     handleAddComment: submitComment,
+    handleDeleteComment,
+    handleDeletePost,
     handleCommentTextChange,
+    handlePostUpdated,
+    handleReportPost,
+    handleReportComment,
     isCommentSubmitting,
     isLoadingPost,
+    isPostActionSubmitting,
     post,
+    postActionError,
+    postActionMessage,
     postLoadError,
   } = useBoardPostDetail({ isReady: router.isReady, postId });
+  const isMyPost = Boolean(
+    post?.authorId && currentUserId && post.authorId === currentUserId,
+  );
 
   const handleAddComment = async () => {
     const isCreated = await submitComment();
@@ -72,6 +115,21 @@ export default function DesktopPostDetailPage() {
   const closeReportSheet = () => {
     setIsReportSheetOpen(false);
     setActiveMenu("병원후기");
+  };
+
+  const handleDeletePostClick = async () => {
+    setIsActionMenuOpen(false);
+    if (!window.confirm("게시글을 삭제할까요?")) return;
+
+    const isDeleted = await handleDeletePost();
+    if (isDeleted) {
+      await router.push("/reviews");
+    }
+  };
+
+  const handleReportPostClick = () => {
+    setIsActionMenuOpen(false);
+    void handleReportPost();
   };
 
   return (
@@ -119,24 +177,83 @@ export default function DesktopPostDetailPage() {
                 </svg>
                 목록으로
               </Link>
-              <div className={styles.topBadges}>
-                <span className={styles.boardBadge}>{post.board}</span>
-                {post.filterTag ? (
-                  <span className={styles.regionBadge}>{post.filterTag}</span>
-                ) : null}
+              <div className={styles.topActions}>
+                <div className={styles.topBadges}>
+                  <span className={styles.boardBadge}>{post.board}</span>
+                  {post.filterTag ? (
+                    <span className={styles.regionBadge}>{post.filterTag}</span>
+                  ) : null}
+                </div>
+                <div className={styles.postActionMenuWrap}>
+                  <button
+                    type="button"
+                    className={styles.postActionMenuButton}
+                    aria-label="게시글 메뉴"
+                    aria-expanded={isActionMenuOpen}
+                    onClick={() => setIsActionMenuOpen((value) => !value)}
+                  >
+                    ...
+                  </button>
+                  {isActionMenuOpen ? (
+                    <div className={styles.postActionMenu}>
+                      {isMyPost ? (
+                        <>
+                          <button
+                            type="button"
+                            className={styles.postActionMenuItem}
+                            onClick={() => {
+                              setIsActionMenuOpen(false);
+                              setIsEditSheetOpen(true);
+                            }}
+                          >
+                            수정하기
+                          </button>
+                          <button
+                            type="button"
+                            className={`${styles.postActionMenuItem} ${styles.postActionMenuItemDanger}`}
+                            disabled={isPostActionSubmitting}
+                            onClick={() => void handleDeletePostClick()}
+                          >
+                            삭제하기
+                          </button>
+                        </>
+                      ) : (
+                        <button
+                          type="button"
+                          className={styles.postActionMenuItem}
+                          disabled={isPostActionSubmitting}
+                          onClick={handleReportPostClick}
+                        >
+                          신고하기
+                        </button>
+                      )}
+                    </div>
+                  ) : null}
+                </div>
               </div>
             </div>
 
             <header className={styles.postHeader}>
               <h1 className={styles.postTitle}>{post.title}</h1>
               <div className={styles.postMeta}>
-                <Avatar name={post.author} />
                 <span className={styles.postAuthor}>{post.author}</span>
                 <span className={styles.postDate}>
                   {formatBoardDate(post.createdAt)}
                 </span>
               </div>
             </header>
+
+            {postActionMessage || postActionError ? (
+              <p
+                className={
+                  postActionError
+                    ? styles.postActionError
+                    : styles.postActionMessage
+                }
+              >
+                {postActionError || postActionMessage}
+              </p>
+            ) : null}
 
             <article
               className={styles.postContent}
@@ -195,7 +312,15 @@ export default function DesktopPostDetailPage() {
 
               <div className={styles.commentList}>
                 {post.comments.map((comment) => (
-                  <CommentItem key={comment.id} comment={comment} />
+                  <CommentItem
+                    key={comment.id}
+                    comment={comment}
+                    currentUserId={currentUserId}
+                    deletingCommentId={deletingCommentId}
+                    reportingCommentId={reportingCommentId}
+                    onDelete={(commentId) => void handleDeleteComment(commentId)}
+                    onReport={(commentId) => void handleReportComment(commentId)}
+                  />
                 ))}
               </div>
             </section>
@@ -205,6 +330,12 @@ export default function DesktopPostDetailPage() {
         <HospitalReportSheet
           isOpen={isReportSheetOpen}
           onClose={closeReportSheet}
+        />
+        <PostComposeSheet
+          isOpen={isEditSheetOpen}
+          editPost={post}
+          onClose={() => setIsEditSheetOpen(false)}
+          onUpdated={handlePostUpdated}
         />
       </div>
     </>

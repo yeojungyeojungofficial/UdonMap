@@ -18,15 +18,69 @@
 }
 
 :root {
-  --bg-top: #fff0e5;
-  --bg-bottom: #f7f7f7;
-  --surface: #ffffff;
-  --surface-strong: #383838;
-  --line: #ead8ca;
-  --text-primary: #383838;
-  --text-secondary: #383838;
-  --accent: #ff9645;
-  --accent-strong: #e5792d;
+  --color-page: #f2f2f2;
+  --color-page-soft: #f7f7f7;
+  --color-surface: #ffffff;
+  --color-surface-warm: #fffdfb;
+  --color-surface-muted: #fafafa;
+  --color-neutral-surface: #f5f5f5;
+  --color-hover: #f9f9f9;
+  --color-brand: #ff9645;
+  --color-brand-strong: #e5792d;
+  --color-brand-mid: #f07d2f;
+  --color-brand-dark: #d96a24;
+  --color-brand-deep: #7d4b2a;
+  --color-brand-surface: #fff8f2;
+  --color-brand-surface-strong: #fff1e8;
+  --color-border: #ead8ca;
+  --color-border-muted: #f0f0f0;
+  --color-border-soft: #f0e6dc;
+  --color-border-faint: #f4f4f4;
+  --color-field-border: #dcc8b8;
+  --color-field-border-neutral: #dedede;
+  --color-field-surface: #ffffff;
+  --color-heading: #1a1a1a;
+  --color-text: #383838;
+  --color-text-warm: #4a3f38;
+  --color-text-muted: #666666;
+  --color-text-soft: #888888;
+  --color-text-subtle: #999999;
+  --color-text-disabled: #b0a090;
+  --color-icon-muted: #bbbbbb;
+  --color-danger: #e03030;
+  --color-warning-surface: #fff1e8;
+  --color-warning-text: #8a4a1d;
+  --color-danger-surface: #fff1f1;
+  --color-danger-text: #9d3217;
+  --shadow-nav: 0 1px 8px rgba(0, 0, 0, 0.08);
+  --shadow-card: 0 14px 28px rgba(56, 56, 56, 0.1);
+  --shadow-card-strong: 0 22px 44px rgba(135, 75, 31, 0.16);
+  --shadow-tab: 0 2px 8px rgba(135, 75, 31, 0.12);
+  --shadow-dialog: 0 24px 60px rgba(56, 56, 56, 0.22);
+  --shadow-sheet: 0 -18px 48px rgba(56, 56, 56, 0.2);
+  --focus-brand: 2px solid rgba(255, 150, 69, 0.42);
+  --gradient-brand: linear-gradient(
+    130deg,
+    var(--color-brand) 0%,
+    var(--color-brand-mid) 52%,
+    var(--color-brand-dark) 100%
+  );
+  --radius-card: 16px;
+  --radius-card-sm: 8px;
+  --radius-panel: 24px;
+  --radius-pill: 999px;
+  --radius-field: 8px;
+  --space-page-mobile: 14px;
+  --space-page-desktop: 20px;
+  --bg-top: var(--color-brand-surface-strong);
+  --bg-bottom: var(--color-page-soft);
+  --surface: var(--color-surface);
+  --surface-strong: var(--color-text);
+  --line: var(--color-border);
+  --text-primary: var(--color-text);
+  --text-secondary: var(--color-text-muted);
+  --accent: var(--color-brand);
+  --accent-strong: var(--color-brand-strong);
   --title-font: "Pretendard", "SUIT", "Apple SD Gothic Neo", "Noto Sans KR",
     sans-serif;
   --body-font: "Pretendard", "SUIT", "Apple SD Gothic Neo", "Noto Sans KR",
@@ -44,7 +98,7 @@ body,
 #__next {
   margin: 0;
   min-height: 100%;
-  background: #ffffff;
+  background: var(--color-page);
 }
 
 body {

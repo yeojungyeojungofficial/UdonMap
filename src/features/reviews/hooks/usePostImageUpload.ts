@@ -40,6 +40,10 @@ export function usePostImageUpload({
     }
   }, []);
 
+  const syncPhotoCount = useCallback(() => {
+    setPhotoCount(countPhotos());
+  }, [countPhotos]);
+
   const handleFileChange = useCallback(
     async (event: ChangeEvent<HTMLInputElement>) => {
       const incoming = Array.from(event.target.files ?? []);
@@ -131,6 +135,7 @@ export function usePostImageUpload({
     handleFileChange,
     photoCount,
     photoLimitMsg,
+    syncPhotoCount,
     uploadingCount,
   };
 }

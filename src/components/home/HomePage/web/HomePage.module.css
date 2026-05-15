@@ -2,19 +2,20 @@
   position: relative;
   min-height: 100vh;
   min-height: 100dvh;
-  padding: 20px;
+  padding: var(--space-page-desktop);
   padding-top: 84px;
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: 16px;
+  background: var(--color-page);
 }
 
 .heroSection {
   position: relative;
   padding: 0;
-  background: linear-gradient(130deg, #ff9645 0%, #f07d2f 52%, #d96a24 100%);
-  border-radius: 30px;
-  box-shadow: 0 20px 40px rgba(135, 75, 31, 0.22);
+  background: var(--gradient-brand);
+  border-radius: var(--radius-card);
+  box-shadow: none;
   overflow: hidden;
 }
 
@@ -37,12 +38,12 @@
 .searchInput {
   width: 100%;
   border: 0;
-  border-radius: 16px;
+  border-radius: var(--radius-card);
   padding: 14px 18px;
   font-size: 15px;
   background: rgba(255, 255, 255, 0.94);
   color: var(--text-primary);
-  box-shadow: 0 10px 24px rgba(56, 56, 56, 0.16);
+  box-shadow: var(--shadow-card);
 }
 
 .searchInput:focus {
@@ -53,19 +54,18 @@
 .statusBanner {
   width: min(680px, 100%);
   margin: 0 auto;
-  border: 1px solid #ead8ca;
-  border-radius: 8px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-field);
   padding: 10px 12px;
-  background: #fff8f2;
-  color: #7d4b2a;
+  background: var(--color-brand-surface);
+  color: var(--color-brand-deep);
   font-size: 13px;
   line-height: 1.5;
 }
 
 .mainSection {
-  background: rgba(255, 255, 255, 0.78);
-  backdrop-filter: blur(8px);
-  border-radius: 24px;
+  background: var(--color-surface);
+  border-radius: var(--radius-card);
   padding: 18px;
   display: flex;
   flex-direction: column;
@@ -91,6 +91,6 @@
 
 .sectionCount {
   margin: 0;
-  color: var(--text-secondary);
+  color: var(--color-text-muted);
   font-size: 14px;
 }

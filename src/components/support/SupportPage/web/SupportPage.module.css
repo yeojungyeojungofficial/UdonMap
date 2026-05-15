@@ -2,45 +2,47 @@
   min-height: 100vh;
   padding: 20px;
   padding-top: 84px;
-  background: linear-gradient(180deg, #fff0e5 0%, #f7f7f7 100%);
-  color: #383838;
+  background: var(--color-page);
+  color: var(--color-text);
 }
 
 .supportSection {
-  width: min(1080px, 100%);
+  width: min(760px, 100%);
   min-height: calc(100vh - 120px);
   margin: 0 auto;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 420px;
-  align-items: center;
-  gap: 42px;
+  grid-template-columns: 1fr;
+  align-items: start;
+  gap: 16px;
 }
 
 .copyWrap {
-  max-width: 620px;
+  padding: 24px 24px 22px;
+  border-radius: var(--radius-card);
+  background: var(--color-surface);
 }
 
 .title {
   margin: 0;
-  font-size: 30px;
-  font-weight: 600;
-  line-height: 1.08;
+  font-size: 28px;
+  font-weight: 800;
+  line-height: 1.25;
   letter-spacing: 0;
 }
 
 .description {
-  margin: 20px 0 0;
-  color: #383838;
-  font-size: 20px;
-  line-height: 1.8;
+  margin: 14px 0 0;
+  color: var(--color-text-muted);
+  font-size: 15px;
+  line-height: 1.7;
 }
 
 .accountCard {
-  border: 1px solid #ead8ca;
-  border-radius: 8px;
-  padding: 28px;
-  background: #ffffff;
-  box-shadow: 0 22px 44px rgba(135, 75, 31, 0.16);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  padding: 24px;
+  background: var(--color-surface);
+  box-shadow: none;
 }
 
 .cardHeader {
@@ -59,21 +61,21 @@
 }
 
 .accountInfo div {
-  border: 1px solid #ead8ca;
-  border-radius: 8px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-field);
   padding: 14px 15px;
-  background: #fffdfb;
+  background: var(--color-surface-warm);
 }
 
 .accountInfo dt {
-  color: #7d4b2a;
+  color: var(--color-brand-deep);
   font-size: 13px;
   font-weight: 800;
 }
 
 .accountInfo dd {
   margin: 6px 0 0;
-  color: #383838;
+  color: var(--color-text);
   font-size: 20px;
   font-weight: 800;
   word-break: break-all;
@@ -84,23 +86,23 @@
   min-height: 48px;
   margin-top: 22px;
   border: 0;
-  border-radius: 8px;
-  background: #ff9645;
-  color: #ffffff;
+  border-radius: var(--radius-field);
+  background: var(--color-brand);
+  color: var(--color-surface);
   font-weight: 800;
   cursor: pointer;
 }
 
 .copyButton:hover {
-  background: #e5792d;
+  background: var(--color-brand-strong);
 }
 
 .copyMessage {
   margin: 14px 0 0;
-  border-radius: 8px;
+  border-radius: var(--radius-field);
   padding: 12px;
-  background: #fff1e8;
-  color: #8a4a1d;
+  background: var(--color-warning-surface);
+  color: var(--color-warning-text);
   font-size: 13px;
   line-height: 1.6;
 }

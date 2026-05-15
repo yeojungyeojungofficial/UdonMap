@@ -7,15 +7,15 @@
   align-items: center;
   justify-content: center;
   gap: 14px;
-  color: #7d4b2a;
+  color: var(--color-brand-deep);
   text-align: center;
 }
 
 .spinner {
   width: 34px;
   height: 34px;
-  border: 3px solid #ffe1ca;
-  border-top-color: #ff9645;
+  border: 3px solid var(--color-brand-surface-strong);
+  border-top-color: var(--color-brand);
   border-radius: 50%;
   animation: loadingSpin 0.8s linear infinite;
 }

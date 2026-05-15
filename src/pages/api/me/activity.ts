@@ -158,6 +158,7 @@ export default async function handler(
         .from("board_posts")
         .select("id,board,filter_tag,title,created_at,updated_at")
         .eq("user_id", user.id)
+        .eq("status", "visible")
         .order("created_at", { ascending: false })
         .limit(50);
 
