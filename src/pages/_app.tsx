@@ -6,7 +6,7 @@ const SITE_URL = "https://www.xn--2q1bx9ikpm.com";
 const OG_TITLE = "우리동네 동물병원";
 const OG_DESCRIPTION =
   "동물병원 지도, 지역 필터, 후기와 좋아요를 한 화면에서 확인합니다.";
-const OG_IMAGE = `${SITE_URL}/intro/intro.png`;
+const OG_IMAGE = `${SITE_URL}/intro/og-image.png`;
 
 export default function App({ Component, pageProps }: AppProps) {
   return (
