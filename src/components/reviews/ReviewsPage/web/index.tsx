@@ -1,6 +1,7 @@
 import Head from "next/head";
 import Link from "next/link";
 import { useState } from "react";
+import FilterChipGroup from "@/src/components/common/FilterChipGroup";
 import HospitalReportSheet from "@/src/components/common/HospitalReportSheet";
 import LoadingScreen from "@/src/components/common/LoadingScreen";
 import TopNav from "@/src/components/common/TopNav";
@@ -76,39 +77,23 @@ export default function DesktopReviewsPage() {
             </div>
 
             {activeTab === "병원후기 게시판" ? (
-              <div className={styles.regionFilter} aria-label="지역 필터">
-                {REVIEW_REGION_OPTIONS.map((region) => (
-                  <button
-                    key={region}
-                    type="button"
-                    className={`${styles.regionButton} ${
-                      selectedRegion === region ? styles.regionButtonActive : ""
-                    }`}
-                    onClick={() => setSelectedRegion(region)}
-                  >
-                    {region}
-                  </button>
-                ))}
-              </div>
+              <FilterChipGroup
+                ariaLabel="지역 필터"
+                className={styles.filterChips}
+                options={REVIEW_REGION_OPTIONS}
+                selectedOption={selectedRegion}
+                onSelectOption={setSelectedRegion}
+              />
             ) : null}
 
             {activeTab === "꿀팁 게시판" ? (
-              <div className={styles.regionFilter} aria-label="동물 카테고리 필터">
-                {TIP_CATEGORIES.map((category) => (
-                  <button
-                    key={category}
-                    type="button"
-                    className={`${styles.regionButton} ${
-                      selectedTipCategory === category
-                        ? styles.regionButtonActive
-                        : ""
-                    }`}
-                    onClick={() => setSelectedTipCategory(category)}
-                  >
-                    {category}
-                  </button>
-                ))}
-              </div>
+              <FilterChipGroup
+                ariaLabel="동물 카테고리 필터"
+                className={styles.filterChips}
+                options={TIP_CATEGORIES}
+                selectedOption={selectedTipCategory}
+                onSelectOption={setSelectedTipCategory}
+              />
             ) : null}
 
             {isLoadingPosts ? (
@@ -130,7 +115,7 @@ export default function DesktopReviewsPage() {
                     <Link href={`/reviews/${post.id}`} className={styles.postItem}>
                       <span className={styles.postTitle}>{post.title}</span>
                       <span className={styles.postLikes}>
-                        댓글 {post.commentCount}
+                        조회 {post.viewCount}
                       </span>
                     </Link>
                   </li>

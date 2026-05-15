@@ -4,8 +4,8 @@
   padding: 10px 14px;
   padding-top: calc(52px + 14px);
   padding-bottom: calc(64px + env(safe-area-inset-bottom));
-  background: #f2f2f2;
-  color: #383838;
+  background: var(--color-page);
+  color: var(--color-text);
   display: flex;
   flex-direction: column;
   gap: 12px;
@@ -13,8 +13,8 @@
 
 /* ── 히어로 카드 ── */
 .heroCard {
-  background: #ffffff;
-  border-radius: 16px;
+  background: var(--color-surface);
+  border-radius: var(--radius-card);
   padding: 22px 20px 20px;
 }
 
@@ -23,33 +23,33 @@
   font-size: 26px;
   font-weight: 800;
   line-height: 1.25;
-  color: #1a1a1a;
+  color: var(--color-heading);
 }
 
 .heroDesc {
   margin: 14px 0 0;
   font-size: 14px;
   line-height: 1.7;
-  color: #666666;
+  color: var(--color-text-muted);
 }
 
 .sessionEmail {
   margin: 12px 0 0;
   font-size: 13px;
-  color: #ff9645;
+  color: var(--color-brand);
   font-weight: 700;
 }
 
 /* ── 메뉴 카드 ── */
 .menuCard {
-  background: #ffffff;
-  border-radius: 16px;
+  background: var(--color-surface);
+  border-radius: var(--radius-card);
   overflow: hidden;
 }
 
 .divider {
   height: 1px;
-  background: #f0f0f0;
+  background: var(--color-border-muted);
   margin: 0 16px;
 }
 
@@ -68,7 +68,7 @@
   background: none;
   font-size: 15px;
   font-weight: 700;
-  color: #1a1a1a;
+  color: var(--color-heading);
   cursor: pointer;
   text-align: left;
   width: 100%;
@@ -77,11 +77,11 @@
 }
 
 .menuItem:active {
-  background: #f9f9f9;
+  background: var(--color-hover);
 }
 
 .menuItemDanger {
-  color: #e03030;
+  color: var(--color-danger);
 }
 
 /* ── 프로필 폼 섹션 ── */
@@ -93,14 +93,14 @@
   margin: 0 0 12px;
   font-size: 14px;
   font-weight: 800;
-  color: #383838;
+  color: var(--color-text);
 }
 
 /* ── 고객센터 이메일 링크 ── */
 .contactLink {
   display: inline-block;
   margin-top: 10px;
-  color: #ff9645;
+  color: var(--color-brand);
   font-size: 14px;
   font-weight: 700;
   text-decoration: none;
@@ -119,7 +119,7 @@
   background: none;
   font-size: 15px;
   font-weight: 700;
-  color: #1a1a1a;
+  color: var(--color-heading);
   cursor: pointer;
   text-align: left;
   width: 100%;
@@ -127,15 +127,15 @@
 }
 
 .sectionHeader:active {
-  background: #f9f9f9;
+  background: var(--color-hover);
 }
 
 /* ── 서브 아이템 ── */
 .subItems {
   display: flex;
   flex-direction: column;
-  background: #fafafa;
-  border-top: 1px solid #f0f0f0;
+  background: var(--color-surface-muted);
+  border-top: 1px solid var(--color-border-muted);
 }
 
 .subItem {
@@ -144,11 +144,11 @@
   justify-content: space-between;
   padding: 15px 16px 15px 24px;
   border: 0;
-  border-bottom: 1px solid #f0f0f0;
+  border-bottom: 1px solid var(--color-border-muted);
   background: none;
   font-size: 14px;
   font-weight: 500;
-  color: #383838;
+  color: var(--color-text);
   cursor: pointer;
   text-align: left;
   width: 100%;
@@ -156,7 +156,7 @@
 }
 
 .subItem:active {
-  background: #f2f2f2;
+  background: var(--color-page);
 }
 
 .subItemLast {
@@ -164,12 +164,12 @@
 }
 
 .subItemDanger {
-  color: #e03030;
+  color: var(--color-danger);
 }
 
 .subDivider {
   height: 1px;
-  background: #f4f4f4;
+  background: var(--color-border-faint);
   margin: 0 16px 0 24px;
 }
 
@@ -178,7 +178,7 @@
   width: 18px;
   height: 18px;
   flex: 0 0 auto;
-  color: #bbbbbb;
+  color: var(--color-icon-muted);
   transition: transform 0.2s ease;
 }
 
@@ -189,7 +189,7 @@
 /* ── 계정 정보 박스 ── */
 .accountInfo {
   padding: 14px 24px;
-  border-bottom: 1px solid #f0f0f0;
+  border-bottom: 1px solid var(--color-border-muted);
   display: flex;
   flex-direction: column;
   gap: 4px;
@@ -197,13 +197,13 @@
 
 .accountInfo span {
   font-size: 11px;
-  color: #999999;
+  color: var(--color-text-subtle);
   font-weight: 600;
 }
 
 .accountInfo strong {
   font-size: 14px;
-  color: #1a1a1a;
+  color: var(--color-heading);
   font-weight: 700;
   overflow-wrap: anywhere;
 }
@@ -211,7 +211,7 @@
 .joinDate {
   margin-top: 4px;
   font-size: 11px !important;
-  color: #bbbbbb !important;
+  color: var(--color-icon-muted) !important;
 }
 
 /* ── 로그인 폼 (인라인) ── */
@@ -223,10 +223,10 @@
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 6px;
-  border: 1px solid #ead8ca;
-  border-radius: 8px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-field);
   padding: 4px;
-  background: #fff8f2;
+  background: var(--color-brand-surface);
   margin-bottom: 4px;
 }
 
@@ -235,15 +235,15 @@
   border: 0;
   border-radius: 6px;
   background: transparent;
-  color: #7d4b2a;
+  color: var(--color-brand-deep);
   font-weight: 800;
   cursor: pointer;
 }
 
 .modeTabActive {
-  background: #ffffff;
-  color: #383838;
-  box-shadow: 0 2px 8px rgba(135, 75, 31, 0.12);
+  background: var(--color-surface);
+  color: var(--color-text);
+  box-shadow: var(--shadow-tab);
 }
 
 .field {
@@ -253,7 +253,7 @@
 }
 
 .field span {
-  color: #383838;
+  color: var(--color-text);
   font-size: 14px;
   font-weight: 800;
 }
@@ -261,17 +261,17 @@
 .field input {
   width: 100%;
   box-sizing: border-box;
-  border: 1px solid #dcc8b8;
-  border-radius: 8px;
+  border: 1px solid var(--color-field-border-neutral);
+  border-radius: var(--radius-field);
   padding: 12px 14px;
-  color: #383838;
-  background: #fffdfb;
+  color: var(--color-text);
+  background: var(--color-field-surface);
   font-size: 15px;
 }
 
 .field input:focus {
-  outline: 2px solid rgba(255, 150, 69, 0.42);
-  border-color: #ff9645;
+  outline: var(--focus-brand);
+  border-color: var(--color-brand);
 }
 
 .checkboxField {
@@ -279,7 +279,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  color: #4a3f38;
+  color: var(--color-text-warm);
   font-size: 14px;
   font-weight: 800;
   cursor: pointer;
@@ -288,14 +288,14 @@
 .checkboxField input {
   width: 18px;
   height: 18px;
-  accent-color: #ff9645;
+  accent-color: var(--color-brand);
 }
 
 .submitButton,
 .secondaryButton {
   width: 100%;
   min-height: 46px;
-  border-radius: 8px;
+  border-radius: var(--radius-field);
   font-weight: 800;
   cursor: pointer;
   display: flex;
@@ -308,8 +308,8 @@
 .submitButton {
   margin-top: 20px;
   border: 0;
-  background: #ff9645;
-  color: #ffffff;
+  background: var(--color-brand);
+  color: var(--color-surface);
 }
 
 .submitButton:disabled {
@@ -319,27 +319,27 @@
 
 .secondaryButton {
   margin-top: 8px;
-  border: 1px solid #ead8ca;
-  background: #fff8f2;
-  color: #7d4b2a;
+  border: 1px solid var(--color-border);
+  background: var(--color-brand-surface);
+  color: var(--color-brand-deep);
 }
 
 .submitMessage {
   margin: 12px 0 0;
-  border-radius: 8px;
+  border-radius: var(--radius-field);
   padding: 11px 12px;
-  background: #fff1e8;
-  color: #8a4a1d;
+  background: var(--color-warning-surface);
+  color: var(--color-warning-text);
   font-size: 13px;
   line-height: 1.6;
 }
 
 .errorMessage {
   margin: 12px 0 0;
-  border-radius: 8px;
+  border-radius: var(--radius-field);
   padding: 11px 12px;
-  background: #fff1e8;
-  color: #9d3217;
+  background: var(--color-warning-surface);
+  color: var(--color-danger-text);
   font-size: 13px;
   line-height: 1.6;
 }
@@ -347,19 +347,19 @@
 /* ── 프로필 수정 폼 (인라인) ── */
 .profileForm {
   padding: 0 20px 16px 24px;
-  border-bottom: 1px solid #f0f0f0;
+  border-bottom: 1px solid var(--color-border-muted);
 }
 
 .profileHint {
   margin: 6px 0 0;
   text-align: right;
-  color: #999999;
+  color: var(--color-text-subtle);
   font-size: 12px;
 }
 
 .contentArea {
-  background: #ffffff;
-  border-radius: 16px;
+  background: var(--color-surface);
+  border-radius: var(--radius-card);
   padding: 16px;
 }
 

@@ -1,0 +1,32 @@
+.chipGroup {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.chipButton {
+  min-height: 36px;
+  border: 1px solid var(--color-neutral-surface);
+  border-radius: var(--radius-pill);
+  padding: 0 13px;
+  background: var(--color-neutral-surface);
+  color: black;
+  font-size: 13px;
+  font-weight: 400;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background-color 0.15s ease,
+    color 0.15s ease;
+}
+
+.chipButton:not(.chipButtonActive):hover {
+  border-color: var(--color-brand);
+  background: var(--color-neutral-surface);
+  color: var(--color-brand);
+}
+
+.chipButtonActive {
+  border-color: var(--color-brand);
+  background: var(--color-brand);
+  color: var(--color-surface);
+}

@@ -3,8 +3,8 @@
   min-height: 100dvh;
   padding: 20px;
   padding-top: 84px;
-  background: linear-gradient(180deg, #fff0e5 0%, #f7f7f7 100%);
-  color: #383838;
+  background: linear-gradient(180deg, var(--color-brand-surface-strong) 0%, var(--color-page-soft) 100%);
+  color: var(--color-text);
 }
 
 .authSection {
@@ -36,7 +36,7 @@
 .description {
   margin: 20px 0 0;
   font-family: var(--display-font);
-  color: #383838;
+  color: var(--color-text);
   font-size: 16px;
   line-height: 1.8;
 }
@@ -53,13 +53,13 @@
 .benefitGrid div,
 .benefitGrid button {
   min-height: 74px;
-  border: 1px solid #ead8ca;
+  border: 1px solid var(--color-border);
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 8px;
+  border-radius: var(--radius-field);
   background: rgba(255, 255, 255, 0.7);
-  color: #4a3f38;
+  color: var(--color-text-warm);
   font: inherit;
   font-weight: 800;
 }
@@ -69,17 +69,17 @@
 }
 
 .benefitGrid button:hover {
-  border-color: #ff9645;
-  background: #fff8f2;
-  color: #e5792d;
+  border-color: var(--color-brand);
+  background: var(--color-brand-surface);
+  color: var(--color-brand-strong);
 }
 
 .authCard {
-  border: 1px solid #ead8ca;
-  border-radius: 8px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-field);
   padding: 28px;
-  background: #ffffff;
-  box-shadow: 0 22px 44px rgba(135, 75, 31, 0.16);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-card-strong);
 }
 
 .cardHeader {
@@ -88,7 +88,7 @@
 
 .cardHeader p {
   margin: 0 0 6px;
-  color: #e5792d;
+  color: var(--color-brand-strong);
   font-size: 13px;
   font-weight: 800;
 }
@@ -102,10 +102,10 @@
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 6px;
-  border: 1px solid #ead8ca;
-  border-radius: 8px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-field);
   padding: 4px;
-  background: #fff8f2;
+  background: var(--color-brand-surface);
 }
 
 .modeTab {
@@ -113,15 +113,15 @@
   border: 0;
   border-radius: 6px;
   background: transparent;
-  color: #7d4b2a;
+  color: var(--color-brand-deep);
   font-weight: 800;
   cursor: pointer;
 }
 
 .modeTabActive {
-  background: #ffffff;
-  color: #383838;
-  box-shadow: 0 2px 8px rgba(135, 75, 31, 0.12);
+  background: var(--color-surface);
+  color: var(--color-text);
+  box-shadow: var(--shadow-tab);
 }
 
 .field {
@@ -131,24 +131,24 @@
 }
 
 .field span {
-  color: #383838;
+  color: var(--color-text);
   font-size: 14px;
   font-weight: 800;
 }
 
 .field input {
   width: 100%;
-  border: 1px solid #dcc8b8;
-  border-radius: 8px;
+  border: 1px solid var(--color-field-border-neutral);
+  border-radius: var(--radius-field);
   padding: 14px 15px;
-  color: #383838;
-  background: #fffdfb;
+  color: var(--color-text);
+  background: var(--color-field-surface);
   font-size: 15px;
 }
 
 .field input:focus {
-  outline: 2px solid rgba(255, 150, 69, 0.42);
-  border-color: #ff9645;
+  outline: var(--focus-brand);
+  border-color: var(--color-brand);
 }
 
 .checkboxField {
@@ -156,7 +156,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  color: #4a3f38;
+  color: var(--color-text-warm);
   font-size: 14px;
   font-weight: 800;
   cursor: pointer;
@@ -165,14 +165,14 @@
 .checkboxField input {
   width: 18px;
   height: 18px;
-  accent-color: #ff9645;
+  accent-color: var(--color-brand);
 }
 
 .submitButton,
 .secondaryButton {
   width: 100%;
   min-height: 48px;
-  border-radius: 8px;
+  border-radius: var(--radius-field);
   font-weight: 800;
   cursor: pointer;
   display: flex;
@@ -184,8 +184,8 @@
 .submitButton {
   margin-top: 24px;
   border: 0;
-  background: #ff9645;
-  color: #ffffff;
+  background: var(--color-brand);
+  color: var(--color-surface);
 }
 
 .submitButton:disabled {
@@ -195,27 +195,27 @@
 
 .secondaryButton {
   margin-top: 10px;
-  border: 1px solid #ead8ca;
-  background: #fff8f2;
-  color: #7d4b2a;
+  border: 1px solid var(--color-border);
+  background: var(--color-brand-surface);
+  color: var(--color-brand-deep);
 }
 
 .submitMessage {
   margin: 14px 0 0;
-  border-radius: 8px;
+  border-radius: var(--radius-field);
   padding: 12px;
-  background: #fff1e8;
-  color: #8a4a1d;
+  background: var(--color-warning-surface);
+  color: var(--color-warning-text);
   font-size: 13px;
   line-height: 1.6;
 }
 
 .errorMessage {
   margin: 14px 0 0;
-  border-radius: 8px;
+  border-radius: var(--radius-field);
   padding: 12px;
-  background: #fff1e8;
-  color: #9d3217;
+  background: var(--color-warning-surface);
+  color: var(--color-danger-text);
   font-size: 13px;
   line-height: 1.6;
 }
@@ -223,20 +223,20 @@
 .accountBox {
   display: grid;
   gap: 8px;
-  border: 1px solid #ead8ca;
-  border-radius: 8px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-field);
   padding: 14px;
-  background: #fffdfb;
+  background: var(--color-surface-warm);
 }
 
 .accountBox span {
-  color: #7d4b2a;
+  color: var(--color-brand-deep);
   font-size: 13px;
   font-weight: 800;
 }
 
 .accountBox strong {
-  color: #383838;
+  color: var(--color-text);
   font-size: 16px;
   overflow-wrap: anywhere;
 }
@@ -251,21 +251,21 @@
 .profileMetaGrid div {
   display: grid;
   gap: 6px;
-  border: 1px solid #ead8ca;
-  border-radius: 8px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-field);
   padding: 12px;
-  background: #fffdfb;
+  background: var(--color-surface-warm);
 }
 
 .profileMetaGrid span,
 .profileHint {
-  color: #7d4b2a;
+  color: var(--color-brand-deep);
   font-size: 12px;
   font-weight: 800;
 }
 
 .profileMetaGrid strong {
-  color: #383838;
+  color: var(--color-text);
   font-size: 14px;
 }
 
@@ -306,18 +306,18 @@
   max-height: calc(100vh - 72px);
   max-height: calc(100dvh - 72px);
   overflow: auto;
-  border-radius: 24px 24px 0 0;
+  border-radius: var(--radius-panel) var(--radius-panel) 0 0;
   padding: 12px 20px 32px;
-  background: #ffffff;
-  box-shadow: 0 -18px 48px rgba(56, 56, 56, 0.2);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-sheet);
 }
 
 .sheetHandle {
   width: 48px;
   height: 5px;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   margin: 2px auto 16px;
-  background: #d8c8bc;
+  background: var(--color-field-border);
 }
 
 .bookmarkSheetHeader {
@@ -329,13 +329,13 @@
 
 .bookmarkSheetHeader h2 {
   margin: 0;
-  color: #383838;
+  color: var(--color-text);
   font-size: 24px;
 }
 
 .bookmarkSheetHeader p {
   margin: 5px 0 0;
-  color: #7d4b2a;
+  color: var(--color-brand-deep);
   font-size: 13px;
   font-weight: 800;
 }
@@ -343,10 +343,10 @@
 .sheetCloseButton {
   min-width: 58px;
   height: 38px;
-  border: 1px solid #ead8ca;
-  border-radius: 999px;
-  background: #fff8f2;
-  color: #7d4b2a;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-pill);
+  background: var(--color-brand-surface);
+  color: var(--color-brand-deep);
   font-weight: 800;
   cursor: pointer;
 }
@@ -354,20 +354,20 @@
 .bookmarkState,
 .bookmarkError {
   margin: 16px 0 0;
-  border-radius: 8px;
+  border-radius: var(--radius-field);
   padding: 14px;
   font-size: 13px;
   line-height: 1.6;
 }
 
 .bookmarkState {
-  background: #fff8f2;
-  color: #7d4b2a;
+  background: var(--color-brand-surface);
+  color: var(--color-brand-deep);
 }
 
 .bookmarkError {
-  background: #fff1e8;
-  color: #9d3217;
+  background: var(--color-warning-surface);
+  color: var(--color-danger-text);
 }
 
 .bookmarkList {
@@ -381,26 +381,26 @@
 .bookmarkItem {
   display: grid;
   gap: 6px;
-  border: 1px solid #f0ded0;
-  border-radius: 8px;
+  border: 1px solid var(--color-border-soft);
+  border-radius: var(--radius-field);
   padding: 14px;
-  background: #fffdfb;
+  background: var(--color-surface-warm);
 }
 
 .bookmarkItem span {
-  color: #e5792d;
+  color: var(--color-brand-strong);
   font-size: 12px;
   font-weight: 800;
 }
 
 .bookmarkItem strong {
-  color: #383838;
+  color: var(--color-text);
   font-size: 16px;
 }
 
 .bookmarkItem p {
   margin: 0;
-  color: #4a3f38;
+  color: var(--color-text-warm);
   font-size: 13px;
   line-height: 1.5;
 }
@@ -412,10 +412,10 @@
 }
 
 .bookmarkTags em {
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   padding: 4px 8px;
-  background: #fff1e8;
-  color: #7d4b2a;
+  background: var(--color-warning-surface);
+  color: var(--color-brand-deep);
   font-size: 12px;
   font-style: normal;
   font-weight: 800;
@@ -426,10 +426,10 @@
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 6px;
-  border: 1px solid #ead8ca;
-  border-radius: 8px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-field);
   padding: 4px;
-  background: #fff8f2;
+  background: var(--color-brand-surface);
 }
 
 .activityTab {
@@ -437,16 +437,16 @@
   border: 0;
   border-radius: 6px;
   background: transparent;
-  color: #7d4b2a;
+  color: var(--color-brand-deep);
   font: inherit;
   font-weight: 800;
   cursor: pointer;
 }
 
 .activityTabActive {
-  background: #ffffff;
-  color: #383838;
-  box-shadow: 0 2px 8px rgba(135, 75, 31, 0.12);
+  background: var(--color-surface);
+  color: var(--color-text);
+  box-shadow: var(--shadow-tab);
 }
 
 .activityList {
@@ -460,10 +460,10 @@
 .activityItem {
   display: grid;
   gap: 7px;
-  border: 1px solid #f0ded0;
-  border-radius: 8px;
+  border: 1px solid var(--color-border-soft);
+  border-radius: var(--radius-field);
   padding: 14px;
-  background: #fffdfb;
+  background: var(--color-surface-warm);
 }
 
 .activityMeta {
@@ -474,37 +474,37 @@
 }
 
 .activityMeta span {
-  color: #7d4b2a;
+  color: var(--color-brand-deep);
   font-size: 12px;
   font-weight: 800;
 }
 
 .activityMeta em {
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   padding: 4px 8px;
-  background: #fff1e8;
-  color: #e5792d;
+  background: var(--color-warning-surface);
+  color: var(--color-brand-strong);
   font-size: 12px;
   font-style: normal;
   font-weight: 800;
 }
 
 .activityItem strong {
-  color: #383838;
+  color: var(--color-text);
   font-size: 16px;
 }
 
 .activityItem p {
   margin: 0;
-  color: #4a3f38;
+  color: var(--color-text-warm);
   font-size: 13px;
   line-height: 1.5;
 }
 
 .activityBody {
-  border-radius: 8px;
+  border-radius: var(--radius-field);
   padding: 10px;
-  background: #ffffff;
+  background: var(--color-surface);
 }
 
 .pageFooter {
@@ -513,22 +513,22 @@
 
 .authDialog {
   width: min(360px, 100%);
-  border: 1px solid #ead8ca;
-  border-radius: 8px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-field);
   padding: 24px;
-  background: #ffffff;
-  box-shadow: 0 24px 60px rgba(56, 56, 56, 0.22);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-dialog);
 }
 
 .authDialog h2 {
   margin: 0;
-  color: #383838;
+  color: var(--color-text);
   font-size: 22px;
 }
 
 .authDialog p {
   margin: 12px 0 0;
-  color: #4a3f38;
+  color: var(--color-text-warm);
   font-size: 15px;
   line-height: 1.6;
 }
@@ -538,9 +538,9 @@
   min-height: 44px;
   margin-top: 20px;
   border: 0;
-  border-radius: 8px;
-  background: #ff9645;
-  color: #ffffff;
+  border-radius: var(--radius-field);
+  background: var(--color-brand);
+  color: var(--color-surface);
   font-weight: 800;
   cursor: pointer;
 }
@@ -554,7 +554,7 @@
   .bookmarkSheet {
     width: min(600px, 100%);
     max-height: 80vh;
-    border-radius: 16px;
+    border-radius: var(--radius-card);
   }
 
   .sheetHandle {

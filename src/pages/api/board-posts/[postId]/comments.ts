@@ -8,6 +8,7 @@ import type { Database } from "@/src/core/database.types";
 import {
   toBoardPostComment,
   validateCreateBoardComment,
+  validateDeleteBoardComment,
   type BoardPostComment,
 } from "@/src/features/reviews/boardPosts";
 import {
@@ -25,6 +26,9 @@ type BoardPostCommentRow =
 type BoardPostCommentResponse =
   | {
       comment: BoardPostComment;
+    }
+  | {
+      commentId: string;
     }
   | {
       error: string;
@@ -49,9 +53,9 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse<BoardPostCommentResponse>,
 ) {
-  if (req.method !== "POST") {
-    res.setHeader("Allow", "POST");
-    res.status(405).json({ error: "POST 요청만 지원합니다." });
+  if (req.method !== "POST" && req.method !== "DELETE") {
+    res.setHeader("Allow", "POST, DELETE");
+    res.status(405).json({ error: "POST, DELETE 요청만 지원합니다." });
     return;
   }
 
@@ -66,13 +70,6 @@ export default async function handler(
 
   if (!accessToken) {
     res.status(401).json({ error: "로그인이 필요합니다." });
-    return;
-  }
-
-  const validation = validateCreateBoardComment(req.body);
-
-  if (!validation.ok) {
-    res.status(400).json({ error: validation.message });
     return;
   }
 
@@ -92,11 +89,57 @@ export default async function handler(
       return;
     }
 
+    if (req.method === "DELETE") {
+      const validation = validateDeleteBoardComment(req.body);
+
+      if (!validation.ok) {
+        res.status(400).json({ error: validation.message });
+        return;
+      }
+
+      const { data, error } = await supabase
+        .from("board_post_comments")
+        .update({
+          status: "deleted",
+          deleted_at: new Date().toISOString(),
+          deleted_by: user.id,
+        })
+        .eq("id", validation.value.commentId)
+        .eq("post_id", postId)
+        .eq("user_id", user.id)
+        .eq("status", "visible")
+        .select("id")
+        .maybeSingle();
+
+      if (error) {
+        res.status(500).json({
+          error: `Supabase board_post_comments delete 실패: ${error.message}`,
+        });
+        return;
+      }
+
+      if (!data) {
+        res.status(404).json({ error: "삭제할 댓글을 찾을 수 없습니다." });
+        return;
+      }
+
+      res.status(200).json({ commentId: data.id });
+      return;
+    }
+
+    const validation = validateCreateBoardComment(req.body);
+
+    if (!validation.ok) {
+      res.status(400).json({ error: validation.message });
+      return;
+    }
+
     const { data: postData, error: postError } = await supabase
       .from("board_posts")
       .select("id")
       .eq("id", postId)
       .eq("status", "visible")
+      .not("user_id", "is", null)
       .maybeSingle();
 
     if (postError) {

@@ -187,7 +187,7 @@ export default function MobileReviewsPage() {
                     <Link href={`/reviews/${post.id}`} className={styles.postItem}>
                       <span className={styles.postTitle}>{post.title}</span>
                       <span className={styles.postLikes}>
-                        댓글 {post.commentCount}
+                        조회 {post.viewCount}
                       </span>
                     </Link>
                   </li>

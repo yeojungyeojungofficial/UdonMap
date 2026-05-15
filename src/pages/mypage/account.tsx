@@ -1,9 +1,9 @@
 import Head from "next/head";
-import Link from "next/link";
 import { useRouter } from "next/router";
-import { useEffect } from "react";
 import TopNav from "@/src/components/common/TopNav";
 import CommonFooter from "@/src/components/common/CommonFooter";
+import AccountAuthInline from "@/src/components/mypage/AccountAuthInline";
+import AuthDialog from "@/src/components/mypage/AuthDialog";
 import { formatProfileDate } from "@/src/features/mypage/formatters";
 import { useMyPageState } from "@/src/features/mypage/hooks/useMyPageState";
 import { useMyPageShellStyles } from "@/src/features/mypage/useMyPageShellStyles";
@@ -13,10 +13,12 @@ export default function AccountPage() {
   const shell = useMyPageShellStyles();
 
   const {
+    authDialogMessage,
     authMessage,
     authMode,
     canSaveProfile,
     canSubmit,
+    closeAuthDialog,
     displayName,
     email,
     handleAuthModeChange,
@@ -110,7 +112,7 @@ export default function AccountPage() {
                   className={shell.submitButton}
                   disabled={!canSaveProfile}
                 >
-                  {isProfileSaving ? "저장 중" : "프로필 저장"}
+                  {isProfileSaving ? "수정 중" : "프로필 수정"}
                 </button>
               </form>
             </div>
@@ -136,99 +138,31 @@ export default function AccountPage() {
         ) : (
           /* 비로그인 → 로그인 폼 */
           <div className={shell.menuCard}>
-            <div className={shell.authInline}>
-              <div className={shell.modeTabs} aria-label="인증 방식">
-                <button
-                  type="button"
-                  className={`${shell.modeTab} ${authMode === "login" ? shell.modeTabActive : ""}`}
-                  aria-pressed={authMode === "login"}
-                  onClick={() => handleAuthModeChange("login")}
-                >
-                  로그인
-                </button>
-                <button
-                  type="button"
-                  className={`${shell.modeTab} ${authMode === "signup" ? shell.modeTabActive : ""}`}
-                  aria-pressed={authMode === "signup"}
-                  onClick={() => handleAuthModeChange("signup")}
-                >
-                  회원가입
-                </button>
-              </div>
-              <form onSubmit={handleSubmit}>
-                <label className={shell.field}>
-                  <span>이메일</span>
-                  <input
-                    type="email"
-                    value={email}
-                    onChange={(e) => handleEmailChange(e.target.value)}
-                    placeholder="이메일을 입력하세요"
-                    autoComplete="email"
-                    required
-                  />
-                </label>
-                <label className={shell.field}>
-                  <span>비밀번호</span>
-                  <input
-                    type="password"
-                    value={password}
-                    onChange={(e) => handlePasswordChange(e.target.value)}
-                    placeholder="비밀번호를 입력하세요"
-                    autoComplete={authMode === "login" ? "current-password" : "new-password"}
-                    minLength={6}
-                    required
-                  />
-                </label>
-                {authMode === "signup" ? (
-                  <label className={shell.field}>
-                    <span>비밀번호 확인</span>
-                    <input
-                      type="password"
-                      value={passwordConfirm}
-                      onChange={(e) => handlePasswordConfirmChange(e.target.value)}
-                      placeholder="비밀번호를 다시 입력하세요"
-                      autoComplete="new-password"
-                      minLength={6}
-                      required
-                    />
-                  </label>
-                ) : null}
-                {authMode === "login" ? (
-                  <label className={shell.checkboxField}>
-                    <input
-                      type="checkbox"
-                      checked={isAutoLoginChecked}
-                      onChange={(e) => handleAutoLoginChange(e.currentTarget.checked)}
-                    />
-                    <span>자동로그인</span>
-                  </label>
-                ) : null}
-                {!isAuthReady ? (
-                  <p className={shell.submitMessage}>로그인 상태 확인 중입니다.</p>
-                ) : null}
-                {authMessage ? (
-                  <p className={shell.submitMessage}>{authMessage}</p>
-                ) : null}
-                <button
-                  type="submit"
-                  className={shell.submitButton}
-                  disabled={!canSubmit || isSubmitting || !isAuthReady}
-                >
-                  {isSubmitting
-                    ? "처리 중"
-                    : authMode === "login"
-                    ? "로그인"
-                    : "회원가입"}
-                </button>
-                <Link href="/" className={shell.secondaryButton}>
-                  비회원으로 둘러보기
-                </Link>
-              </form>
-            </div>
+            <AccountAuthInline
+              authMessage={authMessage}
+              authMode={authMode}
+              canSubmit={canSubmit}
+              classNames={shell}
+              email={email}
+              handleAuthModeChange={handleAuthModeChange}
+              handleAutoLoginChange={handleAutoLoginChange}
+              handleEmailChange={handleEmailChange}
+              handlePasswordChange={handlePasswordChange}
+              handlePasswordConfirmChange={handlePasswordConfirmChange}
+              handleSubmit={handleSubmit}
+              isAuthReady={isAuthReady}
+              isAutoLoginChecked={isAutoLoginChecked}
+              isSubmitting={isSubmitting}
+              password={password}
+              passwordConfirm={passwordConfirm}
+            />
           </div>
         )}
 
         <CommonFooter className={shell.pageFooter} />
+        {authDialogMessage ? (
+          <AuthDialog message={authDialogMessage} onClose={closeAuthDialog} />
+        ) : null}
       </main>
     </>
   );

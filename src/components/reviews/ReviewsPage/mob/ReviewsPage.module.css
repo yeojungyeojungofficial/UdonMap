@@ -1,11 +1,11 @@
 .page {
   min-height: 100vh;
   min-height: 100dvh;
-  padding: 0 2ch;
-  padding-top: 52px;
+  padding: var(--space-page-mobile);
+  padding-top: calc(52px + 14px);
   padding-bottom: calc(60px + env(safe-area-inset-bottom));
-  background: #ffffff;
-  color: #383838;
+  background: var(--color-page);
+  color: var(--color-text);
 }
 
 .content {
@@ -14,19 +14,20 @@
   margin: 0;
   display: flex;
   flex-direction: column;
-  min-height: calc(100vh - 52px);
-  min-height: calc(100dvh - 52px);
+  min-height: calc(100vh - 126px);
+  min-height: calc(100dvh - 126px);
 }
 
 .boardSurface {
   flex: 1;
-  border: none;
-  border-radius: 0;
-  padding: 14px 0;
+  border: 0;
+  border-radius: var(--radius-card);
+  padding: 16px;
   display: flex;
   flex-direction: column;
-  background: #ffffff;
+  background: var(--color-surface);
   box-shadow: none;
+  overflow: hidden;
 }
 
 .tabBar {
@@ -34,10 +35,10 @@
 }
 
 .tabButton {
-  border: 1px solid #ead8ca;
-  border-radius: 999px;
-  background: #f5f5f5;
-  color: #383838;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-pill);
+  background: var(--color-neutral-surface);
+  color: var(--color-text);
   font-weight: 800;
   cursor: pointer;
   min-height: 44px;
@@ -46,9 +47,9 @@
 }
 
 .tabButtonActive {
-  border-color: #ff9645;
-  background: #ff9645;
-  color: #ffffff;
+  border-color: var(--color-brand);
+  background: var(--color-brand);
+  color: var(--color-surface);
 }
 
 .tabButtonDropdown {
@@ -76,9 +77,9 @@
   display: flex;
   flex-direction: column;
   gap: 4px;
-  background: #ffffff;
-  border: 1px solid #ead8ca;
-  border-radius: 14px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card-sm);
   padding: 6px;
   box-shadow: 0 4px 16px rgba(56, 56, 56, 0.12);
   min-width: 180px;
@@ -86,10 +87,10 @@
 
 .tabDropdownItem {
   border: 0;
-  border-radius: 10px;
+  border-radius: var(--radius-field);
   padding: 10px 14px;
   background: transparent;
-  color: #383838;
+  color: var(--color-text);
   font-size: 14px;
   font-weight: 600;
   cursor: pointer;
@@ -98,8 +99,8 @@
 }
 
 .tabDropdownItem:hover {
-  background: #fff3e8;
-  color: #e5792d;
+  background: var(--color-brand-surface);
+  color: var(--color-brand-strong);
 }
 
 .filterRowBelowTabs {
@@ -117,20 +118,20 @@
 .boardState,
 .boardError {
   margin: 18px 0 0;
-  border-radius: 8px;
+  border-radius: var(--radius-field);
   padding: 14px 16px;
   font-size: 14px;
   line-height: 1.5;
 }
 
 .boardState {
-  background: #fff8f2;
-  color: #7d4b2a;
+  background: var(--color-brand-surface);
+  color: var(--color-brand-deep);
 }
 
 .boardError {
-  background: #fff1e8;
-  color: #9d3217;
+  background: var(--color-warning-surface);
+  color: var(--color-danger-text);
 }
 
 .boardEmpty {
@@ -141,7 +142,7 @@
   align-items: center;
   justify-content: center;
   text-align: center;
-  color: #7d4b2a;
+  color: var(--color-brand-deep);
   font-size: 15px;
   font-weight: 800;
 }
@@ -154,18 +155,18 @@
   gap: 16px;
   width: 100%;
   min-height: 58px;
-  border: 1px solid #ead8ca;
-  border-radius: 8px;
+  border: 1px solid var(--color-neutral-surface);
+  border-radius: var(--radius-card-sm);
   padding: 14px 16px;
-  background: #fffdfb;
-  color: #383838;
+  background: var(--color-neutral-surface);
+  color: var(--color-text);
   text-decoration: none;
   cursor: pointer;
   box-sizing: border-box;
 }
 
 .postItem:hover {
-  border-color: #ff9645;
+  border-color: var(--color-brand);
 }
 
 .postTitle {
@@ -176,7 +177,7 @@
 
 .postLikes {
   flex: 0 0 auto;
-  color: #ff9645;
+  color: var(--color-brand);
   font-size: 13px;
   font-weight: 800;
 }
@@ -191,12 +192,12 @@
   justify-content: center;
   gap: 0;
   border: none;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   padding: 0;
   width: 56px;
   height: 56px;
-  background: #ff9645;
-  color: #ffffff;
+  background: var(--color-brand);
+  color: var(--color-surface);
   font-size: 15px;
   font-weight: 800;
   cursor: pointer;
@@ -204,7 +205,7 @@
 }
 
 .writeFab:hover {
-  background: #e5792d;
+  background: var(--color-brand-strong);
   transform: translateY(-1px);
 }
 

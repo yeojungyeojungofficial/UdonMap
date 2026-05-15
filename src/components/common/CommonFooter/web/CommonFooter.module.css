@@ -10,7 +10,7 @@
   top: 0;
   left: 50%;
   width: 100vw;
-  border-top: 1px solid #ead8ca;
+  border-top: 1px solid var(--color-border);
   transform: translateX(-50%);
   content: "";
 }
@@ -24,13 +24,13 @@
 
 .content p {
   margin: 0;
-  color: #7d4b2a;
+  color: var(--color-brand-deep);
   font-size: 12px;
   line-height: 1.5;
 }
 
 .content a {
-  color: #7d4b2a;
+  color: var(--color-brand-deep);
   font-size: 12px;
   font-weight: 700;
   text-decoration: none;

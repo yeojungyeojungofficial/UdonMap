@@ -1,11 +1,12 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import { getQueryValue } from "@/src/core/apiRequest";
+import { getBearerToken, getQueryValue } from "@/src/core/apiRequest";
 import { getSupabaseServerClient } from "@/src/core/supabaseServer";
 import type { Database } from "@/src/core/database.types";
 import {
   sanitizeBoardPostHtml,
   toBoardPostComment,
   toBoardPostSummary,
+  validateCreateBoardPost,
   type BoardPostDetail,
 } from "@/src/features/reviews/boardPosts";
 import { getDefaultDisplayName } from "@/src/core/userProfiles";
@@ -23,11 +24,14 @@ type BoardPostDetailResponse =
       post: BoardPostDetail;
     }
   | {
+      postId: string;
+    }
+  | {
       error: string;
     };
 
 const BOARD_POST_DETAIL_COLUMNS =
-  "id,user_id,board,filter_tag,title,body,comment_count,status,created_at,updated_at";
+  "id,user_id,board,filter_tag,title,body,comment_count,view_count,status,created_at,updated_at";
 const BOARD_POST_COMMENT_COLUMNS =
   "id,post_id,user_id,author_name,body,like_count,dislike_count,status,deleted_at,deleted_by,deleted_reason,created_at,updated_at";
 
@@ -39,13 +43,60 @@ function getProfileAuthorName(profile: ProfileRow | null, fallback: string) {
   );
 }
 
+async function getAuthenticatedUser(req: NextApiRequest) {
+  const accessToken = getBearerToken(req);
+
+  if (!accessToken) {
+    return {
+      error: "로그인이 필요합니다.",
+      status: 401,
+      userId: null,
+    };
+  }
+
+  const supabase = getSupabaseServerClient();
+  const {
+    data: { user },
+    error,
+  } = await supabase.auth.getUser(accessToken);
+
+  if (error || !user) {
+    return {
+      error: error
+        ? `Supabase 사용자 확인 실패: ${error.message}`
+        : "로그인 사용자를 확인할 수 없습니다.",
+      status: 401,
+      userId: null,
+    };
+  }
+
+  return {
+    error: "",
+    status: 200,
+    userId: user.id,
+  };
+}
+
+function toBoardPostDetail(
+  post: BoardPostRow,
+  author: string,
+  comments: BoardPostCommentRow[] = [],
+): BoardPostDetail {
+  return {
+    ...toBoardPostSummary(post),
+    author,
+    body: sanitizeBoardPostHtml(post.body),
+    comments: comments.map(toBoardPostComment),
+  };
+}
+
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse<BoardPostDetailResponse>,
 ) {
-  if (req.method !== "GET") {
-    res.setHeader("Allow", "GET");
-    res.status(405).json({ error: "GET 요청만 지원합니다." });
+  if (req.method !== "GET" && req.method !== "PATCH" && req.method !== "DELETE") {
+    res.setHeader("Allow", "GET, PATCH, DELETE");
+    res.status(405).json({ error: "GET, PATCH, DELETE 요청만 지원합니다." });
     return;
   }
 
@@ -58,11 +109,106 @@ export default async function handler(
 
   try {
     const supabase = getSupabaseServerClient();
+
+    if (req.method === "DELETE") {
+      const auth = await getAuthenticatedUser(req);
+
+      if (!auth.userId) {
+        res.status(auth.status).json({ error: auth.error });
+        return;
+      }
+
+      const { data, error } = await supabase
+        .from("board_posts")
+        .delete()
+        .eq("id", postId)
+        .eq("user_id", auth.userId)
+        .select("id")
+        .maybeSingle();
+
+      if (error) {
+        res.status(500).json({
+          error: `Supabase board_posts delete 실패: ${error.message}`,
+        });
+        return;
+      }
+
+      if (!data) {
+        res.status(404).json({ error: "삭제할 게시글을 찾을 수 없습니다." });
+        return;
+      }
+
+      res.status(200).json({ postId: data.id });
+      return;
+    }
+
+    if (req.method === "PATCH") {
+      const auth = await getAuthenticatedUser(req);
+
+      if (!auth.userId) {
+        res.status(auth.status).json({ error: auth.error });
+        return;
+      }
+
+      const validation = validateCreateBoardPost(req.body);
+
+      if (!validation.ok) {
+        res.status(400).json({ error: validation.message });
+        return;
+      }
+
+      const { data, error } = await supabase
+        .from("board_posts")
+        .update({
+          board: validation.value.board,
+          filter_tag: validation.value.filterTag,
+          title: validation.value.title,
+          body: validation.value.body,
+        })
+        .eq("id", postId)
+        .eq("user_id", auth.userId)
+        .eq("status", "visible")
+        .select(BOARD_POST_DETAIL_COLUMNS)
+        .maybeSingle();
+
+      if (error) {
+        res.status(500).json({
+          error: `Supabase board_posts update 실패: ${error.message}`,
+        });
+        return;
+      }
+
+      if (!data) {
+        res.status(404).json({ error: "수정할 게시글을 찾을 수 없습니다." });
+        return;
+      }
+
+      const { data: profileData, error: profileError } = await supabase
+        .from("profiles")
+        .select("email,display_name")
+        .eq("id", auth.userId)
+        .maybeSingle();
+
+      if (profileError) {
+        res.status(500).json({
+          error: `Supabase profiles 조회 실패: ${profileError.message}`,
+        });
+        return;
+      }
+
+      res.status(200).json({
+        post: toBoardPostDetail(
+          data as BoardPostRow,
+          getProfileAuthorName(profileData as ProfileRow | null, "익명 사용자"),
+        ),
+      });
+      return;
+    }
+
     const { data: postData, error: postError } = await supabase
-      .from("board_posts")
-      .select(BOARD_POST_DETAIL_COLUMNS)
-      .eq("id", postId)
-      .eq("status", "visible")
+      .rpc("increment_board_post_view_count", {
+        p_post_id: postId,
+      })
       .maybeSingle();
 
     if (postError) {
@@ -78,6 +224,7 @@ export default async function handler(
     }
 
     const post = postData as BoardPostRow;
+
     const { data: commentData, error: commentError } = await supabase
       .from("board_post_comments")
       .select(BOARD_POST_COMMENT_COLUMNS)
@@ -113,14 +260,11 @@ export default async function handler(
     }
 
     res.status(200).json({
-      post: {
-        ...toBoardPostSummary(post),
+      post: toBoardPostDetail(
+        post,
         author,
-        body: sanitizeBoardPostHtml(post.body),
-        comments: ((commentData ?? []) as BoardPostCommentRow[]).map(
-          toBoardPostComment,
-        ),
-      },
+        (commentData ?? []) as BoardPostCommentRow[],
+      ),
     });
   } catch (error) {
     const message =
