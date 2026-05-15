@@ -2,6 +2,7 @@ import Head from "next/head";
 import Link from "next/link";
 import { useState } from "react";
 import AuthDialog from "@/src/components/mypage/AuthDialog";
+import AccountAuthInline from "@/src/components/mypage/AccountAuthInline";
 import HospitalReportSheet from "@/src/components/common/HospitalReportSheet";
 import TopNav from "@/src/components/common/TopNav";
 import CommonFooter from "@/src/components/common/CommonFooter";
@@ -44,7 +45,6 @@ export default function MobileMyPage() {
     handleAuthModeChange,
     handleAutoLoginChange,
     handleEmailChange,
-    handleLogout,
     handlePasswordChange,
     handlePasswordConfirmChange,
     handleSubmit,
@@ -93,6 +93,29 @@ export default function MobileMyPage() {
             <p className={styles.sessionEmail}>{session.user.email}</p>
           ) : null}
         </section>
+
+        {!session ? (
+          <div className={styles.menuCard}>
+            <AccountAuthInline
+              authMessage={authMessage}
+              authMode={authMode}
+              canSubmit={canSubmit}
+              classNames={styles}
+              email={email}
+              handleAuthModeChange={handleAuthModeChange}
+              handleAutoLoginChange={handleAutoLoginChange}
+              handleEmailChange={handleEmailChange}
+              handlePasswordChange={handlePasswordChange}
+              handlePasswordConfirmChange={handlePasswordConfirmChange}
+              handleSubmit={handleSubmit}
+              isAuthReady={isAuthReady}
+              isAutoLoginChecked={isAutoLoginChecked}
+              isSubmitting={isSubmitting}
+              password={password}
+              passwordConfirm={passwordConfirm}
+            />
+          </div>
+        ) : null}
 
         {/* 메뉴 카드 */}
         <div className={styles.menuCard}>

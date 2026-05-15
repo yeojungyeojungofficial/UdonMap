@@ -25,6 +25,8 @@
   font-size: 22px;
   line-height: 1;
   font-weight: 800;
+  text-decoration: none;
+  cursor: pointer;
 }
 
 .logoText span {

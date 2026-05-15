@@ -27,9 +27,14 @@ export default function DesktopTopNav({
   return (
     <header className={styles.topNav}>
       <div className={styles.logoWrap}>
-        <p className={styles.logoText}>
+        <Link
+          href="/"
+          className={styles.logoText}
+          aria-label="홈으로 이동"
+          onClick={() => onSelectMenu?.("병원찾기")}
+        >
           <span>우</span>리동네 <span>동</span>물병원
-        </p>
+        </Link>
       </div>
       <nav className={styles.menuWrap} aria-label="상단 메뉴">
         {MENUS.map((menu) => {
