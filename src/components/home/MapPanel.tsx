@@ -1,4 +1,3 @@
-import Script from "next/script";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { INITIAL_HOSPITAL_MAP_LEVEL } from "@/src/constants/map";
 import type { Hospital } from "@/src/features/hospitals/types";
@@ -172,6 +171,24 @@ export default function MapPanel({
   const [isSdkReady, setIsSdkReady] = useState(false);
   const [isMapReady, setIsMapReady] = useState(false);
   const [hasSdkLoadError, setHasSdkLoadError] = useState(false);
+
+  useEffect(() => {
+    if (!scriptSrc) return;
+
+    if (window.kakao?.maps) {
+      window.kakao.maps.load(() => setIsSdkReady(true));
+      return;
+    }
+
+    const script = document.createElement("script");
+    script.src = scriptSrc;
+    script.async = true;
+    script.onload = () => {
+      window.kakao?.maps.load(() => setIsSdkReady(true));
+    };
+    script.onerror = () => setHasSdkLoadError(true);
+    document.head.appendChild(script);
+  }, [scriptSrc]);
 
   useEffect(() => {
     if (!scriptSrc || !isSdkReady || !mapContainerRef.current || !window.kakao) {
@@ -363,17 +380,6 @@ export default function MapPanel({
         <>
           <div ref={mapContainerRef} className={styles.kakaoMap} />
           {!isMapReady ? fallbackMarkers : null}
-          <Script
-            id="kakao-map-sdk"
-            src={scriptSrc}
-            strategy="afterInteractive"
-            onReady={() => {
-              window.kakao?.maps.load(() => setIsSdkReady(true));
-            }}
-            onError={() => {
-              setHasSdkLoadError(true);
-            }}
-          />
         </>
       ) : (
         fallbackMarkers
