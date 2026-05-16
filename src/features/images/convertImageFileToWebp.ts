@@ -1,5 +1,6 @@
 const WEBP_MIME_TYPE = "image/webp";
 const WEBP_QUALITY = 0.86;
+const MAX_IMAGE_DIMENSION = 2048;
 
 function getWebpFileName(fileName: string) {
   const nameWithoutExtension = fileName.replace(/\.[^.]+$/, "");
@@ -53,12 +54,19 @@ export async function convertImageFileToWebp(file: File) {
   }
 
   const image = await loadImageFromFile(file);
-  const width = image.naturalWidth || image.width;
-  const height = image.naturalHeight || image.height;
+  const originalWidth = image.naturalWidth || image.width;
+  const originalHeight = image.naturalHeight || image.height;
 
-  if (width <= 0 || height <= 0) {
+  if (originalWidth <= 0 || originalHeight <= 0) {
     throw new Error("이미지 크기를 확인할 수 없습니다.");
   }
+
+  const scale =
+    Math.max(originalWidth, originalHeight) > MAX_IMAGE_DIMENSION
+      ? MAX_IMAGE_DIMENSION / Math.max(originalWidth, originalHeight)
+      : 1;
+  const width = Math.round(originalWidth * scale);
+  const height = Math.round(originalHeight * scale);
 
   const canvas = document.createElement("canvas");
   canvas.width = width;

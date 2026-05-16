@@ -162,38 +162,41 @@ export async function fetchHospitals() {
   let bookmarkedHospitalIds = new Set<string>();
 
   if (session) {
-    const { data: hospitalReactionData, error: hospitalReactionError } =
-      await supabase
+    const [reactionResult, bookmarkResult] = await Promise.all([
+      supabase
         .from("hospital_reactions")
         .select("hospital_id,reaction_type")
         .eq("user_id", session.user.id)
-        .in("hospital_id", hospitalIds);
+        .in("hospital_id", hospitalIds),
+      supabase
+        .from("hospital_bookmarks")
+        .select("hospital_id")
+        .eq("user_id", session.user.id)
+        .in("hospital_id", hospitalIds),
+    ]);
 
-    if (hospitalReactionError) {
+    if (reactionResult.error) {
       throw new Error(
-        `Supabase hospital_reactions 조회 실패: ${hospitalReactionError.message}`,
+        `Supabase hospital_reactions 조회 실패: ${reactionResult.error.message}`,
+      );
+    }
+
+    if (
+      bookmarkResult.error &&
+      !isMissingBookmarksTableError(bookmarkResult.error)
+    ) {
+      throw new Error(
+        `Supabase hospital_bookmarks 조회 실패: ${bookmarkResult.error.message}`,
       );
     }
 
     reactionsByHospitalId = toReactionMap(
-      (hospitalReactionData ?? []) as HospitalReactionRow[],
+      (reactionResult.data ?? []) as HospitalReactionRow[],
       "hospital_id",
     );
 
-    const { data: bookmarkData, error: bookmarkError } = await supabase
-      .from("hospital_bookmarks")
-      .select("hospital_id")
-      .eq("user_id", session.user.id)
-      .in("hospital_id", hospitalIds);
-
-    if (bookmarkError && !isMissingBookmarksTableError(bookmarkError)) {
-      throw new Error(
-        `Supabase hospital_bookmarks 조회 실패: ${bookmarkError.message}`,
-      );
-    }
-
     bookmarkedHospitalIds = new Set(
-      ((bookmarkData ?? []) as HospitalBookmarkRow[]).map(
+      ((bookmarkResult.data ?? []) as HospitalBookmarkRow[]).map(
         (bookmark) => bookmark.hospital_id,
       ),
     );

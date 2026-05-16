@@ -205,9 +205,18 @@ export default async function handler(
       return;
     }
 
+    // GET 요청: 선택적으로 userId를 추출해 24시간 중복 조회 방지에 활용
+    let viewerUserId: string | null = null;
+    const accessToken = getBearerToken(req);
+    if (accessToken) {
+      const { data: authData } = await supabase.auth.getUser(accessToken);
+      viewerUserId = authData?.user?.id ?? null;
+    }
+
     const { data: postData, error: postError } = await supabase
       .rpc("increment_board_post_view_count", {
         p_post_id: postId,
+        p_user_id: viewerUserId,
       })
       .maybeSingle();
 
