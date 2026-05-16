@@ -781,6 +781,7 @@ export type Database = {
       increment_board_post_view_count: {
         Args: {
           p_post_id: string;
+          p_user_id?: string | null;
         };
         Returns: {
           id: string;

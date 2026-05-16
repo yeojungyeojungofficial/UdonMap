@@ -10,6 +10,7 @@ export type ReviewTag = Exclude<Region, "전체">;
 export type TipTag = Exclude<TipCategory, "전체">;
 
 export const MAX_POST_PHOTOS = 5;
+export const MAX_POST_IMAGE_SIZE_BYTES = 5 * 1024 * 1024;
 export const MAX_POST_BODY = MAX_BOARD_POST_BODY_LENGTH;
 export const POST_IMAGE_STORAGE_BUCKET = "posting_image";
 

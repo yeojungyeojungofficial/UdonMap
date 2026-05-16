@@ -4,6 +4,7 @@ import { getSupabaseBrowserClient } from "@/src/core/supabase";
 import { convertImageFileToWebp } from "@/src/features/images/convertImageFileToWebp";
 import {
   MAX_POST_PHOTOS,
+  MAX_POST_IMAGE_SIZE_BYTES,
   POST_IMAGE_STORAGE_BUCKET,
 } from "@/src/features/reviews/postComposeConfig";
 
@@ -80,6 +81,14 @@ export function usePostImageUpload({
           : "",
       );
       setUploadingCount((count) => count + accepted.length);
+
+      const oversized = accepted.filter(
+        (file) => file.size > MAX_POST_IMAGE_SIZE_BYTES,
+      );
+      if (oversized.length > 0) {
+        onErrorMessage("사진은 5MB 이하만 첨부할 수 있어요.");
+        return;
+      }
 
       await Promise.all(
         accepted.map(async (file, index) => {

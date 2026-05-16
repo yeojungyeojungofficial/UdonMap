@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import {
   getCachedAuthSession,
   loadAuthSession,
@@ -22,6 +22,12 @@ export function useAuthSessionState({
   const setAuthReady = useAuthStore((state) => state.setAuthReady);
   const setSession = useAuthStore((state) => state.setSession);
 
+  // ref로 콜백을 저장해 effect 재실행 없이 최신 값 참조
+  const onErrorRef = useRef(onError);
+  const onSignOutRef = useRef(onSignOut);
+  onErrorRef.current = onError;
+  onSignOutRef.current = onSignOut;
+
   useEffect(() => {
     const initialAuthSession = getCachedAuthSession();
     setSession(initialAuthSession ?? null);
@@ -38,7 +44,7 @@ export function useAuthSessionState({
         setSession(nextSession);
         setAuthReady(true);
         if (!nextSession) {
-          onSignOut?.();
+          onSignOutRef.current?.();
         }
       }
     });
@@ -48,12 +54,12 @@ export function useAuthSessionState({
         if (!isMounted) return;
         setSession(nextSession);
         if (!nextSession) {
-          onSignOut?.();
+          onSignOutRef.current?.();
         }
       })
       .catch((error) => {
         if (!isMounted) return;
-        onError?.(
+        onErrorRef.current?.(
           error instanceof Error
             ? error.message
             : "로그인 상태 확인 중 알 수 없는 오류가 발생했습니다.",
@@ -69,7 +75,7 @@ export function useAuthSessionState({
       isMounted = false;
       unsubscribe();
     };
-  }, [onError, onSignOut, setAuthReady, setSession]);
+  }, [setAuthReady, setSession]);
 
   return {
     currentUserId,
