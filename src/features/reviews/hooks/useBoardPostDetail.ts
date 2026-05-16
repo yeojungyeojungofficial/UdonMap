@@ -7,6 +7,7 @@ import {
   reportBoardPost,
   reportBoardPostComment,
 } from "@/src/core/api/reviews/boardPostsApi";
+import { useAppToast } from "@/src/components/common/AppToast";
 import { useAuthSessionState } from "@/src/features/auth/hooks/useAuthSessionState";
 import type { BoardPostDetail } from "@/src/features/reviews/boardPosts";
 
@@ -31,10 +32,8 @@ export function useBoardPostDetail({
     null,
   );
   const [commentError, setCommentError] = useState("");
-  const [commentMessage, setCommentMessage] = useState("");
-  const [postActionError, setPostActionError] = useState("");
-  const [postActionMessage, setPostActionMessage] = useState("");
   const [isPostActionSubmitting, setIsPostActionSubmitting] = useState(false);
+  const showToast = useAppToast();
   const { currentUserId } = useAuthSessionState({
     onError: setCommentError,
   });
@@ -78,12 +77,6 @@ export function useBoardPostDetail({
 
   const clearCommentFeedback = useCallback(() => {
     setCommentError("");
-    setCommentMessage("");
-  }, []);
-
-  const clearPostActionFeedback = useCallback(() => {
-    setPostActionError("");
-    setPostActionMessage("");
   }, []);
 
   const handleCommentTextChange = useCallback(
@@ -115,7 +108,7 @@ export function useBoardPostDetail({
           : currentPost,
       );
       setCommentText("");
-      setCommentMessage("댓글을 등록했습니다.");
+      showToast({ message: "댓글을 등록했습니다.", tone: "success" });
       return true;
     } catch (error) {
       setCommentError(
@@ -127,7 +120,7 @@ export function useBoardPostDetail({
     } finally {
       setIsCommentSubmitting(false);
     }
-  }, [clearCommentFeedback, commentText, isCommentSubmitting, post]);
+  }, [clearCommentFeedback, commentText, isCommentSubmitting, post, showToast]);
 
   const handleDeleteComment = useCallback(
     async (commentId: string) => {
@@ -149,7 +142,7 @@ export function useBoardPostDetail({
               }
             : currentPost,
         );
-        setCommentMessage("댓글을 삭제했습니다.");
+        showToast({ message: "댓글을 삭제했습니다.", tone: "success" });
       } catch (error) {
         setCommentError(
           error instanceof Error
@@ -160,7 +153,7 @@ export function useBoardPostDetail({
         setDeletingCommentId(null);
       }
     },
-    [clearCommentFeedback, deletingCommentId, post],
+    [clearCommentFeedback, deletingCommentId, post, showToast],
   );
 
   const handleReportComment = useCallback(
@@ -172,7 +165,7 @@ export function useBoardPostDetail({
 
       try {
         await reportBoardPostComment(post.id, commentId);
-        setCommentMessage("댓글 신고가 접수되었습니다.");
+        showToast({ message: "댓글 신고가 접수되었습니다.", tone: "success" });
       } catch (error) {
         setCommentError(
           error instanceof Error
@@ -183,7 +176,7 @@ export function useBoardPostDetail({
         setReportingCommentId(null);
       }
     },
-    [clearCommentFeedback, post, reportingCommentId],
+    [clearCommentFeedback, post, reportingCommentId, showToast],
   );
 
   const handlePostUpdated = useCallback((updatedPost: BoardPostDetail) => {
@@ -196,55 +189,55 @@ export function useBoardPostDetail({
           }
         : updatedPost,
     );
-    setPostActionMessage("게시글을 수정했습니다.");
-    setPostActionError("");
-  }, []);
+    showToast({ message: "게시글을 수정했습니다.", tone: "success" });
+  }, [showToast]);
 
   const handleDeletePost = useCallback(async () => {
     if (!post || isPostActionSubmitting) return false;
 
     setIsPostActionSubmitting(true);
-    clearPostActionFeedback();
 
     try {
       await deleteBoardPost(post.id);
-      setPostActionMessage("게시글을 삭제했습니다.");
+      showToast({ message: "게시글을 삭제했습니다.", tone: "success" });
       return true;
     } catch (error) {
-      setPostActionError(
-        error instanceof Error
-          ? error.message
-          : "게시글 삭제 중 알 수 없는 오류가 발생했습니다.",
-      );
+      showToast({
+        message:
+          error instanceof Error
+            ? error.message
+            : "게시글 삭제 중 알 수 없는 오류가 발생했습니다.",
+        tone: "error",
+      });
       return false;
     } finally {
       setIsPostActionSubmitting(false);
     }
-  }, [clearPostActionFeedback, isPostActionSubmitting, post]);
+  }, [isPostActionSubmitting, post, showToast]);
 
   const handleReportPost = useCallback(async () => {
     if (!post || isPostActionSubmitting) return;
 
     setIsPostActionSubmitting(true);
-    clearPostActionFeedback();
 
     try {
       await reportBoardPost(post.id);
-      setPostActionMessage("신고가 접수되었습니다.");
+      showToast({ message: "신고가 접수되었습니다.", tone: "success" });
     } catch (error) {
-      setPostActionError(
-        error instanceof Error
-          ? error.message
-          : "게시글 신고 중 알 수 없는 오류가 발생했습니다.",
-      );
+      showToast({
+        message:
+          error instanceof Error
+            ? error.message
+            : "게시글 신고 중 알 수 없는 오류가 발생했습니다.",
+        tone: "error",
+      });
     } finally {
       setIsPostActionSubmitting(false);
     }
-  }, [clearPostActionFeedback, isPostActionSubmitting, post]);
+  }, [isPostActionSubmitting, post, showToast]);
 
   return {
     commentError,
-    commentMessage,
     commentText,
     currentUserId,
     deletingCommentId,
@@ -259,8 +252,6 @@ export function useBoardPostDetail({
     isLoadingPost,
     isPostActionSubmitting,
     post,
-    postActionError,
-    postActionMessage,
     postLoadError,
     reportingCommentId,
   };

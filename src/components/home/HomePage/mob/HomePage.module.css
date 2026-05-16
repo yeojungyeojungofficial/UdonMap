@@ -89,6 +89,13 @@
   line-height: 1.5;
 }
 
+.statusLoading {
+  border: 0;
+  padding: 0;
+  background: transparent;
+  color: var(--color-heading);
+}
+
 .mainSection {
   background: var(--color-surface);
   border-radius: var(--radius-card);

@@ -3,6 +3,7 @@ import { useRouter } from "next/router";
 import { useEffect } from "react";
 import TopNav from "@/src/components/common/TopNav";
 import CommonFooter from "@/src/components/common/CommonFooter";
+import LoadingScreen from "@/src/components/common/LoadingScreen";
 import { useBookmarkedHospitals } from "@/src/features/mypage/hooks/useBookmarkedHospitals";
 import { useAuthStore } from "@/src/store/authStore";
 import { useMyPageShellStyles } from "@/src/features/mypage/useMyPageShellStyles";
@@ -45,7 +46,10 @@ export default function BookmarksPage() {
 
         <div className={shell.contentArea}>
           {isBookmarkLoading ? (
-            <p className={sheetStyles.bookmarkState}>찜한 병원을 불러오는 중입니다.</p>
+            <LoadingScreen
+              message="찜한 병원을 불러오는 중입니다."
+              variant="inline"
+            />
           ) : null}
           {bookmarkError ? (
             <p className={sheetStyles.bookmarkError}>{bookmarkError}</p>

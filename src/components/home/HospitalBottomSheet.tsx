@@ -5,10 +5,14 @@ import type {
   HospitalComment,
   ReactionSnapshot,
 } from "@/src/features/hospitals/types";
+import LoadingScreen from "@/src/components/common/LoadingScreen";
 import { useHospitalBottomSheetActions } from "@/src/features/hospitals/hooks/useHospitalBottomSheetActions";
+import {
+  getHoursRows,
+  getOperationStatus,
+  isClosedOperationStatus,
+} from "@/src/features/hospitals/operationStatus";
 import styles from "@/src/components/home/Home.module.css";
-
-const WEEKDAY_LABELS = ["월", "화", "수", "목", "금", "토", "일"];
 
 type HospitalBottomSheetProps = {
   hospital: Hospital | null;
@@ -42,62 +46,6 @@ type IconName =
   | "star"
   | "thumbsDown"
   | "thumbsUp";
-
-type HoursRow = {
-  day: string;
-  detail: string;
-  isToday: boolean;
-};
-
-function getTodayLabel() {
-  const day = new Date().getDay();
-  return WEEKDAY_LABELS[day === 0 ? 6 : day - 1];
-}
-
-function splitHourEntry(entry: string, fallbackDay: string) {
-  const normalizedEntry = entry.trim();
-  const match = normalizedEntry.match(
-    /^(월요일|화요일|수요일|목요일|금요일|토요일|일요일|월|화|수|목|금|토|일)\s*[:：]?\s*(.*)$/,
-  );
-
-  if (!match) {
-    return {
-      day: fallbackDay,
-      detail: normalizedEntry,
-    };
-  }
-
-  return {
-    day: match[1].slice(0, 1),
-    detail: match[2].trim() || normalizedEntry,
-  };
-}
-
-function getHoursRows(hours?: string[]) {
-  const todayLabel = getTodayLabel();
-  const normalizedHours = (hours ?? []).filter((hour) => hour.trim().length > 0);
-
-  return normalizedHours.map<HoursRow>((hour, index) => {
-    const fallbackDay = WEEKDAY_LABELS[index] ?? "기타";
-    const { day, detail } = splitHourEntry(hour, fallbackDay);
-
-    return {
-      day,
-      detail,
-      isToday: day === todayLabel,
-    };
-  });
-}
-
-function getOperationStatus(hoursRows: HoursRow[]) {
-  const todayRow = hoursRows.find((row) => row.isToday);
-
-  if (!todayRow) {
-    return "운영정보";
-  }
-
-  return /휴무|쉬는|closed/i.test(todayRow.detail) ? "휴무" : "운영중";
-}
 
 function getHourSegments(detail: string) {
   return detail
@@ -213,7 +161,6 @@ export default function HospitalBottomSheet({
     bookmarkError,
     commentContent,
     commentError,
-    commentMessage,
     commentReactionSubmittingId,
     currentUserId,
     deletingCommentId,
@@ -244,7 +191,8 @@ export default function HospitalBottomSheet({
 
   const hoursRows = getHoursRows(hospital.hours);
   const operationStatus = getOperationStatus(hoursRows);
-  const isClosed = operationStatus === "휴무";
+  const isOpen = operationStatus === "운영중";
+  const isClosed = isClosedOperationStatus(operationStatus);
   const isSpecialtyHospital = hospital.isSpecialty || hospital.animals.length > 0;
 
   return (
@@ -326,7 +274,7 @@ export default function HospitalBottomSheet({
               </span>
             ))}
             {hospital.isEmergency ? (
-              <span className={styles.sheetTag}>응급 진료</span>
+              <span className={styles.sheetTagEmergency}>응급 진료</span>
             ) : null}
             {hospital.isSpecialty ? (
               <span className={styles.sheetTagHighlight}>특수동물 진료</span>
@@ -381,8 +329,8 @@ export default function HospitalBottomSheet({
               <h4 className={styles.commentTitle}>운영시간</h4>
               <span
                 className={`${styles.operationBadge} ${
-                  isClosed ? styles.operationBadgeClosed : ""
-                }`}
+                  isOpen ? styles.operationBadgeOpen : ""
+                } ${isClosed ? styles.operationBadgeClosed : ""}`}
               >
                 {operationStatus}
               </span>
@@ -500,15 +448,15 @@ export default function HospitalBottomSheet({
                   {isCommentSubmitting ? "등록 중" : "등록"}
                 </button>
               </div>
-              {commentMessage ? (
-                <p className={styles.commentMessage}>{commentMessage}</p>
-              ) : null}
               {commentError ? (
                 <p className={styles.commentError}>{commentError}</p>
               ) : null}
             </form>
             {isLoadingComments ? (
-              <p className={styles.commentMessage}>댓글을 불러오는 중입니다.</p>
+              <LoadingScreen
+                message="댓글을 불러오는 중입니다."
+                variant="inline"
+              />
             ) : null}
             {commentLoadError ? (
               <p className={styles.commentError}>{commentLoadError}</p>

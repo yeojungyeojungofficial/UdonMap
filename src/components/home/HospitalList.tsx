@@ -1,9 +1,41 @@
 import { useState } from "react";
 import type { Hospital } from "@/src/features/hospitals/types";
+import {
+  getHospitalOperationStatus,
+  isClosedOperationStatus,
+} from "@/src/features/hospitals/operationStatus";
 import styles from "@/src/components/home/Home.module.css";
 
 /** 접힌 상태에서 보이는 진료동물 칩 개수 */
 const COLLAPSED_ANIMAL_COUNT = 10;
+const EMERGENCY_SUMMARY_TEXT = "응급 진료 가능";
+
+function HospitalCardSummary({ summary }: { summary: string }) {
+  if (!summary) {
+    return null;
+  }
+
+  const emergencyIndex = summary.indexOf(EMERGENCY_SUMMARY_TEXT);
+
+  if (emergencyIndex === -1) {
+    return <p className={styles.hospitalSummary}>{summary}</p>;
+  }
+
+  const beforeEmergency = summary.slice(0, emergencyIndex);
+  const afterEmergency = summary.slice(
+    emergencyIndex + EMERGENCY_SUMMARY_TEXT.length,
+  );
+
+  return (
+    <p className={styles.hospitalSummary}>
+      {beforeEmergency}
+      <span className={styles.hospitalSummaryEmergency}>
+        {EMERGENCY_SUMMARY_TEXT}
+      </span>
+      {afterEmergency}
+    </p>
+  );
+}
 
 function HospitalCardAnimals({
   hospitalId,
@@ -72,6 +104,20 @@ export default function HospitalList({
     <ul className={styles.hospitalList}>
       {hospitals.map((hospital) => {
         const isActive = hospital.id === selectedHospitalId;
+        const operationStatus = getHospitalOperationStatus(hospital.hours);
+        const shouldShowOperationStatus = operationStatus !== "운영정보";
+        const operationStatusClassName = [
+          styles.hospitalOperationStatus,
+          operationStatus === "운영중"
+            ? styles.hospitalOperationStatusOpen
+            : "",
+          isClosedOperationStatus(operationStatus)
+            ? styles.hospitalOperationStatusClosed
+            : "",
+        ]
+          .filter(Boolean)
+          .join(" ");
+
         return (
           <li key={hospital.id}>
             <div
@@ -90,14 +136,23 @@ export default function HospitalList({
               aria-label={`${hospital.name} 상세 보기`}
             >
               <div className={styles.hospitalCardTop}>
-                <span className={styles.hospitalRegion}>{hospital.region}</span>
+                <div className={styles.hospitalCardBadges}>
+                  <span className={styles.hospitalRegion}>
+                    {hospital.region}
+                  </span>
+                  {shouldShowOperationStatus ? (
+                    <span className={operationStatusClassName}>
+                      {operationStatus}
+                    </span>
+                  ) : null}
+                </div>
                 <span className={styles.hospitalStats}>
                   좋아요 {hospital.likes} · 후기 {hospital.reviewCount}
                 </span>
               </div>
               <h3 className={styles.hospitalName}>{hospital.name}</h3>
               <p className={styles.hospitalAddress}>{hospital.address}</p>
-              <p className={styles.hospitalSummary}>{hospital.summary}</p>
+              <HospitalCardSummary summary={hospital.summary} />
               <HospitalCardAnimals
                 hospitalId={hospital.id}
                 animals={hospital.animals}
