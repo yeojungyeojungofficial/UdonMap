@@ -5,6 +5,7 @@ import HospitalList from "@/src/components/home/HospitalList";
 import MapPanel from "@/src/components/home/MapPanel";
 import RegionFilter from "@/src/components/home/RegionFilter";
 import HospitalReportSheet from "@/src/components/common/HospitalReportSheet";
+import LoadingScreen from "@/src/components/common/LoadingScreen";
 import TopNav from "@/src/components/common/TopNav";
 import CommonFooter from "@/src/components/common/CommonFooter";
 import { useHospitalDirectory } from "@/src/features/hospitals/hooks/useHospitalDirectory";
@@ -98,11 +99,16 @@ export default function MobileHomePage() {
             </span>
           </div>
         </div>
-        {isLoadingHospitals || hasHospitalLoadError ? (
+        {isLoadingHospitals ? (
+          <LoadingScreen
+            message="병원 목록을 불러오는 중입니다."
+            variant="plainInline"
+            className={`${styles.statusBanner} ${styles.statusLoading}`}
+          />
+        ) : null}
+        {!isLoadingHospitals && hasHospitalLoadError ? (
           <div className={styles.statusBanner}>
-            {hasHospitalLoadError
-              ? "병원목록을 불러오지 못했습니다."
-              : "병원목록을 불러오는중입니다"}
+            병원 목록을 불러오지 못했습니다.
           </div>
         ) : null}
         <div className={styles.heroSection}>

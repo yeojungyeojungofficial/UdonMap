@@ -221,6 +221,14 @@
   margin-bottom: 8px;
 }
 
+.hospitalCardBadges {
+  min-width: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
 .hospitalRegion {
   display: inline-flex;
   align-items: center;
@@ -233,9 +241,26 @@
   font-weight: 700;
 }
 
+.hospitalOperationStatus {
+  color: var(--color-text-muted);
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.hospitalOperationStatusOpen {
+  color: var(--color-brand);
+}
+
+.hospitalOperationStatusClosed {
+  color: var(--color-danger);
+}
+
 .hospitalStats {
   color: var(--color-text-muted);
   font-size: 12px;
+  white-space: nowrap;
 }
 
 .hospitalName {
@@ -254,6 +279,11 @@
   margin: 9px 0 0;
   color: var(--color-text);
   font-size: 14px;
+}
+
+.hospitalSummaryEmergency {
+  color: var(--color-danger);
+  font-weight: 800;
 }
 
 .animalTags {
@@ -379,10 +409,14 @@
   color: var(--color-text-warm);
 }
 
-.sheetSpecialtyBadge,
-.sheetEmergencyBadge {
+.sheetSpecialtyBadge {
   background: var(--color-brand);
   color: var(--color-surface);
+}
+
+.sheetEmergencyBadge {
+  background: transparent;
+  color: var(--color-danger);
 }
 
 .sheetHeroActions {
@@ -500,6 +534,7 @@
 }
 
 .sheetTag,
+.sheetTagEmergency,
 .sheetTagHighlight {
   display: inline-flex;
   align-items: center;
@@ -514,6 +549,12 @@
 .sheetTag {
   background: var(--color-neutral-surface);
   color: var(--color-text-muted);
+}
+
+.sheetTagEmergency {
+  background: transparent;
+  color: var(--color-danger);
+  font-weight: 800;
 }
 
 .sheetTagHighlight {
@@ -602,6 +643,7 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
+  min-width: 0;
   height: 36px;
   padding: 0 14px;
   border: 1.5px solid var(--color-border-muted);
@@ -610,6 +652,7 @@
   color: var(--color-text-muted);
   font-size: 13px;
   font-weight: 700;
+  white-space: nowrap;
   cursor: pointer;
   transition: border-color 0.15s ease, background 0.15s ease, color 0.15s ease;
 }
@@ -680,20 +723,27 @@
   display: inline-flex;
   align-items: center;
   min-height: 24px;
-  border: 1px solid #c8f5dd;
+  border: 1px solid var(--color-border-muted);
   border-radius: var(--radius-field);
   padding: 0 9px;
-  background: #ebfff5;
-  color: #00a961;
+  background: var(--color-neutral-surface);
+  color: var(--color-text-muted);
   font-size: 12px;
   font-weight: 800;
   white-space: nowrap;
 }
 
+.operationBadgeOpen {
+  border-color: var(--color-brand);
+  background: var(--color-brand);
+  color: var(--color-surface);
+}
+
 .operationBadgeClosed {
-  border-color: #ffd3d3;
-  background: #fff2f2;
-  color: #ff4b4b;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  color: var(--color-danger);
 }
 
 .hoursRow {
@@ -832,18 +882,12 @@
   opacity: 0.46;
 }
 
-.commentMessage,
 .commentError {
   margin: 0;
   border-radius: 10px;
   padding: 10px 12px;
   font-size: 12px;
   line-height: 1.5;
-}
-
-.commentMessage {
-  background: var(--color-brand-surface);
-  color: var(--color-warning-text);
 }
 
 .commentError {
@@ -910,6 +954,7 @@
   display: inline-flex;
   align-items: center;
   gap: 5px;
+  min-width: 0;
   min-height: 30px;
   border: 1px solid var(--color-border-muted);
   border-radius: var(--radius-pill);
@@ -918,6 +963,7 @@
   color: var(--color-text-muted);
   font-size: 12px;
   font-weight: 800;
+  white-space: nowrap;
   cursor: pointer;
   transition: border-color 0.15s ease, background 0.15s ease, color 0.15s ease;
 }
@@ -1088,6 +1134,31 @@
 
   .sheetLinks {
     grid-template-columns: 1fr;
+  }
+
+  .reactionSection {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 10px;
+    padding: 12px;
+  }
+
+  .reactionButtons {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    width: 100%;
+    gap: 8px;
+  }
+
+  .reactionButton,
+  .reportButton {
+    width: 100%;
+    justify-content: center;
+    padding: 0 10px;
+  }
+
+  .reactionButton {
+    font-size: 12px;
   }
 
   .hoursRow {

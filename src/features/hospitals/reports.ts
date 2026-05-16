@@ -16,10 +16,12 @@ export type HospitalReportRow =
   Database["public"]["Tables"]["hospital_reports"]["Row"];
 
 export type HospitalReportAttachment = {
+  lastModified: number;
   name: string;
+  path?: string;
+  publicUrl?: string;
   size: number;
   type: string;
-  lastModified: number;
 };
 
 export type CreateHospitalReportRequest = {
@@ -65,13 +67,15 @@ function normalizeAttachments(value: unknown): HospitalReportAttachment[] {
 
   return value
     .slice(0, MAX_ATTACHMENT_COUNT)
-    .map((item) => {
+    .map<HospitalReportAttachment | null>((item) => {
       if (!item || typeof item !== "object") {
         return null;
       }
 
       const attachment = item as Record<string, unknown>;
       const name = normalizeText(attachment.name);
+      const path = normalizeText(attachment.path);
+      const publicUrl = normalizeText(attachment.publicUrl);
       const type = normalizeText(attachment.type);
       const size =
         typeof attachment.size === "number" && Number.isFinite(attachment.size)
@@ -88,10 +92,12 @@ function normalizeAttachments(value: unknown): HospitalReportAttachment[] {
       }
 
       return {
+        lastModified,
         name,
+        ...(path ? { path } : {}),
+        ...(publicUrl ? { publicUrl } : {}),
         size,
         type,
-        lastModified,
       };
     })
     .filter((item): item is HospitalReportAttachment => Boolean(item));

@@ -1,4 +1,5 @@
 import type { BookmarkedHospital } from "@/src/features/mypage/types";
+import LoadingScreen from "@/src/components/common/LoadingScreen";
 import styles from "@/src/components/mypage/MyPage.module.css";
 
 type BookmarkSheetProps = {
@@ -40,9 +41,10 @@ export default function BookmarkSheet({
         </div>
 
         {isLoading ? (
-          <p className={styles.bookmarkState}>
-            찜한 병원을 불러오는 중입니다.
-          </p>
+          <LoadingScreen
+            message="찜한 병원을 불러오는 중입니다."
+            variant="inline"
+          />
         ) : null}
 
         {error ? <p className={styles.bookmarkError}>{error}</p> : null}

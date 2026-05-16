@@ -3,6 +3,7 @@ import { useRouter } from "next/router";
 import { useEffect } from "react";
 import TopNav from "@/src/components/common/TopNav";
 import CommonFooter from "@/src/components/common/CommonFooter";
+import LoadingScreen from "@/src/components/common/LoadingScreen";
 import { REPORT_STATUS_LABELS } from "@/src/features/mypage/activityLabels";
 import { useMyActivity } from "@/src/features/mypage/hooks/useMyActivity";
 import { formatProfileDate } from "@/src/features/mypage/formatters";
@@ -41,7 +42,10 @@ export default function ReportsPage() {
 
         <div className={shell.contentArea}>
           {isActivityLoading ? (
-            <p className={sheetStyles.bookmarkState}>내 제보를 불러오는 중입니다.</p>
+            <LoadingScreen
+              message="내 제보를 불러오는 중입니다."
+              variant="inline"
+            />
           ) : null}
           {activityError ? (
             <p className={sheetStyles.bookmarkError}>{activityError}</p>
