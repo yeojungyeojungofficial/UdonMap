@@ -1,5 +1,6 @@
 import type { AppProps } from "next/app";
 import Head from "next/head";
+import { AppToastProvider } from "@/src/components/common/AppToast";
 import "@/src/styles/globals.css";
 
 const SITE_URL = "https://www.xn--2q1bx9ikpm.com";
@@ -35,7 +36,9 @@ export default function App({ Component, pageProps }: AppProps) {
         <meta name="twitter:image" content={OG_IMAGE} />
       </Head>
 
-      <Component {...pageProps} />
+      <AppToastProvider>
+        <Component {...pageProps} />
+      </AppToastProvider>
     </>
   );
 }

@@ -22,6 +22,7 @@ function formatBoardDate(value: string) {
 function CommentItem({
   comment,
   currentUserId,
+  postAuthorId,
   deletingCommentId,
   reportingCommentId,
   onDelete,
@@ -29,12 +30,14 @@ function CommentItem({
 }: {
   comment: BoardPostComment;
   currentUserId: string | null;
+  postAuthorId: string | null;
   deletingCommentId: string | null;
   reportingCommentId: string | null;
   onDelete: (commentId: string) => void;
   onReport: (commentId: string) => void;
 }) {
   const isMyComment = comment.authorId === currentUserId;
+  const isPostAuthorComment = comment.authorId === postAuthorId;
 
   return (
     <div className={styles.commentItem}>
@@ -42,7 +45,9 @@ function CommentItem({
         <div className={styles.commentHeader}>
           <div className={styles.commentMeta}>
             <span className={styles.commentAuthor}>{comment.author}</span>
-            <span className={styles.commentRole}>작성자</span>
+            {isPostAuthorComment ? (
+              <span className={styles.commentRole}>작성자</span>
+            ) : null}
           </div>
           {isMyComment ? (
             <button
@@ -83,7 +88,6 @@ export default function DesktopPostDetailPage() {
   const [isEditSheetOpen, setIsEditSheetOpen] = useState(false);
   const {
     commentError,
-    commentMessage,
     commentText,
     currentUserId,
     deletingCommentId,
@@ -99,8 +103,6 @@ export default function DesktopPostDetailPage() {
     isLoadingPost,
     isPostActionSubmitting,
     post,
-    postActionError,
-    postActionMessage,
     postLoadError,
   } = useBoardPostDetail({ isReady: router.isReady, postId });
   const isMyPost = Boolean(
@@ -243,18 +245,6 @@ export default function DesktopPostDetailPage() {
               </div>
             </header>
 
-            {postActionMessage || postActionError ? (
-              <p
-                className={
-                  postActionError
-                    ? styles.postActionError
-                    : styles.postActionMessage
-                }
-              >
-                {postActionError || postActionMessage}
-              </p>
-            ) : null}
-
             <article
               className={styles.postContent}
               dangerouslySetInnerHTML={{ __html: post.body }}
@@ -298,9 +288,6 @@ export default function DesktopPostDetailPage() {
                     {isCommentSubmitting ? "등록 중" : "등록"}
                   </button>
                 </div>
-                {commentMessage ? (
-                  <p className={styles.commentFeedback}>{commentMessage}</p>
-                ) : null}
                 {commentError ? (
                   <p className={styles.commentError}>{commentError}</p>
                 ) : null}
@@ -316,6 +303,7 @@ export default function DesktopPostDetailPage() {
                     key={comment.id}
                     comment={comment}
                     currentUserId={currentUserId}
+                    postAuthorId={post.authorId}
                     deletingCommentId={deletingCommentId}
                     reportingCommentId={reportingCommentId}
                     onDelete={(commentId) => void handleDeleteComment(commentId)}

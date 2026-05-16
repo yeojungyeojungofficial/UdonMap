@@ -4,6 +4,7 @@ import {
   type ChangeEvent,
   type FormEvent,
 } from "react";
+import { useAppToast } from "@/src/components/common/AppToast";
 import { useAuthSessionState } from "@/src/features/auth/hooks/useAuthSessionState";
 import {
   createHospitalComment,
@@ -45,7 +46,6 @@ export function useHospitalBottomSheetActions({
 }: UseHospitalBottomSheetActionsOptions) {
   const [commentContent, setCommentContent] = useState("");
   const [isCommentSubmitting, setIsCommentSubmitting] = useState(false);
-  const [commentMessage, setCommentMessage] = useState("");
   const [commentError, setCommentError] = useState("");
   const [bookmarkError, setBookmarkError] = useState("");
   const [isBookmarkSubmitting, setIsBookmarkSubmitting] = useState(false);
@@ -56,6 +56,7 @@ export function useHospitalBottomSheetActions({
   const [deletingCommentId, setDeletingCommentId] = useState<string | null>(
     null,
   );
+  const showToast = useAppToast();
   const handleAuthError = useCallback((message: string) => {
     setCommentError(message);
   }, []);
@@ -64,7 +65,6 @@ export function useHospitalBottomSheetActions({
   });
 
   const clearCommentFeedback = useCallback(() => {
-    setCommentMessage("");
     setCommentError("");
   }, []);
 
@@ -158,7 +158,7 @@ export function useHospitalBottomSheetActions({
         const comment = await createHospitalComment(hospital.id, commentContent);
         onCommentCreated?.(hospital.id, comment);
         setCommentContent("");
-        setCommentMessage("댓글을 등록했습니다.");
+        showToast({ message: "댓글을 등록했습니다.", tone: "success" });
       } catch (error) {
         setCommentError(
           error instanceof Error
@@ -175,6 +175,7 @@ export function useHospitalBottomSheetActions({
       hospital,
       isLoggedIn,
       onCommentCreated,
+      showToast,
     ],
   );
 
@@ -260,7 +261,7 @@ export function useHospitalBottomSheetActions({
           commentId,
         );
         onCommentDeleted?.(hospital.id, deletedCommentId);
-        setCommentMessage("댓글을 삭제했습니다.");
+        showToast({ message: "댓글을 삭제했습니다.", tone: "success" });
       } catch (error) {
         setCommentError(
           error instanceof Error
@@ -271,14 +272,13 @@ export function useHospitalBottomSheetActions({
         setDeletingCommentId(null);
       }
     },
-    [clearCommentFeedback, hospital, onCommentDeleted],
+    [clearCommentFeedback, hospital, onCommentDeleted, showToast],
   );
 
   return {
     bookmarkError,
     commentContent,
     commentError,
-    commentMessage,
     commentReactionSubmittingId,
     currentUserId,
     deletingCommentId,

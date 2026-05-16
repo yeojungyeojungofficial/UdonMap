@@ -7,7 +7,38 @@
   align-items: center;
   justify-content: center;
   gap: 14px;
+  color: black;
+  text-align: center;
+}
+
+.page {
+  min-height: 280px;
+}
+
+.inline {
+  flex: none;
+  min-height: auto;
+  margin: 16px 0 0;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-field);
+  padding: 12px 14px;
+  flex-direction: row;
+  justify-content: flex-start;
+  gap: 10px;
   color: var(--color-brand-deep);
+  text-align: left;
+}
+
+.plainInline {
+  flex: none;
+  min-height: auto;
+  margin: 0;
+  padding: 0;
+  flex-direction: row;
+  justify-content: center;
+  gap: 10px;
+  background: transparent;
+  color: var(--color-heading);
   text-align: center;
 }
 
@@ -20,10 +51,30 @@
   animation: loadingSpin 0.8s linear infinite;
 }
 
+.inline .spinner {
+  width: 18px;
+  height: 18px;
+  border-width: 2px;
+}
+
+.plainInline .spinner {
+  width: 18px;
+  height: 18px;
+  border-width: 2px;
+}
+
 .message {
   font-size: 14px;
   font-weight: 800;
   line-height: 1.5;
+}
+
+.inline .message {
+  font-size: 13px;
+}
+
+.plainInline .message {
+  font-size: 13px;
 }
 
 @keyframes loadingSpin {

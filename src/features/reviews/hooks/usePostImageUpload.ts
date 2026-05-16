@@ -1,6 +1,7 @@
 import { useCallback, useRef, useState, type ChangeEvent } from "react";
 import { loadAuthSession } from "@/src/core/authSession";
 import { getSupabaseBrowserClient } from "@/src/core/supabase";
+import { convertImageFileToWebp } from "@/src/features/images/convertImageFileToWebp";
 import {
   MAX_POST_PHOTOS,
   POST_IMAGE_STORAGE_BUCKET,
@@ -82,20 +83,26 @@ export function usePostImageUpload({
 
       await Promise.all(
         accepted.map(async (file, index) => {
-          const blobUrl = URL.createObjectURL(file);
           const altText = `첨부 사진 ${currentCount + index + 1}`;
-          const node = buildResizableImage(blobUrl, altText);
-
-          insertNodeAtCursor(node);
-          setPhotoCount((count) => count + 1);
+          let blobUrl = "";
+          let node: HTMLElement | null = null;
 
           try {
-            const ext = file.name.split(".").pop() ?? "jpg";
-            const path = `${session.user.id}/${Date.now()}-${index}.${ext}`;
+            const webpFile = await convertImageFileToWebp(file);
+            blobUrl = URL.createObjectURL(webpFile);
+            node = buildResizableImage(blobUrl, altText);
+
+            insertNodeAtCursor(node);
+            setPhotoCount((count) => count + 1);
+
+            const path = `${session.user.id}/${Date.now()}-${index}.webp`;
 
             const { error } = await supabase.storage
               .from(POST_IMAGE_STORAGE_BUCKET)
-              .upload(path, file, { upsert: false });
+              .upload(path, webpFile, {
+                contentType: "image/webp",
+                upsert: false,
+              });
 
             if (error) {
               throw new Error(`이미지 업로드 실패: ${error.message}`);
@@ -113,9 +120,11 @@ export function usePostImageUpload({
             }
             URL.revokeObjectURL(blobUrl);
           } catch (error) {
-            node.remove();
-            URL.revokeObjectURL(blobUrl);
-            setPhotoCount((count) => Math.max(0, count - 1));
+            node?.remove();
+            if (blobUrl) {
+              URL.revokeObjectURL(blobUrl);
+              setPhotoCount((count) => Math.max(0, count - 1));
+            }
             onErrorMessage(
               error instanceof Error
                 ? error.message

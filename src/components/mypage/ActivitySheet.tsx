@@ -8,6 +8,7 @@ import type {
   MyPost,
   MyReport,
 } from "@/src/features/mypage/types";
+import LoadingScreen from "@/src/components/common/LoadingScreen";
 import { formatProfileDate } from "@/src/features/mypage/formatters";
 import styles from "@/src/components/mypage/MyPage.module.css";
 
@@ -94,9 +95,10 @@ export default function ActivitySheet({
         </div>
 
         {isLoading ? (
-          <p className={styles.bookmarkState}>
-            내 활동 내역을 불러오는 중입니다.
-          </p>
+          <LoadingScreen
+            message="내 활동 내역을 불러오는 중입니다."
+            variant="inline"
+          />
         ) : null}
 
         {error ? <p className={styles.bookmarkError}>{error}</p> : null}

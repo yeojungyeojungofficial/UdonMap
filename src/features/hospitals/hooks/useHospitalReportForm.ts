@@ -7,6 +7,7 @@ import {
   type FormEvent,
 } from "react";
 import { createHospitalReport } from "@/src/core/api/hospitals/hospitalReportsApi";
+import { convertImageFileToWebp } from "@/src/features/images/convertImageFileToWebp";
 
 export const HOSPITAL_REPORT_ANIMAL_OPTIONS = [
   "포유류",
@@ -95,12 +96,7 @@ export function useHospitalReportForm({ onClose }: UseHospitalReportFormOptions)
           animalCategories: selectedAnimals,
           animalSpecies,
           details,
-          attachments: selectedFiles.map((file) => ({
-            name: file.name,
-            size: file.size,
-            type: file.type,
-            lastModified: file.lastModified,
-          })),
+          attachments: selectedFiles,
         });
 
         resetFields();
@@ -130,23 +126,42 @@ export function useHospitalReportForm({ onClose }: UseHospitalReportFormOptions)
   );
 
   const handleSelectFiles = useCallback(
-    (event: ChangeEvent<HTMLInputElement>) => {
+    async (event: ChangeEvent<HTMLInputElement>) => {
       const newFiles = Array.from(event.currentTarget.files ?? []);
+      event.currentTarget.value = "";
+
       const availableCount =
         MAX_HOSPITAL_REPORT_FILE_COUNT - selectedFiles.length;
-      const nextFiles = [
-        ...selectedFiles,
-        ...newFiles.slice(0, Math.max(availableCount, 0)),
-      ];
-
-      setSelectedFiles(nextFiles);
       setFileLimitMessage(
         newFiles.length > availableCount
           ? `사진은 최대 ${MAX_HOSPITAL_REPORT_FILE_COUNT}개까지 첨부됩니다.`
           : "",
       );
       clearSubmitFeedback();
-      event.currentTarget.value = "";
+
+      const acceptedFiles = newFiles.slice(0, Math.max(availableCount, 0));
+      if (acceptedFiles.length === 0) {
+        return;
+      }
+
+      try {
+        const webpFiles = await Promise.all(
+          acceptedFiles.map((file) => convertImageFileToWebp(file)),
+        );
+
+        setSelectedFiles((currentFiles) =>
+          [...currentFiles, ...webpFiles].slice(
+            0,
+            MAX_HOSPITAL_REPORT_FILE_COUNT,
+          ),
+        );
+      } catch (error) {
+        setFileLimitMessage(
+          error instanceof Error
+            ? error.message
+            : "이미지를 WebP로 변환할 수 없습니다.",
+        );
+      }
     },
     [clearSubmitFeedback, selectedFiles],
   );

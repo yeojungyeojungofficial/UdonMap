@@ -1,0 +1,91 @@
+.viewport {
+  position: fixed;
+  right: max(18px, env(safe-area-inset-right));
+  bottom: max(18px, env(safe-area-inset-bottom));
+  z-index: 10000;
+  display: grid;
+  width: min(420px, calc(100vw - 36px));
+  gap: 8px;
+  pointer-events: none;
+}
+
+.toast {
+  --toast-accent: #4b5563;
+  --toast-accent-soft: rgba(75, 85, 99, 0.12);
+  --toast-border: rgba(56, 56, 56, 0.12);
+  --toast-text: #252525;
+  --toast-muted: #6b7280;
+
+  pointer-events: auto;
+  display: grid;
+  grid-template-columns: 12px minmax(0, 1fr) 28px;
+  align-items: center;
+  gap: 12px;
+  border: 1px solid var(--toast-border);
+  border-left: 4px solid var(--toast-accent);
+  border-radius: 10px;
+  padding: 12px 10px 12px 14px;
+  background: rgba(255, 255, 255, 0.96);
+  color: var(--toast-text);
+  box-shadow: 0 14px 36px rgba(31, 31, 31, 0.16);
+  font-size: 13px;
+  font-weight: 750;
+  line-height: 1.45;
+  backdrop-filter: blur(10px);
+}
+
+.indicator {
+  width: 12px;
+  height: 12px;
+  border: 3px solid var(--toast-accent-soft);
+  border-radius: var(--radius-pill);
+  background: var(--toast-accent);
+}
+
+.message {
+  min-width: 0;
+}
+
+.success {
+  --toast-accent: var(--color-brand);
+  --toast-accent-soft: rgba(255, 150, 69, 0.16);
+  --toast-border: rgba(255, 150, 69, 0.24);
+}
+
+.error {
+  --toast-accent: #d43d2f;
+  --toast-accent-soft: rgba(212, 61, 47, 0.14);
+  --toast-border: rgba(212, 61, 47, 0.22);
+}
+
+.info {
+  --toast-accent: #3b6f8f;
+  --toast-accent-soft: rgba(59, 111, 143, 0.14);
+  --toast-border: rgba(59, 111, 143, 0.2);
+}
+
+.closeButton {
+  width: 28px;
+  height: 28px;
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: transparent;
+  color: var(--toast-muted);
+  cursor: pointer;
+  font-size: 17px;
+  line-height: 1;
+}
+
+.closeButton:hover,
+.closeButton:focus-visible {
+  background: rgba(56, 56, 56, 0.07);
+  color: var(--toast-text);
+}
+
+@media (max-width: 640px) {
+  .viewport {
+    right: 14px;
+    bottom: max(14px, env(safe-area-inset-bottom));
+    width: calc(100vw - 28px);
+  }
+}
