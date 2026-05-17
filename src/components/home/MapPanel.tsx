@@ -1,6 +1,13 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { INITIAL_HOSPITAL_MAP_LEVEL } from "@/src/constants/map";
-import type { Hospital } from "@/src/features/hospitals/types";
+import {
+  HOSPITAL_FOCUS_BOUNDS_MIN_LEVEL,
+  HOSPITAL_FOCUS_BOUNDS_PADDING,
+  HOSPITAL_FOCUS_BOUNDS_ZOOM_IN,
+  HOSPITAL_FOCUS_SINGLE_LEVEL,
+  INITIAL_HOSPITAL_MAP_LEVEL,
+} from "@/src/constants/map";
+import { ALL_REGION_CLUSTER_GROUPS } from "@/src/constants/regions";
+import type { Hospital, Region } from "@/src/features/hospitals/types";
 import styles from "@/src/components/home/Home.module.css";
 
 type KakaoLatLng = object;
@@ -12,7 +19,13 @@ type KakaoLatLngBounds = {
 type KakaoMap = {
   getLevel: () => number;
   relayout: () => void;
-  setBounds: (bounds: KakaoLatLngBounds) => void;
+  setBounds: (
+    bounds: KakaoLatLngBounds,
+    paddingTop?: number,
+    paddingRight?: number,
+    paddingBottom?: number,
+    paddingLeft?: number,
+  ) => void;
   setCenter: (latLng: KakaoLatLng) => void;
   setLevel: (
     level: number,
@@ -61,6 +74,7 @@ type MapPanelProps = {
   hospitals: Hospital[];
   mapLevel: number;
   selectedHospitalId: string | null;
+  selectedRegion: Region;
   onMapLevelChange: (mapLevel: number) => void;
   onSelectHospital: (hospital: Hospital) => void;
 };
@@ -69,9 +83,6 @@ const SEOUL_CENTER = {
   lat: 37.5665,
   lng: 126.978,
 };
-
-const CLUSTER_MIN_LEVEL = 10;
-const CLUSTER_BASE_GRID_DEGREES = 0.8;
 
 type OverlayEntry = {
   button: HTMLButtonElement;
@@ -85,6 +96,14 @@ type HospitalOverlayGroup = {
   center: {
     lat: number;
     lng: number;
+  };
+};
+
+type RegionOverlayGroup = HospitalOverlayGroup & {
+  label: string;
+  mapPosition: {
+    x: number;
+    y: number;
   };
 };
 
@@ -105,50 +124,76 @@ function getHospitalCenter(hospitals: Hospital[]) {
   };
 }
 
-function getClusterGridSize(mapLevel: number) {
-  return (
-    CLUSTER_BASE_GRID_DEGREES *
-    2 ** Math.max(0, mapLevel - CLUSTER_MIN_LEVEL)
+function getHospitalMapPositionCenter(hospitals: Hospital[]) {
+  const total = hospitals.reduce(
+    (accumulator, hospital) => {
+      return {
+        x: accumulator.x + hospital.mapPosition.x,
+        y: accumulator.y + hospital.mapPosition.y,
+      };
+    },
+    { x: 0, y: 0 },
   );
+
+  return {
+    x: total.x / hospitals.length,
+    y: total.y / hospitals.length,
+  };
 }
 
-function groupHospitalsByMapLevel(
-  hospitals: Hospital[],
-  mapLevel: number,
-): HospitalOverlayGroup[] {
-  if (mapLevel < CLUSTER_MIN_LEVEL) {
-    return hospitals.map((hospital) => ({
-      id: hospital.id,
-      hospitals: [hospital],
-      center: hospital.mapCoordinate,
-    }));
+function getAllRegionOverlayGroups(hospitals: Hospital[]) {
+  const groupedRegionFilters = new Set<string>(
+    ALL_REGION_CLUSTER_GROUPS.flatMap((group) => group.regions),
+  );
+
+  const regionGroups: RegionOverlayGroup[] = ALL_REGION_CLUSTER_GROUPS.flatMap(
+    (group) => {
+      const regionFilters = new Set<string>(group.regions);
+      const groupHospitals = hospitals.filter((hospital) =>
+        regionFilters.has(hospital.regionFilter),
+      );
+
+      if (groupHospitals.length === 0) {
+        return [];
+      }
+
+      return [
+        {
+          id: group.id,
+          label: group.label,
+          hospitals: groupHospitals,
+          center: getHospitalCenter(groupHospitals),
+          mapPosition: getHospitalMapPositionCenter(groupHospitals),
+        },
+      ];
+    },
+  );
+
+  const ungroupedHospitals = hospitals.filter(
+    (hospital) => !groupedRegionFilters.has(hospital.regionFilter),
+  );
+
+  if (ungroupedHospitals.length === 0) {
+    return regionGroups;
   }
 
-  const gridSize = getClusterGridSize(mapLevel);
-  const groups = new Map<string, Hospital[]>();
-
-  hospitals.forEach((hospital) => {
-    const latKey = Math.round(
-      (hospital.mapCoordinate.lat - SEOUL_CENTER.lat) / gridSize,
-    );
-    const lngKey = Math.round(
-      (hospital.mapCoordinate.lng - SEOUL_CENTER.lng) / gridSize,
-    );
-    const key = `${latKey}:${lngKey}`;
-    groups.set(key, [...(groups.get(key) ?? []), hospital]);
-  });
-
-  return Array.from(groups.entries()).map(([id, groupHospitals]) => ({
-    id,
-    hospitals: groupHospitals,
-    center: getHospitalCenter(groupHospitals),
-  }));
+  return [
+    ...regionGroups,
+    {
+      id: "other",
+      label: "기타",
+      hospitals: ungroupedHospitals,
+      center: getHospitalCenter(ungroupedHospitals),
+      mapPosition: getHospitalMapPositionCenter(ungroupedHospitals),
+    },
+  ];
 }
 
 export default function MapPanel({
   hospitals,
   mapLevel,
   selectedHospitalId,
+  selectedRegion,
   onMapLevelChange,
   onSelectHospital,
 }: MapPanelProps) {
@@ -171,6 +216,11 @@ export default function MapPanel({
   const [isSdkReady, setIsSdkReady] = useState(false);
   const [isMapReady, setIsMapReady] = useState(false);
   const [hasSdkLoadError, setHasSdkLoadError] = useState(false);
+  const isAllRegions = selectedRegion === "전체";
+  const regionOverlayGroups = useMemo(
+    () => (isAllRegions ? getAllRegionOverlayGroups(hospitals) : []),
+    [hospitals, isAllRegions],
+  );
 
   useEffect(() => {
     if (!scriptSrc) return;
@@ -255,7 +305,7 @@ export default function MapPanel({
           hospital.mapCoordinate.lng,
         ),
       );
-      map.setLevel(5);
+      map.setLevel(isAllRegions ? HOSPITAL_FOCUS_SINGLE_LEVEL : 5);
       return;
     }
 
@@ -268,8 +318,21 @@ export default function MapPanel({
         ),
       );
     });
+
+    if (isAllRegions) {
+      const padding = HOSPITAL_FOCUS_BOUNDS_PADDING;
+      map.setBounds(bounds, padding, padding, padding, padding);
+      map.setLevel(
+        Math.max(
+          map.getLevel() - HOSPITAL_FOCUS_BOUNDS_ZOOM_IN,
+          HOSPITAL_FOCUS_BOUNDS_MIN_LEVEL,
+        ),
+      );
+      return;
+    }
+
     map.setBounds(bounds);
-  }, [hospitals, isMapReady]);
+  }, [hospitals, isAllRegions, isMapReady]);
 
   useEffect(() => {
     const clearOverlays = () => {
@@ -288,23 +351,45 @@ export default function MapPanel({
     const kakaoMaps = window.kakao.maps;
     clearOverlays();
 
-    groupHospitalsByMapLevel(hospitals, mapLevel).forEach((group) => {
-      const position = new kakaoMaps.LatLng(group.center.lat, group.center.lng);
-
-      if (group.hospitals.length > 1) {
+    if (isAllRegions) {
+      regionOverlayGroups.forEach((group) => {
+        const position = new kakaoMaps.LatLng(
+          group.center.lat,
+          group.center.lng,
+        );
         const button = document.createElement("button");
         const onClick = () => {
-          map.setCenter(position);
-          map.setLevel(Math.max(map.getLevel() - 2, 3), {
-            anchor: position,
-            animate: true,
+          if (group.hospitals.length === 1) {
+            map.setCenter(position);
+            map.setLevel(HOSPITAL_FOCUS_SINGLE_LEVEL, {
+              anchor: position,
+              animate: true,
+            });
+            return;
+          }
+
+          const bounds = new kakaoMaps.LatLngBounds();
+          group.hospitals.forEach((hospital) => {
+            bounds.extend(
+              new kakaoMaps.LatLng(
+                hospital.mapCoordinate.lat,
+                hospital.mapCoordinate.lng,
+              ),
+            );
           });
+
+          const padding = HOSPITAL_FOCUS_BOUNDS_PADDING;
+          map.setBounds(bounds, padding, padding, padding, padding);
         };
 
         button.type = "button";
         button.className = styles.kakaoCluster;
         button.textContent = String(group.hospitals.length);
-        button.setAttribute("aria-label", `${group.hospitals.length}개 병원 묶음`);
+        button.title = group.label;
+        button.setAttribute(
+          "aria-label",
+          `${group.label} ${group.hospitals.length}개 병원 묶음`,
+        );
         button.addEventListener("click", onClick);
 
         const overlay = new kakaoMaps.CustomOverlay({
@@ -317,11 +402,17 @@ export default function MapPanel({
 
         overlay.setMap(map);
         overlaysRef.current.push({ button, onClick, overlay });
-        return;
-      }
+      });
 
-      const [hospital] = group.hospitals;
+      return clearOverlays;
+    }
+
+    hospitals.forEach((hospital) => {
       const isActive = hospital.id === selectedHospitalId;
+      const position = new kakaoMaps.LatLng(
+        hospital.mapCoordinate.lat,
+        hospital.mapCoordinate.lng,
+      );
       const button = document.createElement("button");
       const dot = document.createElement("span");
       const label = document.createElement("span");
@@ -352,27 +443,50 @@ export default function MapPanel({
     });
 
     return clearOverlays;
-  }, [hospitals, isMapReady, mapLevel, onSelectHospital, selectedHospitalId]);
+  }, [
+    hospitals,
+    isAllRegions,
+    isMapReady,
+    mapLevel,
+    onSelectHospital,
+    regionOverlayGroups,
+    selectedHospitalId,
+  ]);
 
-  const fallbackMarkers = hospitals.map((hospital) => {
-    const isActive = hospital.id === selectedHospitalId;
-    return (
-      <button
-        key={hospital.id}
-        type="button"
-        className={`${styles.marker} ${isActive ? styles.markerActive : ""}`}
-        style={{
-          left: `${hospital.mapPosition.x}%`,
-          top: `${hospital.mapPosition.y}%`,
-        }}
-        onClick={() => onSelectHospital(hospital)}
-        aria-label={`${hospital.name} 마커`}
-      >
-        <span className={styles.markerDot} />
-        <span className={styles.markerLabel}>{hospital.name}</span>
-      </button>
-    );
-  });
+  const fallbackMarkers = isAllRegions
+    ? regionOverlayGroups.map((group) => (
+        <span
+          key={group.id}
+          className={`${styles.regionCluster} ${styles.fallbackRegionCluster}`}
+          style={{
+            left: `${group.mapPosition.x}%`,
+            top: `${group.mapPosition.y}%`,
+          }}
+          aria-label={`${group.label} ${group.hospitals.length}개 병원 묶음`}
+          title={group.label}
+        >
+          {group.hospitals.length}
+        </span>
+      ))
+    : hospitals.map((hospital) => {
+        const isActive = hospital.id === selectedHospitalId;
+        return (
+          <button
+            key={hospital.id}
+            type="button"
+            className={`${styles.marker} ${isActive ? styles.markerActive : ""}`}
+            style={{
+              left: `${hospital.mapPosition.x}%`,
+              top: `${hospital.mapPosition.y}%`,
+            }}
+            onClick={() => onSelectHospital(hospital)}
+            aria-label={`${hospital.name} 마커`}
+          >
+            <span className={styles.markerDot} />
+            <span className={styles.markerLabel}>{hospital.name}</span>
+          </button>
+        );
+      });
 
   return (
     <section className={styles.mapPanel} aria-label="병원 지도">
