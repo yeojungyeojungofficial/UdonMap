@@ -109,6 +109,13 @@ export function useHospitalDirectory() {
     });
   }, [effectiveSelectedRegion, hospitals, query]);
 
+  const shouldUseAllRegionsMap =
+    filteredHospitals.length === 0 && hospitals.length > 0;
+  const mapHospitals = shouldUseAllRegionsMap ? hospitals : filteredHospitals;
+  const mapSelectedRegion = shouldUseAllRegionsMap
+    ? "전체"
+    : effectiveSelectedRegion;
+
   const selectedHospital = useMemo(
     () =>
       filteredHospitals.find((hospital) => hospital.id === selectedHospitalId) ??
@@ -292,6 +299,8 @@ export function useHospitalDirectory() {
     isLoadingHospitals,
     loadingCommentsHospitalId,
     mapLevel,
+    mapHospitals,
+    mapSelectedRegion,
     query,
     regionOptions,
     selectedHospital,

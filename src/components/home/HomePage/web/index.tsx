@@ -28,6 +28,8 @@ export default function DesktopHomePage() {
     isLoadingHospitals,
     loadingCommentsHospitalId,
     mapLevel,
+    mapHospitals,
+    mapSelectedRegion,
     query,
     regionOptions,
     selectedHospital,
@@ -88,9 +90,10 @@ export default function DesktopHomePage() {
         ) : null}
         <div className={styles.heroSection}>
           <MapPanel
-            hospitals={filteredHospitals}
+            hospitals={mapHospitals}
             mapLevel={mapLevel}
             selectedHospitalId={selectedHospitalId}
+            selectedRegion={mapSelectedRegion}
             onMapLevelChange={setMapLevel}
             onSelectHospital={handleSelectHospital}
           />
