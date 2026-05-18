@@ -3,9 +3,10 @@ import styles from "@/src/components/mypage/MyPage.module.css";
 type AuthDialogProps = {
   message: string;
   onClose: () => void;
+  title: string;
 };
 
-export default function AuthDialog({ message, onClose }: AuthDialogProps) {
+export default function AuthDialog({ message, onClose, title }: AuthDialogProps) {
   return (
     <div className={styles.dialogBackdrop} role="presentation">
       <section
@@ -14,8 +15,8 @@ export default function AuthDialog({ message, onClose }: AuthDialogProps) {
         aria-modal="true"
         aria-labelledby="auth-error-title"
       >
-        <h2 id="auth-error-title">인증 오류</h2>
-        <p>{message}</p>
+        <h2 id="auth-error-title">{title}</h2>
+        {message ? <p>{message}</p> : null}
         <button
           type="button"
           className={styles.dialogButton}

@@ -25,8 +25,14 @@ export function useAuthSessionState({
   // ref로 콜백을 저장해 effect 재실행 없이 최신 값 참조
   const onErrorRef = useRef(onError);
   const onSignOutRef = useRef(onSignOut);
-  onErrorRef.current = onError;
-  onSignOutRef.current = onSignOut;
+
+  useEffect(() => {
+    onErrorRef.current = onError;
+  }, [onError]);
+
+  useEffect(() => {
+    onSignOutRef.current = onSignOut;
+  }, [onSignOut]);
 
   useEffect(() => {
     const initialAuthSession = getCachedAuthSession();

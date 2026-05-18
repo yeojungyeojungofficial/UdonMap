@@ -24,6 +24,10 @@ import { useAuthSessionState } from "@/src/features/auth/hooks/useAuthSessionSta
 import { useBookmarkedHospitals } from "@/src/features/mypage/hooks/useBookmarkedHospitals";
 import { useMyActivity } from "@/src/features/mypage/hooks/useMyActivity";
 import { useProfileEditor } from "@/src/features/mypage/hooks/useProfileEditor";
+import {
+  AUTH_ERROR_TITLE,
+  LOGIN_FAILURE_MESSAGE,
+} from "@/src/features/mypage/authMessages";
 import type { AuthMode } from "@/src/features/mypage/types";
 import { useAuthStore } from "@/src/store/authStore";
 
@@ -43,6 +47,7 @@ export function useMyPageState() {
     hasActiveAutoLogin(),
   );
   const [authMessage, setAuthMessage] = useState("");
+  const [authDialogTitle, setAuthDialogTitle] = useState("");
   const [authDialogMessage, setAuthDialogMessage] = useState("");
   const {
     canSaveProfile,
@@ -80,11 +85,16 @@ export function useMyPageState() {
     resetActivity,
   } = useMyActivity();
 
-  const openAuthDialog = useCallback((message: string) => {
-    setAuthDialogMessage(message);
-  }, []);
+  const openAuthDialog = useCallback(
+    (message: string, title: string = AUTH_ERROR_TITLE) => {
+      setAuthDialogTitle(title);
+      setAuthDialogMessage(message);
+    },
+    [],
+  );
 
   const closeAuthDialog = useCallback(() => {
+    setAuthDialogTitle("");
     setAuthDialogMessage("");
   }, []);
 
@@ -214,7 +224,7 @@ export function useMyPageState() {
           });
 
           if (error) {
-            openAuthDialog(`Supabase 로그인 실패: ${error.message}`);
+            openAuthDialog("", LOGIN_FAILURE_MESSAGE);
             return;
           }
 
@@ -331,6 +341,8 @@ export function useMyPageState() {
     activityError,
     activityTab,
     authDialogMessage,
+    authDialogTitle,
+    isAuthDialogOpen: Boolean(authDialogTitle || authDialogMessage),
     authMessage,
     authMode,
     bookmarkedHospitals,

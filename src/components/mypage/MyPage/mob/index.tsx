@@ -37,6 +37,8 @@ export default function MobileMyPage() {
 
   const {
     authDialogMessage,
+    authDialogTitle,
+    isAuthDialogOpen,
     authMessage,
     authMode,
     canSubmit,
@@ -177,8 +179,12 @@ export default function MobileMyPage() {
 
         <HospitalReportSheet isOpen={isReportSheetOpen} onClose={closeReportSheet} />
         <CommonFooter className={styles.pageFooter} />
-        {authDialogMessage ? (
-          <AuthDialog message={authDialogMessage} onClose={closeAuthDialog} />
+        {isAuthDialogOpen ? (
+          <AuthDialog
+            message={authDialogMessage}
+            title={authDialogTitle}
+            onClose={closeAuthDialog}
+          />
         ) : null}
       </main>
     </>

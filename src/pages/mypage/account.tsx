@@ -14,6 +14,8 @@ export default function AccountPage() {
 
   const {
     authDialogMessage,
+    authDialogTitle,
+    isAuthDialogOpen,
     authMessage,
     authMode,
     canSaveProfile,
@@ -160,8 +162,12 @@ export default function AccountPage() {
         )}
 
         <CommonFooter className={shell.pageFooter} />
-        {authDialogMessage ? (
-          <AuthDialog message={authDialogMessage} onClose={closeAuthDialog} />
+        {isAuthDialogOpen ? (
+          <AuthDialog
+            message={authDialogMessage}
+            title={authDialogTitle}
+            onClose={closeAuthDialog}
+          />
         ) : null}
       </main>
     </>

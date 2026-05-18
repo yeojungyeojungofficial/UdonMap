@@ -2,6 +2,11 @@ import type { Session } from "@supabase/supabase-js";
 import type { UserProfile } from "@/src/core/userProfiles";
 
 let cachedUserProfile: UserProfile | null = null;
+let pendingUserProfileRequest: {
+  accessToken: string;
+  promise: Promise<UserProfile>;
+  userId: string;
+} | null = null;
 
 type UserProfileResponse =
   | {
@@ -48,22 +53,50 @@ export function getCachedCurrentUserProfile(userId: string) {
 
 export function setCachedCurrentUserProfile(profile: UserProfile) {
   cachedUserProfile = profile;
+  pendingUserProfileRequest = null;
 }
 
 export function clearCachedCurrentUserProfile() {
   cachedUserProfile = null;
+  pendingUserProfileRequest = null;
 }
 
 export function fetchCurrentUserProfile(session: Session) {
-  return requestUserProfile(session, {
+  const cachedProfile = getCachedCurrentUserProfile(session.user.id);
+
+  if (cachedProfile) {
+    return Promise.resolve(cachedProfile);
+  }
+
+  if (
+    pendingUserProfileRequest?.userId === session.user.id &&
+    pendingUserProfileRequest.accessToken === session.access_token
+  ) {
+    return pendingUserProfileRequest.promise;
+  }
+
+  const request = requestUserProfile(session, {
     method: "GET",
+  }).finally(() => {
+    if (pendingUserProfileRequest?.promise === request) {
+      pendingUserProfileRequest = null;
+    }
   });
+
+  pendingUserProfileRequest = {
+    accessToken: session.access_token,
+    promise: request,
+    userId: session.user.id,
+  };
+
+  return request;
 }
 
 export function saveCurrentUserProfile(
   session: Session,
   displayName: string,
 ) {
+  pendingUserProfileRequest = null;
   return requestUserProfile(session, {
     method: "PATCH",
     body: JSON.stringify({ displayName }),
