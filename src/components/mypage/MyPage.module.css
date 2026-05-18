@@ -549,7 +549,7 @@
   cursor: pointer;
 }
 
-@media --desktop {
+@media (min-width: 671px) {
   .sheetBackdrop {
     align-items: center;
     padding: 20px;
@@ -566,7 +566,7 @@
   }
 }
 
-@media --mobile {
+@media (max-width: 670px) {
   .page {
     padding: 14px;
     padding-top: 112px;

@@ -10,6 +10,10 @@ import {
 import { useAppToast } from "@/src/components/common/AppToast";
 import { useAuthSessionState } from "@/src/features/auth/hooks/useAuthSessionState";
 import type { BoardPostDetail } from "@/src/features/reviews/boardPosts";
+import type {
+  BoardPostCommentReportReason,
+  BoardPostReportReason,
+} from "@/src/features/reviews/reportReasons";
 
 type UseBoardPostDetailOptions = {
   isReady: boolean;
@@ -157,21 +161,23 @@ export function useBoardPostDetail({
   );
 
   const handleReportComment = useCallback(
-    async (commentId: string) => {
-      if (!post || reportingCommentId) return;
+    async (commentId: string, reason: BoardPostCommentReportReason) => {
+      if (!post || reportingCommentId) return false;
 
       setReportingCommentId(commentId);
       clearCommentFeedback();
 
       try {
-        await reportBoardPostComment(post.id, commentId);
+        await reportBoardPostComment(post.id, commentId, reason);
         showToast({ message: "댓글 신고가 접수되었습니다.", tone: "success" });
+        return true;
       } catch (error) {
         setCommentError(
           error instanceof Error
             ? error.message
             : "댓글 신고 중 알 수 없는 오류가 발생했습니다.",
         );
+        return false;
       } finally {
         setReportingCommentId(null);
       }
@@ -215,14 +221,15 @@ export function useBoardPostDetail({
     }
   }, [isPostActionSubmitting, post, showToast]);
 
-  const handleReportPost = useCallback(async () => {
-    if (!post || isPostActionSubmitting) return;
+  const handleReportPost = useCallback(async (reason: BoardPostReportReason) => {
+    if (!post || isPostActionSubmitting) return false;
 
     setIsPostActionSubmitting(true);
 
     try {
-      await reportBoardPost(post.id);
+      await reportBoardPost(post.id, reason);
       showToast({ message: "신고가 접수되었습니다.", tone: "success" });
+      return true;
     } catch (error) {
       showToast({
         message:
@@ -231,6 +238,7 @@ export function useBoardPostDetail({
             : "게시글 신고 중 알 수 없는 오류가 발생했습니다.",
         tone: "error",
       });
+      return false;
     } finally {
       setIsPostActionSubmitting(false);
     }
