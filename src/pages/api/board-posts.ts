@@ -1,7 +1,10 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { getSupabaseServerClient } from "@/src/core/supabaseServer";
 import type { Database } from "@/src/core/database.types";
-import { getBearerToken } from "@/src/core/apiRequest";
+import {
+  getAuthUserErrorMessage,
+  getBearerToken,
+} from "@/src/core/apiRequest";
 import {
   isBoardTab,
   toBoardPostSummary,
@@ -129,9 +132,7 @@ async function handlePost(
 
     if (userError || !user) {
       res.status(401).json({
-        error: userError
-          ? `사용자 확인 실패: ${userError.message}`
-          : "로그인 사용자를 확인할 수 없습니다.",
+        error: getAuthUserErrorMessage(userError),
       });
       return;
     }

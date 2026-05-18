@@ -1,5 +1,9 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import { getBearerToken, getQueryValue } from "@/src/core/apiRequest";
+import {
+  getAuthUserErrorMessage,
+  getBearerToken,
+  getQueryValue,
+} from "@/src/core/apiRequest";
 import { getSupabaseServerClient } from "@/src/core/supabaseServer";
 import type { Database } from "@/src/core/database.types";
 import {
@@ -62,9 +66,7 @@ async function getAuthenticatedUser(req: NextApiRequest) {
 
   if (error || !user) {
     return {
-      error: error
-        ? `Supabase 사용자 확인 실패: ${error.message}`
-        : "로그인 사용자를 확인할 수 없습니다.",
+      error: getAuthUserErrorMessage(error),
       status: 401,
       userId: null,
     };

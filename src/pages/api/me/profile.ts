@@ -2,7 +2,10 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { getSupabaseServerClient } from "@/src/core/supabaseServer";
 import { updateHospitalCommentAuthorNames } from "@/src/features/hospitals/comments";
 import { updateBoardPostCommentAuthorNames } from "@/src/features/reviews/comments";
-import { getBearerToken } from "@/src/core/apiRequest";
+import {
+  getAuthUserErrorMessage,
+  getBearerToken,
+} from "@/src/core/apiRequest";
 import {
   ensureUserProfile,
   updateUserProfile,
@@ -44,9 +47,7 @@ export default async function handler(
 
     if (userError || !user) {
       res.status(401).json({
-        error: userError
-          ? `Supabase 사용자 확인 실패: ${userError.message}`
-          : "로그인 사용자를 확인할 수 없습니다.",
+        error: getAuthUserErrorMessage(userError),
       });
       return;
     }
