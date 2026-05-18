@@ -5,7 +5,10 @@ import {
   toReactionSnapshot,
   validateReactionRequest,
 } from "@/src/features/hospitals/reactions";
-import { getBearerToken } from "@/src/core/apiRequest";
+import {
+  getAuthUserErrorMessage,
+  getBearerToken,
+} from "@/src/core/apiRequest";
 
 type HospitalReactionResponse =
   | {
@@ -61,9 +64,7 @@ export default async function handler(
 
     if (userError || !user) {
       res.status(401).json({
-        error: userError
-          ? `Supabase 사용자 확인 실패: ${userError.message}`
-          : "로그인 사용자를 확인할 수 없습니다.",
+        error: getAuthUserErrorMessage(userError),
       });
       return;
     }

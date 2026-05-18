@@ -1,4 +1,5 @@
 import { createClient } from "@supabase/supabase-js";
+import { createAuthSessionStorage } from "@/src/core/authSession";
 import type { Database } from "@/src/core/database.types";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -11,6 +12,7 @@ export const supabase =
           autoRefreshToken: true,
           detectSessionInUrl: true,
           persistSession: true,
+          storage: createAuthSessionStorage(),
         },
       })
     : null;
