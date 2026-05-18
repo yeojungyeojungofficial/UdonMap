@@ -6,11 +6,16 @@ import TopNav from "@/src/components/common/TopNav";
 import HospitalReportSheet from "@/src/components/common/HospitalReportSheet";
 import LoadingScreen from "@/src/components/common/LoadingScreen";
 import PostComposeSheet from "@/src/components/reviews/PostComposeSheet";
+import ReportReasonDialog from "@/src/components/reviews/ReportReasonDialog";
 import {
   MAX_BOARD_COMMENT_LENGTH,
   type BoardPostComment,
 } from "@/src/features/reviews/boardPosts";
 import { useBoardPostDetail } from "@/src/features/reviews/hooks/useBoardPostDetail";
+import type {
+  BoardPostCommentReportReason,
+  BoardPostReportReason,
+} from "@/src/features/reviews/reportReasons";
 import styles from "./PostDetailPage.module.css";
 
 function formatBoardDate(value: string) {
@@ -86,6 +91,9 @@ export default function MobilePostDetailPage() {
   const [isReportSheetOpen, setIsReportSheetOpen] = useState(false);
   const [isActionMenuOpen, setIsActionMenuOpen] = useState(false);
   const [isEditSheetOpen, setIsEditSheetOpen] = useState(false);
+  const [reportDialogTarget, setReportDialogTarget] = useState<
+    { type: "post" } | { type: "comment"; commentId: string } | null
+  >(null);
   const {
     commentError,
     commentText,
@@ -131,7 +139,38 @@ export default function MobilePostDetailPage() {
 
   const handleReportPostClick = () => {
     setIsActionMenuOpen(false);
-    void handleReportPost();
+    setReportDialogTarget({ type: "post" });
+  };
+
+  const isReportDialogSubmitting =
+    reportDialogTarget?.type === "post"
+      ? isPostActionSubmitting
+      : reportDialogTarget?.type === "comment"
+        ? reportingCommentId === reportDialogTarget.commentId
+        : false;
+
+  const closeReportReasonDialog = () => {
+    if (!isReportDialogSubmitting) {
+      setReportDialogTarget(null);
+    }
+  };
+
+  const handleReportReasonSubmit = async (
+    reason: BoardPostReportReason | BoardPostCommentReportReason,
+  ) => {
+    if (!reportDialogTarget) return;
+
+    const isReported =
+      reportDialogTarget.type === "post"
+        ? await handleReportPost(reason as BoardPostReportReason)
+        : await handleReportComment(
+            reportDialogTarget.commentId,
+            reason as BoardPostCommentReportReason,
+          );
+
+    if (isReported) {
+      setReportDialogTarget(null);
+    }
   };
 
   return (
@@ -307,7 +346,9 @@ export default function MobilePostDetailPage() {
                     deletingCommentId={deletingCommentId}
                     reportingCommentId={reportingCommentId}
                     onDelete={(commentId) => void handleDeleteComment(commentId)}
-                    onReport={(commentId) => void handleReportComment(commentId)}
+                    onReport={(commentId) =>
+                      setReportDialogTarget({ type: "comment", commentId })
+                    }
                   />
                 ))}
               </div>
@@ -325,6 +366,15 @@ export default function MobilePostDetailPage() {
           onClose={() => setIsEditSheetOpen(false)}
           onUpdated={handlePostUpdated}
         />
+        {reportDialogTarget ? (
+          <ReportReasonDialog
+            isOpen
+            isSubmitting={isReportDialogSubmitting}
+            targetType={reportDialogTarget.type}
+            onClose={closeReportReasonDialog}
+            onSubmit={(reason) => void handleReportReasonSubmit(reason)}
+          />
+        ) : null}
       </div>
     </>
   );

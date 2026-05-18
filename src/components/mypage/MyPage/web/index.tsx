@@ -44,6 +44,8 @@ export default function DesktopMyPage() {
 
   const {
     authDialogMessage,
+    authDialogTitle,
+    isAuthDialogOpen,
     authMessage,
     authMode,
     canSubmit,
@@ -171,8 +173,12 @@ export default function DesktopMyPage() {
 
         <HospitalReportSheet isOpen={isReportSheetOpen} onClose={closeReportSheet} />
         <CommonFooter className={styles.pageFooter} />
-        {authDialogMessage ? (
-          <AuthDialog message={authDialogMessage} onClose={closeAuthDialog} />
+        {isAuthDialogOpen ? (
+          <AuthDialog
+            message={authDialogMessage}
+            title={authDialogTitle}
+            onClose={closeAuthDialog}
+          />
         ) : null}
       </main>
     </>

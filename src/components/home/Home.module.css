@@ -1078,7 +1078,7 @@
   }
 }
 
-@media --mobile {
+@media (max-width: 670px) {
   .page {
     padding: 12px;
     padding-top: 112px;

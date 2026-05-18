@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { getBearerToken, getQueryValue } from "@/src/core/apiRequest";
 import { getSupabaseServerClient } from "@/src/core/supabaseServer";
+import { isBoardPostCommentReportReason } from "@/src/features/reviews/reportReasons";
 
 type BoardPostCommentReportResponse =
   | {
@@ -25,6 +26,12 @@ export default async function handler(
 
   if (!postId || !commentId) {
     res.status(400).json({ error: "게시글 ID와 댓글 ID가 필요합니다." });
+    return;
+  }
+
+  const reason = req.body?.reason;
+  if (!isBoardPostCommentReportReason(reason)) {
+    res.status(400).json({ error: "신고 사유를 선택해주세요." });
     return;
   }
 
@@ -103,7 +110,7 @@ export default async function handler(
           comment_id: commentId,
           post_id: postId,
           reporter_id: user.id,
-          reason: "사용자 신고",
+          reason,
         },
         {
           onConflict: "comment_id,reporter_id",

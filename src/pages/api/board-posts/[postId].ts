@@ -234,13 +234,25 @@ export default async function handler(
 
     const post = postData as BoardPostRow;
 
-    const { data: commentData, error: commentError } = await supabase
+    const commentQuery = supabase
       .from("board_post_comments")
       .select(BOARD_POST_COMMENT_COLUMNS)
       .eq("post_id", post.id)
       .eq("status", "visible")
       .order("created_at", { ascending: true })
       .limit(100);
+    const profileQuery = post.user_id
+      ? supabase
+          .from("profiles")
+          .select("email,display_name")
+          .eq("id", post.user_id)
+          .maybeSingle()
+      : Promise.resolve({ data: null, error: null });
+
+    const [
+      { data: commentData, error: commentError },
+      { data: profileData, error: profileError },
+    ] = await Promise.all([commentQuery, profileQuery]);
 
     if (commentError) {
       res.status(500).json({
@@ -249,24 +261,17 @@ export default async function handler(
       return;
     }
 
-    let author = "익명 사용자";
-
-    if (post.user_id) {
-      const { data: profileData, error: profileError } = await supabase
-        .from("profiles")
-        .select("email,display_name")
-        .eq("id", post.user_id)
-        .maybeSingle();
-
-      if (profileError) {
-        res.status(500).json({
-          error: `Supabase profiles 조회 실패: ${profileError.message}`,
-        });
-        return;
-      }
-
-      author = getProfileAuthorName(profileData as ProfileRow | null, author);
+    if (profileError) {
+      res.status(500).json({
+        error: `Supabase profiles 조회 실패: ${profileError.message}`,
+      });
+      return;
     }
+
+    const author = getProfileAuthorName(
+      profileData as ProfileRow | null,
+      "익명 사용자",
+    );
 
     res.status(200).json({
       post: toBoardPostDetail(

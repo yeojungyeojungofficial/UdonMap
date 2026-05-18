@@ -89,6 +89,10 @@ async function handleGet(req: NextApiRequest, res: NextApiResponse<PostResponse>
       return;
     }
 
+    res.setHeader(
+      "Cache-Control",
+      "private, max-age=15, stale-while-revalidate=30",
+    );
     res.status(200).json({
       posts: ((data ?? []) as BoardPostRow[]).map(toBoardPostSummary),
     });

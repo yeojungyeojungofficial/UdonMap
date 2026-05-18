@@ -626,6 +626,37 @@ export type Database = {
           total_count: number;
         }[];
       };
+      admin_list_board_reports: {
+        Args: {
+          p_page?: number;
+          p_page_size?: number;
+          p_status?: "pending" | "reviewed" | "dismissed" | null;
+          p_search?: string | null;
+        };
+        Returns: {
+          report_id: string;
+          report_type: "post" | "comment";
+          target_id: string;
+          post_id: string;
+          comment_id: string | null;
+          target_user_id: string | null;
+          target_user_email: string | null;
+          target_user_display_name: string | null;
+          reporter_id: string | null;
+          reporter_email: string | null;
+          reporter_display_name: string | null;
+          reason: string | null;
+          report_status: "pending" | "reviewed" | "dismissed";
+          target_status: "visible" | "hidden" | "deleted";
+          board: string;
+          filter_tag: string | null;
+          post_title: string;
+          content: string;
+          created_at: string;
+          updated_at: string;
+          total_count: number;
+        }[];
+      };
       admin_restore_board_post_comment: {
         Args: {
           p_comment_id: string;
@@ -648,6 +679,19 @@ export type Database = {
           post_id: string;
           user_id: string | null;
           status: "visible" | "hidden" | "deleted";
+          updated_at: string;
+        }[];
+      };
+      admin_update_board_report_status: {
+        Args: {
+          p_report_id: string;
+          p_report_type: "post" | "comment";
+          p_status: "pending" | "reviewed" | "dismissed";
+        };
+        Returns: {
+          report_id: string;
+          report_type: "post" | "comment";
+          status: "pending" | "reviewed" | "dismissed";
           updated_at: string;
         }[];
       };
