@@ -10,9 +10,9 @@ import {
   supabase,
 } from "@/src/core/supabase";
 import {
-  clearAutoLogin,
-  enableAutoLoginFor24Hours,
+  clearAuthSessionStorageMode,
   hasActiveAutoLogin,
+  setAuthSessionStorageMode,
   setCachedAuthSession,
 } from "@/src/core/authSession";
 import { MAX_DISPLAY_NAME_LENGTH } from "@/src/core/userProfiles";
@@ -218,6 +218,8 @@ export function useMyPageState() {
         const trimmedEmail = email.trim();
 
         if (authMode === "login") {
+          setAuthSessionStorageMode(isAutoLoginChecked);
+
           const { data, error } = await supabase.auth.signInWithPassword({
             email: trimmedEmail,
             password,
@@ -230,17 +232,11 @@ export function useMyPageState() {
 
           if (!data.user.email_confirmed_at) {
             await supabase.auth.signOut();
-            clearAutoLogin();
+            clearAuthSessionStorageMode();
             setCachedAuthSession(null);
             clearAuth();
             openAuthDialog("이메일 인증을 완료한 뒤 로그인해주세요.");
             return;
-          }
-
-          if (isAutoLoginChecked) {
-            enableAutoLoginFor24Hours();
-          } else {
-            clearAutoLogin();
           }
 
           setCachedAuthSession(data.session);
@@ -263,7 +259,7 @@ export function useMyPageState() {
 
           if (data.session) {
             await supabase.auth.signOut();
-            clearAutoLogin();
+            clearAuthSessionStorageMode();
             setCachedAuthSession(null);
             clearAuth();
           }
@@ -308,7 +304,7 @@ export function useMyPageState() {
         return;
       }
 
-      clearAutoLogin();
+      clearAuthSessionStorageMode();
       setCachedAuthSession(null);
       clearAuth();
       resetProfileState();

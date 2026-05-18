@@ -1,10 +1,10 @@
 -- 게시글/댓글 신고 관리자 조회 및 처리 함수
 
-create index if not exists board_post_reports_status_created_at_idx
-  on public.board_post_reports (status, created_at desc);
+create index if not exists board_post_reports_status_updated_at_idx
+  on public.board_post_reports (status, updated_at desc);
 
-create index if not exists board_post_comment_reports_status_created_at_idx
-  on public.board_post_comment_reports (status, created_at desc);
+create index if not exists board_post_comment_reports_status_updated_at_idx
+  on public.board_post_comment_reports (status, updated_at desc);
 
 create or replace function public.admin_list_board_reports(
   p_page      integer default 1,
@@ -115,7 +115,7 @@ as $$
   )
   select *
   from filtered
-  order by created_at desc
+  order by updated_at desc, created_at desc
   limit greatest(1, least(coalesce(p_page_size, 30), 100))
   offset greatest(0, coalesce(p_page, 1) - 1)
     * greatest(1, least(coalesce(p_page_size, 30), 100))

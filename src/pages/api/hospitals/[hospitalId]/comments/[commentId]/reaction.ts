@@ -6,6 +6,7 @@ import {
   validateReactionRequest,
 } from "@/src/features/hospitals/reactions";
 import {
+  getAuthUserErrorMessage,
   getBearerToken,
   getQueryValue,
 } from "@/src/core/apiRequest";
@@ -59,9 +60,7 @@ export default async function handler(
 
     if (userError || !user) {
       res.status(401).json({
-        error: userError
-          ? ` 사용자 확인 실패: ${userError.message}`
-          : "로그인 사용자를 확인할 수 없습니다.",
+        error: getAuthUserErrorMessage(userError),
       });
       return;
     }
