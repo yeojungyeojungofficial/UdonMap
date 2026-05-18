@@ -89,6 +89,7 @@ export default async function handler(
           post_id: postId,
           reporter_id: user.id,
           reason,
+          status: "pending",
         },
         {
           onConflict: "post_id,reporter_id",
