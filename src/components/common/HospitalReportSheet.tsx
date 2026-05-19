@@ -7,14 +7,36 @@ import {
 import styles from "@/src/components/common/HospitalReportSheet.module.css";
 
 type HospitalReportSheetProps = {
+  initialHospitalName?: string;
+  initialStreetAddress?: string;
   isOpen: boolean;
   onClose: () => void;
 };
 
 export default function HospitalReportSheet({
+  initialHospitalName,
+  initialStreetAddress,
   isOpen,
   onClose,
 }: HospitalReportSheetProps) {
+  if (!isOpen) {
+    return null;
+  }
+
+  return (
+    <HospitalReportSheetContent
+      initialHospitalName={initialHospitalName}
+      initialStreetAddress={initialStreetAddress}
+      onClose={onClose}
+    />
+  );
+}
+
+function HospitalReportSheetContent({
+  initialHospitalName,
+  initialStreetAddress,
+  onClose,
+}: Omit<HospitalReportSheetProps, "isOpen">) {
   const {
     animalSpecies,
     clearSubmitFeedback,
@@ -37,11 +59,11 @@ export default function HospitalReportSheet({
     submitError,
     submitMessage,
     toggleAnimal,
-  } = useHospitalReportForm({ onClose });
-
-  if (!isOpen) {
-    return null;
-  }
+  } = useHospitalReportForm({
+    initialHospitalName,
+    initialStreetAddress,
+    onClose,
+  });
 
   return (
     <div className={styles.overlay} role="presentation" onClick={handleClose}>

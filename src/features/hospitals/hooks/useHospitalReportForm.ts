@@ -7,6 +7,7 @@ import {
   type FormEvent,
 } from "react";
 import { createHospitalReport } from "@/src/core/api/hospitals/hospitalReportsApi";
+import { useAuthSessionState } from "@/src/features/auth/hooks/useAuthSessionState";
 import { convertImageFileToWebp } from "@/src/features/images/convertImageFileToWebp";
 
 export const HOSPITAL_REPORT_ANIMAL_OPTIONS = [
@@ -19,12 +20,18 @@ export const HOSPITAL_REPORT_ANIMAL_OPTIONS = [
 export const MAX_HOSPITAL_REPORT_FILE_COUNT = 3;
 
 type UseHospitalReportFormOptions = {
+  initialHospitalName?: string;
+  initialStreetAddress?: string;
   onClose: () => void;
 };
 
-export function useHospitalReportForm({ onClose }: UseHospitalReportFormOptions) {
-  const [hospitalName, setHospitalName] = useState("");
-  const [streetAddress, setStreetAddress] = useState("");
+export function useHospitalReportForm({
+  initialHospitalName = "",
+  initialStreetAddress = "",
+  onClose,
+}: UseHospitalReportFormOptions) {
+  const [hospitalName, setHospitalName] = useState(initialHospitalName);
+  const [streetAddress, setStreetAddress] = useState(initialStreetAddress);
   const [selectedAnimals, setSelectedAnimals] = useState<string[]>([]);
   const [animalSpecies, setAnimalSpecies] = useState("");
   const [details, setDetails] = useState("");
@@ -33,6 +40,9 @@ export function useHospitalReportForm({ onClose }: UseHospitalReportFormOptions)
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitMessage, setSubmitMessage] = useState("");
   const [submitError, setSubmitError] = useState("");
+  const { isAuthReady, isLoggedIn } = useAuthSessionState({
+    onError: setSubmitError,
+  });
 
   const selectedFilePreviews = useMemo(
     () =>
@@ -86,8 +96,19 @@ export function useHospitalReportForm({ onClose }: UseHospitalReportFormOptions)
   const handleSubmit = useCallback(
     async (event: FormEvent<HTMLFormElement>) => {
       event.preventDefault();
-      setIsSubmitting(true);
       clearSubmitFeedback();
+
+      if (!isAuthReady) {
+        setSubmitError("로그인 상태를 확인 중입니다.");
+        return;
+      }
+
+      if (!isLoggedIn) {
+        setSubmitError("로그인 후 병원 제보를 할 수 있습니다.");
+        return;
+      }
+
+      setIsSubmitting(true);
 
       try {
         await createHospitalReport({
@@ -118,6 +139,8 @@ export function useHospitalReportForm({ onClose }: UseHospitalReportFormOptions)
       clearSubmitFeedback,
       details,
       hospitalName,
+      isAuthReady,
+      isLoggedIn,
       resetFields,
       selectedAnimals,
       selectedFiles,
