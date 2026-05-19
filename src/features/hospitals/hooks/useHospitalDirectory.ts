@@ -12,6 +12,59 @@ import type {
 } from "@/src/features/hospitals/types";
 import { useHospitalMapStore } from "@/src/store/hospitalMapStore";
 
+type CurrentLocationRegionInput = {
+  lat: number;
+  lng: number;
+  regionFilter?: string | null;
+};
+
+const EARTH_RADIUS_KM = 6371;
+
+function toRadians(degrees: number) {
+  return (degrees * Math.PI) / 180;
+}
+
+function getDistanceKm(
+  source: Pick<CurrentLocationRegionInput, "lat" | "lng">,
+  target: Pick<CurrentLocationRegionInput, "lat" | "lng">,
+) {
+  const dLat = toRadians(target.lat - source.lat);
+  const dLng = toRadians(target.lng - source.lng);
+  const sourceLat = toRadians(source.lat);
+  const targetLat = toRadians(target.lat);
+  const a =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos(sourceLat) * Math.cos(targetLat) * Math.sin(dLng / 2) ** 2;
+
+  return (
+    2 * EARTH_RADIUS_KM * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
+  );
+}
+
+function getNearestHospitalRegion(
+  location: CurrentLocationRegionInput,
+  hospitals: Hospital[],
+  regionOptions: readonly Region[],
+) {
+  const regionOptionSet = new Set(regionOptions);
+  let nearestRegion: Region | null = null;
+  let nearestDistance = Number.POSITIVE_INFINITY;
+
+  hospitals.forEach((hospital) => {
+    if (!regionOptionSet.has(hospital.regionFilter)) {
+      return;
+    }
+
+    const distance = getDistanceKm(location, hospital.mapCoordinate);
+    if (distance < nearestDistance) {
+      nearestDistance = distance;
+      nearestRegion = hospital.regionFilter;
+    }
+  });
+
+  return nearestRegion;
+}
+
 export function useHospitalDirectory() {
   const [hospitals, setHospitals] = useState<Hospital[]>([]);
   const [isLoadingHospitals, setIsLoadingHospitals] = useState(true);
@@ -183,6 +236,30 @@ export function useHospitalDirectory() {
     clearSelectedHospital();
   }, [clearSelectedHospital]);
 
+  const handleCurrentLocationResolved = useCallback(
+    (location: CurrentLocationRegionInput) => {
+      const normalizedRegion = location.regionFilter?.trim() ?? "";
+      const hasHospitalsInResolvedRegion = hospitals.some(
+        (hospital) => hospital.regionFilter === normalizedRegion,
+      );
+      const nextRegion =
+        normalizedRegion &&
+        regionOptions.includes(normalizedRegion) &&
+        hasHospitalsInResolvedRegion
+          ? normalizedRegion
+          : getNearestHospitalRegion(location, hospitals, regionOptions);
+
+      if (!nextRegion) {
+        return;
+      }
+
+      setQuery("");
+      setSelectedRegion(nextRegion);
+      clearSelectedHospital();
+    },
+    [clearSelectedHospital, hospitals, regionOptions, setQuery, setSelectedRegion],
+  );
+
   const handleCommentCreated = useCallback(
     (hospitalId: string, comment: HospitalComment) => {
       setHospitals((currentHospitals) =>
@@ -293,6 +370,7 @@ export function useHospitalDirectory() {
     handleCommentCreated,
     handleCommentDeleted,
     handleCommentReactionChanged,
+    handleCurrentLocationResolved,
     handleHospitalReactionChanged,
     handleSelectHospital,
     hasHospitalLoadError,

@@ -79,6 +79,170 @@
   height: 100%;
 }
 
+.mapControlDock {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  z-index: 8;
+  display: grid;
+  width: 92px;
+  gap: 8px;
+  pointer-events: none;
+}
+
+.mapControlButton,
+.zoomControlButton {
+  border: 1px solid rgba(56, 56, 56, 0.12);
+  background: rgba(255, 255, 255, 0.96);
+  color: var(--color-text);
+  box-shadow: 0 8px 22px rgba(56, 56, 56, 0.16);
+  cursor: pointer;
+  pointer-events: auto;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease,
+    opacity 0.15s ease;
+}
+
+.mapControlButton:hover,
+.zoomControlButton:hover {
+  border-color: rgba(255, 150, 69, 0.58);
+  color: var(--color-brand-strong);
+}
+
+.mapControlButton:disabled,
+.zoomControlButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.mapControlButtonActive {
+  border-color: rgba(255, 150, 69, 0.72);
+  background: var(--color-brand-surface);
+  color: var(--color-brand-strong);
+}
+
+.locationControlButton {
+  height: 42px;
+  border-radius: var(--radius-field);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  padding: 0 9px;
+  font-size: 12px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.mapControlIcon {
+  width: 16px;
+  height: 16px;
+  flex: 0 0 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.zoomControlGroup {
+  display: grid;
+  justify-self: end;
+  width: 42px;
+  overflow: hidden;
+  border: 1px solid rgba(56, 56, 56, 0.12);
+  border-radius: var(--radius-field);
+  box-shadow: 0 8px 22px rgba(56, 56, 56, 0.16);
+  pointer-events: auto;
+}
+
+.zoomControlButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.zoomControlIcon {
+  width: 18px;
+  height: 18px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.zoomControlButton + .zoomControlButton {
+  border-top: 1px solid rgba(56, 56, 56, 0.12);
+}
+
+.locationStatus {
+  margin: 0;
+  border-radius: var(--radius-field);
+  padding: 8px 9px;
+  background: rgba(255, 255, 255, 0.96);
+  color: var(--color-text-muted);
+  box-shadow: 0 8px 22px rgba(56, 56, 56, 0.14);
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 1.35;
+  text-align: center;
+  pointer-events: auto;
+}
+
+.locationStatusError {
+  background: var(--color-danger-surface);
+  color: var(--color-danger-text);
+}
+
+.currentLocationMarker {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  transform: translateY(-4px);
+  pointer-events: none;
+}
+
+.currentLocationPulse,
+.currentLocationDot {
+  border-radius: 50%;
+  background: #2f80ed;
+}
+
+.currentLocationPulse {
+  position: absolute;
+  left: -6px;
+  width: 28px;
+  height: 28px;
+  opacity: 0.22;
+  animation: currentLocationPulse 1.8s ease-out infinite;
+}
+
+.currentLocationDot {
+  position: relative;
+  width: 16px;
+  height: 16px;
+  border: 3px solid var(--color-surface);
+  box-shadow: 0 4px 14px rgba(47, 128, 237, 0.36);
+}
+
+.currentLocationLabel {
+  position: relative;
+  border-radius: var(--radius-pill);
+  padding: 5px 9px;
+  background: rgba(56, 56, 56, 0.92);
+  color: var(--color-surface);
+  font-size: 11px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
 .marker {
   position: absolute;
   transform: translate(-50%, -50%);
@@ -1067,6 +1231,17 @@
   }
 }
 
+@keyframes currentLocationPulse {
+  from {
+    opacity: 0.28;
+    transform: scale(0.72);
+  }
+  to {
+    opacity: 0;
+    transform: scale(1.65);
+  }
+}
+
 @keyframes slideUp {
   from {
     opacity: 0;
@@ -1106,6 +1281,44 @@
   .mapPanel {
     margin-top: 0;
     height: 300px;
+  }
+
+  .mapControlDock {
+    top: 10px;
+    right: 10px;
+    width: 78px;
+    gap: 7px;
+  }
+
+  .locationControlButton {
+    height: 38px;
+    padding: 0 8px;
+    font-size: 11px;
+  }
+
+  .mapControlIcon {
+    width: 14px;
+    height: 14px;
+    flex-basis: 14px;
+  }
+
+  .zoomControlButton {
+    width: 38px;
+    height: 38px;
+  }
+
+  .zoomControlGroup {
+    width: 38px;
+  }
+
+  .zoomControlIcon {
+    width: 17px;
+    height: 17px;
+  }
+
+  .locationStatus {
+    padding: 7px;
+    font-size: 10px;
   }
 
   .mainSection {

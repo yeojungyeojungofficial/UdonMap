@@ -14,6 +14,10 @@ import styles from "./HomePage.module.css";
 export default function DesktopHomePage() {
   const [activeMenu, setActiveMenu] = useState("병원찾기");
   const [isReportSheetOpen, setIsReportSheetOpen] = useState(false);
+  const [reportInitialValues, setReportInitialValues] = useState({
+    hospitalName: "",
+    streetAddress: "",
+  });
   const {
     effectiveSelectedRegion,
     filteredHospitals,
@@ -22,6 +26,7 @@ export default function DesktopHomePage() {
     handleCommentCreated,
     handleCommentDeleted,
     handleCommentReactionChanged,
+    handleCurrentLocationResolved,
     handleHospitalReactionChanged,
     handleSelectHospital,
     hasHospitalLoadError,
@@ -43,6 +48,25 @@ export default function DesktopHomePage() {
   const closeReportSheet = () => {
     setIsReportSheetOpen(false);
     setActiveMenu("병원찾기");
+    setReportInitialValues({ hospitalName: "", streetAddress: "" });
+  };
+
+  const openEmptyReportSheet = () => {
+    setReportInitialValues({ hospitalName: "", streetAddress: "" });
+    setActiveMenu("병원제보");
+    setIsReportSheetOpen(true);
+  };
+
+  const openHospitalReportSheet = (
+    targetHospital: NonNullable<typeof selectedHospital>,
+  ) => {
+    setReportInitialValues({
+      hospitalName: targetHospital.name,
+      streetAddress: targetHospital.address,
+    });
+    setActiveMenu("병원제보");
+    handleCloseHospital();
+    setIsReportSheetOpen(true);
   };
 
   return (
@@ -58,10 +82,7 @@ export default function DesktopHomePage() {
         <TopNav
           activeMenu={activeMenu}
           onSelectMenu={setActiveMenu}
-          onOpenReport={() => {
-            setActiveMenu("병원제보");
-            setIsReportSheetOpen(true);
-          }}
+          onOpenReport={openEmptyReportSheet}
         />
         <div className={styles.searchWrap}>
           <label htmlFor="hospital-search" className={styles.searchLabel}>
@@ -94,6 +115,7 @@ export default function DesktopHomePage() {
             mapLevel={mapLevel}
             selectedHospitalId={selectedHospitalId}
             selectedRegion={mapSelectedRegion}
+            onCurrentLocationResolved={handleCurrentLocationResolved}
             onMapLevelChange={setMapLevel}
             onSelectHospital={handleSelectHospital}
           />
@@ -127,10 +149,13 @@ export default function DesktopHomePage() {
           onHospitalReactionChanged={handleHospitalReactionChanged}
           onCommentReactionChanged={handleCommentReactionChanged}
           onBookmarkChanged={handleBookmarkChanged}
+          onOpenReport={openHospitalReportSheet}
           isLoadingComments={loadingCommentsHospitalId === selectedHospital?.id}
           commentLoadError={selectedHospitalCommentLoadError}
         />
         <HospitalReportSheet
+          initialHospitalName={reportInitialValues.hospitalName}
+          initialStreetAddress={reportInitialValues.streetAddress}
           isOpen={isReportSheetOpen}
           onClose={closeReportSheet}
         />
