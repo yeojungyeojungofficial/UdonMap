@@ -74,13 +74,14 @@ export default function MobileTopNav({
   return (
     <>
       <header className={styles.header}>
-        <a
+        <Link
           href="/"
           className={styles.logoText}
           aria-label="홈으로 이동"
+          onClick={() => onSelectMenu?.("병원찾기")}
         >
           <span>우</span>리동네 <span>동</span>물병원
-        </a>
+        </Link>
       </header>
 
       <nav className={styles.bottomNav} aria-label="하단 메뉴">
