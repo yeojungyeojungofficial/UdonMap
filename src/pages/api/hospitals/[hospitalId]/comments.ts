@@ -5,6 +5,7 @@ import {
   toHospitalComment,
   validateCreateHospitalComment,
   validateDeleteHospitalComment,
+  type HospitalCommentRow,
 } from "@/src/features/hospitals/comments";
 import type { HospitalComment } from "@/src/features/hospitals/types";
 import { getSupabaseServerClient } from "@/src/core/supabaseServer";
@@ -13,12 +14,16 @@ import {
   getAuthUserErrorMessage,
   getBearerToken,
 } from "@/src/core/apiRequest";
+import { checkRateLimit } from "@/src/core/rateLimit";
 import {
   getSuspensionBlockedMessage,
   getUserActiveSuspension,
 } from "@/src/core/suspensions";
 
 type HospitalCommentResponse =
+  | {
+      comments: HospitalCommentRow[];
+    }
   | {
       comment: HospitalComment;
     }
@@ -28,6 +33,12 @@ type HospitalCommentResponse =
   | {
       error: string;
     };
+
+const HOSPITAL_COMMENT_LIST_RATE_LIMIT = {
+  keyPrefix: "hospitals:comments:list",
+  limit: 120,
+  windowMs: 60 * 1000,
+};
 
 function getHospitalId(req: NextApiRequest) {
   return Array.isArray(req.query.hospitalId)
@@ -39,9 +50,9 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse<HospitalCommentResponse>,
 ) {
-  if (req.method !== "POST" && req.method !== "DELETE") {
-    res.setHeader("Allow", "POST, DELETE");
-    res.status(405).json({ error: "POST, DELETE 요청만 지원합니다." });
+  if (req.method !== "GET" && req.method !== "POST" && req.method !== "DELETE") {
+    res.setHeader("Allow", "GET, POST, DELETE");
+    res.status(405).json({ error: "GET, POST, DELETE 요청만 지원합니다." });
     return;
   }
 
@@ -49,6 +60,44 @@ export default async function handler(
 
   if (!hospitalId) {
     res.status(400).json({ error: "병원 ID가 필요합니다." });
+    return;
+  }
+
+  if (req.method === "GET") {
+    const rateLimit = checkRateLimit(req, HOSPITAL_COMMENT_LIST_RATE_LIMIT);
+    if (!rateLimit.ok) {
+      res.setHeader("Retry-After", String(rateLimit.retryAfterSeconds));
+      res.status(429).json({
+        error: "요청이 너무 많습니다. 잠시 후 다시 시도해주세요.",
+      });
+      return;
+    }
+
+    res.setHeader("X-RateLimit-Remaining", String(rateLimit.remaining));
+
+    try {
+      const supabase = getSupabaseServerClient();
+      const { data, error } = await supabase
+        .from("hospital_comments")
+        .select(HOSPITAL_COMMENT_COLUMNS)
+        .eq("hospital_id", hospitalId)
+        .eq("status", "visible")
+        .order("created_at", { ascending: false })
+        .limit(100);
+
+      if (error) {
+        res.status(500).json({
+          error: `Supabase hospital_comments 조회 실패: ${error.message}`,
+        });
+        return;
+      }
+
+      res.status(200).json({ comments: data ?? [] });
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "알 수 없는 서버 오류입니다.";
+      res.status(500).json({ error: message });
+    }
     return;
   }
 
