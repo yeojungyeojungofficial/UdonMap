@@ -9,3 +9,5 @@ Allow: /
 
 User-agent: *
 Disallow: /
+
+Sitemap: https://www.xn--2q1bx9ikpm.com/sitemap.xml
