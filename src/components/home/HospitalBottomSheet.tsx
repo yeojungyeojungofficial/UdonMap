@@ -29,6 +29,7 @@ type HospitalBottomSheetProps = {
     commentId: string,
     reaction: ReactionSnapshot,
   ) => void;
+  onOpenReport?: (hospital: Hospital) => void;
   isLoadingComments?: boolean;
   commentLoadError?: string;
 };
@@ -154,6 +155,7 @@ export default function HospitalBottomSheet({
   onHospitalReactionChanged,
   onBookmarkChanged,
   onCommentReactionChanged,
+  onOpenReport,
   isLoadingComments = false,
   commentLoadError = "",
 }: HospitalBottomSheetProps) {
@@ -170,6 +172,7 @@ export default function HospitalBottomSheet({
     handleCommentReaction,
     handleCommentSubmit,
     handleReaction,
+    handleReportClick,
     handleShare,
     hospitalReactionSubmitting,
     isAuthReady,
@@ -183,6 +186,7 @@ export default function HospitalBottomSheet({
     onCommentDeleted,
     onCommentReactionChanged,
     onHospitalReactionChanged,
+    onOpenReport,
   });
 
   if (!hospital) {
@@ -401,7 +405,11 @@ export default function HospitalBottomSheet({
                 싫어요 {hospital.dislikes}
               </button>
             </div>
-            <button type="button" className={styles.reportButton}>
+            <button
+              type="button"
+              className={styles.reportButton}
+              onClick={handleReportClick}
+            >
               <SheetIcon name="report" />
               추가 제보하기
             </button>

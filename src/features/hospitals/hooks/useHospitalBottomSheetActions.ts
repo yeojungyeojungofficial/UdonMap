@@ -34,6 +34,7 @@ type UseHospitalBottomSheetActionsOptions = {
     hospitalId: string,
     reaction: ReactionSnapshot,
   ) => void;
+  onOpenReport?: (hospital: Hospital) => void;
 };
 
 export function useHospitalBottomSheetActions({
@@ -43,6 +44,7 @@ export function useHospitalBottomSheetActions({
   onCommentDeleted,
   onCommentReactionChanged,
   onHospitalReactionChanged,
+  onOpenReport,
 }: UseHospitalBottomSheetActionsOptions) {
   const [commentContent, setCommentContent] = useState("");
   const [isCommentSubmitting, setIsCommentSubmitting] = useState(false);
@@ -210,6 +212,21 @@ export function useHospitalBottomSheetActions({
     [clearCommentFeedback, hospital, isLoggedIn, onHospitalReactionChanged],
   );
 
+  const handleReportClick = useCallback(() => {
+    clearCommentFeedback();
+
+    if (!hospital) {
+      return;
+    }
+
+    if (!isLoggedIn) {
+      setCommentError("로그인 후 병원 제보를 할 수 있습니다.");
+      return;
+    }
+
+    onOpenReport?.(hospital);
+  }, [clearCommentFeedback, hospital, isLoggedIn, onOpenReport]);
+
   const handleCommentReaction = useCallback(
     async (commentId: string, type: ReactionType) => {
       clearCommentFeedback();
@@ -288,6 +305,7 @@ export function useHospitalBottomSheetActions({
     handleCommentReaction,
     handleCommentSubmit,
     handleReaction,
+    handleReportClick,
     handleShare,
     hospitalReactionSubmitting,
     isAuthReady,

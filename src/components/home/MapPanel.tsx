@@ -37,6 +37,19 @@ type KakaoCustomOverlay = {
   setMap: (map: KakaoMap | null) => void;
 };
 
+type KakaoRegionCodeResult = {
+  region_1depth_name?: string;
+  region_type?: string;
+};
+
+type KakaoGeocoder = {
+  coord2RegionCode: (
+    lng: number,
+    lat: number,
+    callback: (result: KakaoRegionCodeResult[], status: string) => void,
+  ) => void;
+};
+
 type KakaoMaps = {
   load: (callback: () => void) => void;
   LatLng: new (lat: number, lng: number) => KakaoLatLng;
@@ -52,6 +65,12 @@ type KakaoMaps = {
     yAnchor?: number;
     zIndex?: number;
   }) => KakaoCustomOverlay;
+  services?: {
+    Geocoder: new () => KakaoGeocoder;
+    Status: {
+      OK: string;
+    };
+  };
   event: {
     addListener: (target: KakaoMap, type: string, handler: () => void) => void;
     removeListener: (
@@ -75,6 +94,9 @@ type MapPanelProps = {
   mapLevel: number;
   selectedHospitalId: string | null;
   selectedRegion: Region;
+  onCurrentLocationResolved?: (location: CurrentLocation & {
+    regionFilter?: Region | null;
+  }) => void;
   onMapLevelChange: (mapLevel: number) => void;
   onSelectHospital: (hospital: Hospital) => void;
 };
@@ -82,6 +104,39 @@ type MapPanelProps = {
 const SEOUL_CENTER = {
   lat: 37.5665,
   lng: 126.978,
+};
+const MIN_KAKAO_MAP_LEVEL = 1;
+const MAX_KAKAO_MAP_LEVEL = 14;
+const CURRENT_LOCATION_FOCUS_LEVEL = 3;
+
+type CurrentLocation = {
+  accuracy: number | null;
+  lat: number;
+  lng: number;
+};
+
+type LocationStatus = "idle" | "locating" | "visible" | "error";
+
+const KAKAO_REGION_NAME_MAP: Record<string, Region> = {
+  강원도: "강원",
+  강원특별자치도: "강원",
+  경기도: "경기",
+  경상남도: "경남",
+  경상북도: "경북",
+  광주광역시: "광주",
+  대구광역시: "대구",
+  대전광역시: "대전",
+  부산광역시: "부산",
+  서울특별시: "서울",
+  세종특별자치시: "세종",
+  울산광역시: "울산",
+  인천광역시: "인천",
+  전라남도: "전남",
+  전라북도: "전북",
+  전북특별자치도: "전북",
+  제주특별자치도: "제주",
+  충청남도: "충남",
+  충청북도: "충북",
 };
 
 type OverlayEntry = {
@@ -189,11 +244,70 @@ function getAllRegionOverlayGroups(hospitals: Hospital[]) {
   ];
 }
 
+function getGeolocationErrorMessage(error: GeolocationPositionError) {
+  if (error.code === error.PERMISSION_DENIED) {
+    return "위치 권한이 필요합니다.";
+  }
+
+  if (error.code === error.POSITION_UNAVAILABLE) {
+    return "현재 위치를 찾을 수 없습니다.";
+  }
+
+  if (error.code === error.TIMEOUT) {
+    return "위치 확인 시간이 초과되었습니다.";
+  }
+
+  return "위치 확인에 실패했습니다.";
+}
+
+function formatAccuracy(accuracy: number | null) {
+  if (!accuracy) {
+    return "위치 표시됨";
+  }
+
+  if (accuracy >= 1000) {
+    return `오차 약 ${(accuracy / 1000).toFixed(1)}km`;
+  }
+
+  return `오차 약 ${Math.round(accuracy)}m`;
+}
+
+function normalizeKakaoRegionName(regionName?: string) {
+  if (!regionName) {
+    return null;
+  }
+
+  return KAKAO_REGION_NAME_MAP[regionName] ?? regionName;
+}
+
+function resolveRegionFilterFromCoordinate(location: CurrentLocation) {
+  if (!window.kakao?.maps.services) {
+    return Promise.resolve<Region | null>(null);
+  }
+
+  const services = window.kakao.maps.services;
+  const geocoder = new services.Geocoder();
+
+  return new Promise<Region | null>((resolve) => {
+    geocoder.coord2RegionCode(location.lng, location.lat, (result, status) => {
+      if (status !== services.Status.OK) {
+        resolve(null);
+        return;
+      }
+
+      const administrativeRegion =
+        result.find((region) => region.region_type === "H") ?? result[0];
+      resolve(normalizeKakaoRegionName(administrativeRegion?.region_1depth_name));
+    });
+  });
+}
+
 export default function MapPanel({
   hospitals,
   mapLevel,
   selectedHospitalId,
   selectedRegion,
+  onCurrentLocationResolved,
   onMapLevelChange,
   onSelectHospital,
 }: MapPanelProps) {
@@ -206,16 +320,24 @@ export default function MapPanel({
     }
 
     const appKey = encodeURIComponent(kakaoMapJsKey);
-    return `https://dapi.kakao.com/v2/maps/sdk.js?appkey=${appKey}&autoload=false`;
+    return `https://dapi.kakao.com/v2/maps/sdk.js?appkey=${appKey}&autoload=false&libraries=services`;
   }, [kakaoMapJsKey]);
 
   const mapContainerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<KakaoMap | null>(null);
+  const currentLocationOverlayRef = useRef<KakaoCustomOverlay | null>(null);
   const overlaysRef = useRef<OverlayEntry[]>([]);
-  const shouldSkipInitialBoundsRef = useRef(true);
+  const shouldFitBoundsWithCurrentLocationRef = useRef(false);
+  const currentLocationForBoundsRef = useRef<CurrentLocation | null>(null);
+  const currentLocationRegionRef = useRef<string | null>(null);
+  const [currentLocation, setCurrentLocation] =
+    useState<CurrentLocation | null>(null);
   const [isSdkReady, setIsSdkReady] = useState(false);
   const [isMapReady, setIsMapReady] = useState(false);
   const [hasSdkLoadError, setHasSdkLoadError] = useState(false);
+  const [locationMessage, setLocationMessage] = useState("");
+  const [locationStatus, setLocationStatus] =
+    useState<LocationStatus>("idle");
   const isAllRegions = selectedRegion === "전체";
   const regionOverlayGroups = useMemo(
     () => (isAllRegions ? getAllRegionOverlayGroups(hospitals) : []),
@@ -256,9 +378,98 @@ export default function MapPanel({
       onMapLevelChange(mapRef.current.getLevel());
       setIsMapReady(true);
     }
+  }, [isSdkReady, onMapLevelChange, scriptSrc]);
 
-    mapRef.current.relayout();
-  }, [hospitals, isSdkReady, onMapLevelChange, scriptSrc]);
+  const setMapLevelSafely = (nextLevel: number) => {
+    if (!mapRef.current) {
+      return;
+    }
+
+    const normalizedLevel = Math.min(
+      Math.max(nextLevel, MIN_KAKAO_MAP_LEVEL),
+      MAX_KAKAO_MAP_LEVEL,
+    );
+
+    mapRef.current.setLevel(normalizedLevel, { animate: true });
+    onMapLevelChange(normalizedLevel);
+  };
+
+  const handleZoomIn = () => {
+    if (!mapRef.current) {
+      return;
+    }
+
+    setMapLevelSafely(mapRef.current.getLevel() - 1);
+  };
+
+  const handleZoomOut = () => {
+    if (!mapRef.current) {
+      return;
+    }
+
+    setMapLevelSafely(mapRef.current.getLevel() + 1);
+  };
+
+  const handleCurrentLocationClick = () => {
+    if (typeof navigator === "undefined" || !navigator.geolocation) {
+      setLocationStatus("error");
+      setLocationMessage("브라우저에서 위치 기능을 지원하지 않습니다.");
+      return;
+    }
+
+    setLocationStatus("locating");
+    setLocationMessage("위치를 확인하고 있습니다.");
+
+    navigator.geolocation.getCurrentPosition(
+      ({ coords }) => {
+        const nextLocation = {
+          accuracy: Number.isFinite(coords.accuracy) ? coords.accuracy : null,
+          lat: coords.latitude,
+          lng: coords.longitude,
+        };
+
+        setCurrentLocation(nextLocation);
+        setLocationStatus("visible");
+        setLocationMessage(formatAccuracy(nextLocation.accuracy));
+        shouldFitBoundsWithCurrentLocationRef.current = true;
+        currentLocationForBoundsRef.current = nextLocation;
+
+        if (mapRef.current && window.kakao) {
+          const position = new window.kakao.maps.LatLng(
+            nextLocation.lat,
+            nextLocation.lng,
+          );
+          mapRef.current.setCenter(position);
+          mapRef.current.setLevel(
+            Math.min(mapRef.current.getLevel(), CURRENT_LOCATION_FOCUS_LEVEL),
+            { anchor: position, animate: true },
+          );
+        }
+
+        void resolveRegionFilterFromCoordinate(nextLocation).then(
+          (regionFilter) => {
+            currentLocationRegionRef.current = regionFilter;
+            onCurrentLocationResolved?.({
+              ...nextLocation,
+              regionFilter,
+            });
+            if (regionFilter) {
+              setLocationMessage(`${regionFilter} 주변 병원을 표시합니다.`);
+            }
+          },
+        );
+      },
+      (error) => {
+        setLocationStatus("error");
+        setLocationMessage(getGeolocationErrorMessage(error));
+      },
+      {
+        enableHighAccuracy: true,
+        maximumAge: 60000,
+        timeout: 10000,
+      },
+    );
+  };
 
   useEffect(() => {
     if (!isMapReady || !mapRef.current || !window.kakao) {
@@ -280,6 +491,20 @@ export default function MapPanel({
   }, [isMapReady, onMapLevelChange]);
 
   useEffect(() => {
+    if (!currentLocation || selectedRegion === "전체") {
+      return;
+    }
+
+    const locationRegion = currentLocationRegionRef.current;
+    if (locationRegion !== null && selectedRegion !== locationRegion) {
+      setCurrentLocation(null);
+      setLocationStatus("idle");
+      setLocationMessage("");
+      currentLocationRegionRef.current = null;
+    }
+  }, [selectedRegion, currentLocation]);
+
+  useEffect(() => {
     if (!isMapReady || !mapRef.current || !window.kakao) {
       return;
     }
@@ -292,12 +517,12 @@ export default function MapPanel({
       return;
     }
 
-    if (shouldSkipInitialBoundsRef.current) {
-      shouldSkipInitialBoundsRef.current = false;
-      return;
-    }
+    const locationForBounds = shouldFitBoundsWithCurrentLocationRef.current
+      ? currentLocationForBoundsRef.current
+      : null;
+    const shouldIncludeCurrentLocation = Boolean(locationForBounds);
 
-    if (hospitals.length === 1) {
+    if (hospitals.length === 1 && !shouldIncludeCurrentLocation) {
       const [hospital] = hospitals;
       map.setCenter(
         new kakaoMaps.LatLng(
@@ -319,6 +544,14 @@ export default function MapPanel({
       );
     });
 
+    if (locationForBounds) {
+      bounds.extend(
+        new kakaoMaps.LatLng(locationForBounds.lat, locationForBounds.lng),
+      );
+      shouldFitBoundsWithCurrentLocationRef.current = false;
+      currentLocationForBoundsRef.current = null;
+    }
+
     if (isAllRegions) {
       const padding = HOSPITAL_FOCUS_BOUNDS_PADDING;
       map.setBounds(bounds, padding, padding, padding, padding);
@@ -331,7 +564,8 @@ export default function MapPanel({
       return;
     }
 
-    map.setBounds(bounds);
+    const padding = HOSPITAL_FOCUS_BOUNDS_PADDING;
+    map.setBounds(bounds, padding, padding, padding, padding);
   }, [hospitals, isAllRegions, isMapReady]);
 
   useEffect(() => {
@@ -447,11 +681,51 @@ export default function MapPanel({
     hospitals,
     isAllRegions,
     isMapReady,
-    mapLevel,
     onSelectHospital,
     regionOverlayGroups,
     selectedHospitalId,
   ]);
+
+  useEffect(() => {
+    currentLocationOverlayRef.current?.setMap(null);
+    currentLocationOverlayRef.current = null;
+
+    if (!isMapReady || !mapRef.current || !window.kakao || !currentLocation) {
+      return;
+    }
+
+    const map = mapRef.current;
+    const kakaoMaps = window.kakao.maps;
+    const marker = document.createElement("div");
+    const pulse = document.createElement("span");
+    const dot = document.createElement("span");
+    const label = document.createElement("span");
+
+    marker.className = styles.currentLocationMarker;
+    pulse.className = styles.currentLocationPulse;
+    dot.className = styles.currentLocationDot;
+    label.className = styles.currentLocationLabel;
+    label.textContent = "내 위치";
+    marker.append(pulse, dot, label);
+
+    const overlay = new kakaoMaps.CustomOverlay({
+      content: marker,
+      position: new kakaoMaps.LatLng(currentLocation.lat, currentLocation.lng),
+      xAnchor: 0.5,
+      yAnchor: 0.5,
+      zIndex: 4,
+    });
+
+    overlay.setMap(map);
+    currentLocationOverlayRef.current = overlay;
+
+    return () => {
+      overlay.setMap(null);
+      if (currentLocationOverlayRef.current === overlay) {
+        currentLocationOverlayRef.current = null;
+      }
+    };
+  }, [currentLocation, isMapReady]);
 
   const fallbackMarkers = isAllRegions
     ? regionOverlayGroups.map((group) => (
@@ -498,6 +772,69 @@ export default function MapPanel({
       ) : (
         fallbackMarkers
       )}
+      <div className={styles.mapControlDock} aria-label="지도 컨트롤">
+        <button
+          type="button"
+          className={`${styles.mapControlButton} ${styles.locationControlButton} ${
+            locationStatus === "visible" ? styles.mapControlButtonActive : ""
+          }`}
+          onClick={handleCurrentLocationClick}
+          disabled={!isMapReady || locationStatus === "locating"}
+          aria-label="내 위치 지도에 표시"
+        >
+          <svg
+            className={styles.mapControlIcon}
+            viewBox="0 0 24 24"
+            aria-hidden="true"
+          >
+            <path d="M12 3v3M12 18v3M3 12h3M18 12h3" />
+            <circle cx="12" cy="12" r="5.5" />
+            <circle cx="12" cy="12" r="1.8" />
+          </svg>
+          <span>{locationStatus === "locating" ? "확인 중" : "내 위치"}</span>
+        </button>
+        <div className={styles.zoomControlGroup}>
+          <button
+            type="button"
+            className={styles.zoomControlButton}
+            onClick={handleZoomIn}
+            disabled={!isMapReady || mapLevel <= MIN_KAKAO_MAP_LEVEL}
+            aria-label="지도 확대"
+          >
+            <svg
+              className={styles.zoomControlIcon}
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+            >
+              <path d="M12 5v14M5 12h14" />
+            </svg>
+          </button>
+          <button
+            type="button"
+            className={styles.zoomControlButton}
+            onClick={handleZoomOut}
+            disabled={!isMapReady || mapLevel >= MAX_KAKAO_MAP_LEVEL}
+            aria-label="지도 축소"
+          >
+            <svg
+              className={styles.zoomControlIcon}
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+            >
+              <path d="M5 12h14" />
+            </svg>
+          </button>
+        </div>
+        {locationStatus !== "idle" ? (
+          <p
+            className={`${styles.locationStatus} ${
+              locationStatus === "error" ? styles.locationStatusError : ""
+            }`}
+          >
+            {locationMessage}
+          </p>
+        ) : null}
+      </div>
     </section>
   );
 }
