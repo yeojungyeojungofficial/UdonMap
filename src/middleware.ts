@@ -4,7 +4,7 @@ const BLOCKED_API_USER_AGENT_PATTERN =
   /\b(curl|wget|python-requests|aiohttp|httpx|scrapy|go-http-client|java|okhttp|libwww-perl|httpclient|crawler|spider|bot)\b/i;
 
 function isAllowedSearchBot(userAgent: string) {
-  return /\b(Googlebot|Googlebot-Image|Google-InspectionTool)\b/i.test(
+  return /\b(Googlebot|Googlebot-Image|Google-InspectionTool|OAI-SearchBot|ChatGPT-User)\b/i.test(
     userAgent,
   );
 }
