@@ -30,6 +30,7 @@ export default function MobileHomePage() {
     handleHospitalReactionChanged,
     handleSelectHospital,
     hasHospitalLoadError,
+    initialMapFocusRegion,
     isLoadingHospitals,
     loadingCommentsHospitalId,
     mapLevel,
@@ -137,6 +138,7 @@ export default function MobileHomePage() {
         <div className={styles.heroSection}>
           <MapPanel
             hospitals={mapHospitals}
+            initialFocusRegion={initialMapFocusRegion}
             mapLevel={mapLevel}
             selectedHospitalId={selectedHospitalId}
             selectedRegion={mapSelectedRegion}

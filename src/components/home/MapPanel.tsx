@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
+  ALL_REGION_MARKER_MAX_LEVEL,
   HOSPITAL_FOCUS_BOUNDS_MIN_LEVEL,
   HOSPITAL_FOCUS_BOUNDS_PADDING,
   HOSPITAL_FOCUS_BOUNDS_ZOOM_IN,
@@ -91,6 +92,7 @@ declare global {
 
 type MapPanelProps = {
   hospitals: Hospital[];
+  initialFocusRegion?: Region | null;
   mapLevel: number;
   selectedHospitalId: string | null;
   selectedRegion: Region;
@@ -304,6 +306,7 @@ function resolveRegionFilterFromCoordinate(location: CurrentLocation) {
 
 export default function MapPanel({
   hospitals,
+  initialFocusRegion,
   mapLevel,
   selectedHospitalId,
   selectedRegion,
@@ -325,6 +328,7 @@ export default function MapPanel({
 
   const mapContainerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<KakaoMap | null>(null);
+  const hasAppliedInitialFocusRegionRef = useRef(false);
   const currentLocationOverlayRef = useRef<KakaoCustomOverlay | null>(null);
   const overlaysRef = useRef<OverlayEntry[]>([]);
   const shouldFitBoundsWithCurrentLocationRef = useRef(false);
@@ -339,9 +343,11 @@ export default function MapPanel({
   const [locationStatus, setLocationStatus] =
     useState<LocationStatus>("idle");
   const isAllRegions = selectedRegion === "전체";
+  const shouldShowRegionClusters =
+    isAllRegions && mapLevel > ALL_REGION_MARKER_MAX_LEVEL;
   const regionOverlayGroups = useMemo(
-    () => (isAllRegions ? getAllRegionOverlayGroups(hospitals) : []),
-    [hospitals, isAllRegions],
+    () => (shouldShowRegionClusters ? getAllRegionOverlayGroups(hospitals) : []),
+    [hospitals, shouldShowRegionClusters],
   );
 
   useEffect(() => {
@@ -521,9 +527,25 @@ export default function MapPanel({
       ? currentLocationForBoundsRef.current
       : null;
     const shouldIncludeCurrentLocation = Boolean(locationForBounds);
+    const initialFocusHospitals =
+      initialFocusRegion && !hasAppliedInitialFocusRegionRef.current
+        ? hospitals.filter(
+            (hospital) => hospital.regionFilter === initialFocusRegion,
+          )
+        : [];
+    const boundsHospitals =
+      initialFocusHospitals.length > 0 && !shouldIncludeCurrentLocation
+        ? initialFocusHospitals
+        : hospitals;
+    const shouldApplyInitialFocus =
+      boundsHospitals === initialFocusHospitals &&
+      initialFocusHospitals.length > 0;
 
-    if (hospitals.length === 1 && !shouldIncludeCurrentLocation) {
-      const [hospital] = hospitals;
+    if (boundsHospitals.length === 1 && !shouldIncludeCurrentLocation) {
+      const [hospital] = boundsHospitals;
+      if (shouldApplyInitialFocus) {
+        hasAppliedInitialFocusRegionRef.current = true;
+      }
       map.setCenter(
         new kakaoMaps.LatLng(
           hospital.mapCoordinate.lat,
@@ -535,7 +557,7 @@ export default function MapPanel({
     }
 
     const bounds = new kakaoMaps.LatLngBounds();
-    hospitals.forEach((hospital) => {
+    boundsHospitals.forEach((hospital) => {
       bounds.extend(
         new kakaoMaps.LatLng(
           hospital.mapCoordinate.lat,
@@ -552,6 +574,13 @@ export default function MapPanel({
       currentLocationForBoundsRef.current = null;
     }
 
+    if (shouldApplyInitialFocus) {
+      hasAppliedInitialFocusRegionRef.current = true;
+      const padding = HOSPITAL_FOCUS_BOUNDS_PADDING;
+      map.setBounds(bounds, padding, padding, padding, padding);
+      return;
+    }
+
     if (isAllRegions) {
       const padding = HOSPITAL_FOCUS_BOUNDS_PADDING;
       map.setBounds(bounds, padding, padding, padding, padding);
@@ -566,7 +595,7 @@ export default function MapPanel({
 
     const padding = HOSPITAL_FOCUS_BOUNDS_PADDING;
     map.setBounds(bounds, padding, padding, padding, padding);
-  }, [hospitals, isAllRegions, isMapReady]);
+  }, [hospitals, initialFocusRegion, isAllRegions, isMapReady]);
 
   useEffect(() => {
     const clearOverlays = () => {
@@ -585,7 +614,7 @@ export default function MapPanel({
     const kakaoMaps = window.kakao.maps;
     clearOverlays();
 
-    if (isAllRegions) {
+    if (shouldShowRegionClusters) {
       regionOverlayGroups.forEach((group) => {
         const position = new kakaoMaps.LatLng(
           group.center.lat,
@@ -684,6 +713,7 @@ export default function MapPanel({
     onSelectHospital,
     regionOverlayGroups,
     selectedHospitalId,
+    shouldShowRegionClusters,
   ]);
 
   useEffect(() => {
@@ -727,7 +757,7 @@ export default function MapPanel({
     };
   }, [currentLocation, isMapReady]);
 
-  const fallbackMarkers = isAllRegions
+  const fallbackMarkers = shouldShowRegionClusters
     ? regionOverlayGroups.map((group) => (
         <span
           key={group.id}
