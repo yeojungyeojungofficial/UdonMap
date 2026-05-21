@@ -19,6 +19,7 @@ type CurrentLocationRegionInput = {
 };
 
 const EARTH_RADIUS_KM = 6371;
+const INITIAL_MAP_FOCUS_REGION: Region = "서울";
 
 function toRadians(degrees: number) {
   return (degrees * Math.PI) / 180;
@@ -71,6 +72,9 @@ export function useHospitalDirectory() {
   const [hasHospitalLoadError, setHasHospitalLoadError] = useState(false);
   const mapLevel = useHospitalMapStore((state) => state.mapLevel);
   const query = useHospitalMapStore((state) => state.query);
+  const regionSelectionVersion = useHospitalMapStore(
+    (state) => state.regionSelectionVersion,
+  );
   const selectedRegion = useHospitalMapStore((state) => state.selectedRegion);
   const selectedHospitalId = useHospitalMapStore(
     (state) => state.selectedHospitalId,
@@ -162,6 +166,10 @@ export function useHospitalDirectory() {
     });
   }, [effectiveSelectedRegion, hospitals, query]);
 
+  const initialMapFocusRegion =
+    regionSelectionVersion === 0 && effectiveSelectedRegion === "전체"
+      ? INITIAL_MAP_FOCUS_REGION
+      : null;
   const shouldUseAllRegionsMap =
     filteredHospitals.length === 0 && hospitals.length > 0;
   const mapHospitals = shouldUseAllRegionsMap ? hospitals : filteredHospitals;
@@ -376,6 +384,7 @@ export function useHospitalDirectory() {
     hasHospitalLoadError,
     isLoadingHospitals,
     loadingCommentsHospitalId,
+    initialMapFocusRegion,
     mapLevel,
     mapHospitals,
     mapSelectedRegion,

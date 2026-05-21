@@ -1,4 +1,7 @@
-export const INITIAL_HOSPITAL_MAP_LEVEL = 9;
+export const INITIAL_HOSPITAL_MAP_LEVEL = 7;
+
+/** 「전체」 필터 — 이 줌 레벨 이하부터 권역 숫자 대신 병원 마커 표시 */
+export const ALL_REGION_MARKER_MAX_LEVEL = 8;
 
 /** 「전체」 필터 선택 시 단일 병원 포커스 줌 (낮을수록 가까움) */
 export const HOSPITAL_FOCUS_SINGLE_LEVEL = 4;
