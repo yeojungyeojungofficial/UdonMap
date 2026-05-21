@@ -9,6 +9,60 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      map_popups: {
+        Row: {
+          id: string;
+          title: string;
+          body: string;
+          popup_type: "notice" | "update" | "maintenance";
+          placement: "home" | "map" | "all";
+          link_url: string | null;
+          link_label: string | null;
+          image_url: string | null;
+          priority: number;
+          is_active: boolean;
+          starts_at: string | null;
+          ends_at: string | null;
+          dismiss_key: string;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          title: string;
+          body: string;
+          popup_type?: "notice" | "update" | "maintenance";
+          placement?: "home" | "map" | "all";
+          link_url?: string | null;
+          link_label?: string | null;
+          image_url?: string | null;
+          priority?: number;
+          is_active?: boolean;
+          starts_at?: string | null;
+          ends_at?: string | null;
+          dismiss_key?: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          title?: string;
+          body?: string;
+          popup_type?: "notice" | "update" | "maintenance";
+          placement?: "home" | "map" | "all";
+          link_url?: string | null;
+          link_label?: string | null;
+          image_url?: string | null;
+          priority?: number;
+          is_active?: boolean;
+          starts_at?: string | null;
+          ends_at?: string | null;
+          dismiss_key?: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
       hospitals: {
         Row: {
           id: string;
