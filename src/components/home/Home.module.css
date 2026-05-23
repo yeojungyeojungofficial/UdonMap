@@ -411,6 +411,18 @@
   flex-wrap: wrap;
 }
 
+.selectedBadge {
+  display: inline-flex;
+  align-items: center;
+  height: 24px;
+  border-radius: var(--radius-pill);
+  padding: 0 10px;
+  background: rgba(255, 150, 69, 0.16);
+  color: var(--accent-strong);
+  font-size: 12px;
+  font-weight: 800;
+}
+
 .hospitalRegion {
   display: inline-flex;
   align-items: center;
