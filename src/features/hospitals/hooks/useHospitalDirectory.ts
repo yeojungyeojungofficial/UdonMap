@@ -170,19 +170,28 @@ export function useHospitalDirectory() {
     regionSelectionVersion === 0 && effectiveSelectedRegion === "전체"
       ? INITIAL_MAP_FOCUS_REGION
       : null;
-  const shouldUseAllRegionsMap =
-    filteredHospitals.length === 0 && hospitals.length > 0;
-  const mapHospitals = shouldUseAllRegionsMap ? hospitals : filteredHospitals;
-  const mapSelectedRegion = shouldUseAllRegionsMap
-    ? "전체"
-    : effectiveSelectedRegion;
+  const mapHospitals = filteredHospitals;
+  const mapSelectedRegion = effectiveSelectedRegion;
 
   const selectedHospital = useMemo(
     () =>
-      filteredHospitals.find((hospital) => hospital.id === selectedHospitalId) ??
-      null,
-    [filteredHospitals, selectedHospitalId],
+      hospitals.find((hospital) => hospital.id === selectedHospitalId) ?? null,
+    [hospitals, selectedHospitalId],
   );
+
+  useEffect(() => {
+    if (!selectedHospitalId) {
+      return;
+    }
+
+    const isSelectedHospitalVisible = filteredHospitals.some(
+      (hospital) => hospital.id === selectedHospitalId,
+    );
+
+    if (!isSelectedHospitalVisible) {
+      clearSelectedHospital();
+    }
+  }, [clearSelectedHospital, filteredHospitals, selectedHospitalId]);
 
   useEffect(() => {
     if (!selectedHospital || selectedHospital.commentsLoaded) {

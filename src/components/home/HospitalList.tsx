@@ -10,6 +10,31 @@ import styles from "@/src/components/home/Home.module.css";
 const COLLAPSED_ANIMAL_COUNT = 10;
 const EMERGENCY_SUMMARY_TEXT = "응급 진료 가능";
 
+function getOrderedHospitals(
+  hospitals: Hospital[],
+  selectedHospitalId: string | null,
+) {
+  if (!selectedHospitalId) {
+    return hospitals;
+  }
+
+  const selectedIndex = hospitals.findIndex(
+    (hospital) => hospital.id === selectedHospitalId,
+  );
+
+  if (selectedIndex <= 0) {
+    return hospitals;
+  }
+
+  const selectedHospital = hospitals[selectedIndex];
+
+  return [
+    selectedHospital,
+    ...hospitals.slice(0, selectedIndex),
+    ...hospitals.slice(selectedIndex + 1),
+  ];
+}
+
 function HospitalCardSummary({ summary }: { summary: string }) {
   if (!summary) {
     return null;
@@ -92,6 +117,8 @@ export default function HospitalList({
   selectedHospitalId,
   onSelectHospital,
 }: HospitalListProps) {
+  const orderedHospitals = getOrderedHospitals(hospitals, selectedHospitalId);
+
   if (hospitals.length === 0) {
     return (
       <div className={styles.emptyState}>
@@ -102,7 +129,7 @@ export default function HospitalList({
 
   return (
     <ul className={styles.hospitalList}>
-      {hospitals.map((hospital) => {
+      {orderedHospitals.map((hospital) => {
         const isActive = hospital.id === selectedHospitalId;
         const operationStatus = getHospitalOperationStatus(hospital.hours);
         const shouldShowOperationStatus = operationStatus !== "운영정보";
@@ -133,10 +160,14 @@ export default function HospitalList({
                   onSelectHospital(hospital);
                 }
               }}
+              aria-current={isActive ? "true" : undefined}
               aria-label={`${hospital.name} 상세 보기`}
             >
               <div className={styles.hospitalCardTop}>
                 <div className={styles.hospitalCardBadges}>
+                  {isActive ? (
+                    <span className={styles.selectedBadge}>선택됨</span>
+                  ) : null}
                   <span className={styles.hospitalRegion}>
                     {hospital.region}
                   </span>
