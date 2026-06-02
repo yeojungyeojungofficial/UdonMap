@@ -186,12 +186,15 @@ export default function MobileReviewsPage() {
                   <li key={post.id}>
                     <Link href={`/reviews/${post.id}`} className={styles.postItem}>
                       <span className={styles.postTitle}>{post.title}</span>
-                      <span className={styles.postLikes}>
-                        조회 {post.viewCount}
+                      <span className={styles.postMeta}>
+                        <span className={styles.postAuthor}>{post.author}</span>
+                        <span className={styles.postLikes}>
+                          조회수 {post.viewCount}
+                        </span>
                       </span>
                     </Link>
                   </li>
-                ))}
+                ))}ㅌㅈ
               </ul>
             ) : null}
           </section>

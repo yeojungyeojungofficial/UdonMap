@@ -10,7 +10,6 @@ const MENUS: MenuItem[] = [
   { label: "병원후기", href: "/reviews" },
   { label: "병원제보", action: "report" },
   { label: "마이페이지", href: "/mypage" },
-  { label: "후원하기", href: "/support" },
 ];
 
 export type TopNavProps = {

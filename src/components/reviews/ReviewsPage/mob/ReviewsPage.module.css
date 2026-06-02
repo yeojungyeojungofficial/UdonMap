@@ -173,13 +173,33 @@
   min-width: 0;
   font-size: 15px;
   font-weight: 800;
+  overflow-wrap: anywhere;
+}
+
+.postMeta {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  max-width: 100%;
+  min-width: 0;
+  color: var(--color-brand);
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.postAuthor {
+  min-width: 0;
+  max-width: min(160px, 55vw);
+  color: var(--color-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .postLikes {
   flex: 0 0 auto;
-  color: var(--color-brand);
-  font-size: 13px;
-  font-weight: 800;
+  font-weight: 400;
+  white-space: nowrap;
 }
 
 .writeFab {
