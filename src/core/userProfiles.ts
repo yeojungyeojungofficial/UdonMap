@@ -11,6 +11,10 @@ export type UserProfileUpdate = Pick<
   Database["public"]["Tables"]["profiles"]["Update"],
   "display_name"
 >;
+export type UserProfileAuthorFields = Pick<
+  Database["public"]["Tables"]["profiles"]["Row"],
+  "email" | "display_name"
+>;
 
 export type UserProfileValidationResult =
   | {
@@ -27,6 +31,17 @@ export type UserProfileValidationResult =
 export function getDefaultDisplayName(email: string | null | undefined) {
   const localPart = email?.split("@")[0]?.trim();
   return localPart || null;
+}
+
+export function getUserProfileAuthorName(
+  profile: UserProfileAuthorFields | null,
+  fallback: string,
+) {
+  return (
+    profile?.display_name?.trim() ||
+    getDefaultDisplayName(profile?.email) ||
+    fallback
+  );
 }
 
 export function validateUserProfileUpdate(

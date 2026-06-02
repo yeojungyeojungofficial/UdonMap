@@ -5,10 +5,14 @@ import type {
   BoardPostSummary,
 } from "@/src/features/reviews/types";
 
-export function toBoardPostSummary(row: BoardPostRow): BoardPostSummary {
+export function toBoardPostSummary(
+  row: BoardPostRow,
+  author = "익명 사용자",
+): BoardPostSummary {
   return {
     id: row.id,
     authorId: row.user_id,
+    author,
     board: row.board,
     filterTag: row.filter_tag,
     title: row.title,

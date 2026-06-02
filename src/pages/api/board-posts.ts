@@ -11,13 +11,18 @@ import {
   validateCreateBoardPost,
   type BoardPostSummary,
 } from "@/src/features/reviews/boardPosts";
-import { ensureUserProfile } from "@/src/core/userProfiles";
+import {
+  ensureUserProfile,
+  getUserProfileAuthorName,
+  type UserProfileAuthorFields,
+} from "@/src/core/userProfiles";
 import {
   getSuspensionBlockedMessage,
   getUserActiveSuspension,
 } from "@/src/core/suspensions";
 
 type BoardPostRow = Database["public"]["Tables"]["board_posts"]["Row"];
+type ProfileAuthorRow = UserProfileAuthorFields & { id: string };
 
 const BOARD_POST_SUMMARY_COLUMNS =
   "id,user_id,board,filter_tag,title,comment_count,view_count,status,created_at,updated_at";
@@ -49,6 +54,16 @@ function getPageSize(req: NextApiRequest) {
   }
 
   return Math.min(Math.max(Math.trunc(pageSize), 1), MAX_PAGE_SIZE);
+}
+
+function getBoardPostUserIds(posts: BoardPostRow[]) {
+  return Array.from(
+    new Set(
+      posts
+        .map((post) => post.user_id)
+        .filter((userId): userId is string => Boolean(userId)),
+    ),
+  );
 }
 
 async function handleGet(req: NextApiRequest, res: NextApiResponse<PostResponse>) {
@@ -92,12 +107,44 @@ async function handleGet(req: NextApiRequest, res: NextApiResponse<PostResponse>
       return;
     }
 
+    const posts = (data ?? []) as BoardPostRow[];
+    const userIds = getBoardPostUserIds(posts);
+    const authorByUserId = new Map<string, string>();
+
+    if (userIds.length > 0) {
+      const { data: profileData, error: profileError } = await supabase
+        .from("profiles")
+        .select("id,email,display_name")
+        .in("id", userIds);
+
+      if (profileError) {
+        res.status(500).json({
+          error: `Supabase profiles 조회 실패: ${profileError.message}`,
+        });
+        return;
+      }
+
+      ((profileData ?? []) as ProfileAuthorRow[]).forEach((profile) => {
+        authorByUserId.set(
+          profile.id,
+          getUserProfileAuthorName(profile, "익명 사용자"),
+        );
+      });
+    }
+
     res.setHeader(
       "Cache-Control",
       "private, max-age=15, stale-while-revalidate=30",
     );
     res.status(200).json({
-      posts: ((data ?? []) as BoardPostRow[]).map(toBoardPostSummary),
+      posts: posts.map((post) =>
+        toBoardPostSummary(
+          post,
+          post.user_id
+            ? (authorByUserId.get(post.user_id) ?? "익명 사용자")
+            : "익명 사용자",
+        ),
+      ),
     });
   } catch (error) {
     const message =
@@ -149,7 +196,7 @@ async function handlePost(
       return;
     }
 
-    await ensureUserProfile(supabase, user);
+    const profile = await ensureUserProfile(supabase, user);
 
     const { data, error } = await supabase
       .from("board_posts")
@@ -170,7 +217,12 @@ async function handlePost(
       return;
     }
 
-    res.status(201).json({ post: toBoardPostSummary(data as BoardPostRow) });
+    res.status(201).json({
+      post: toBoardPostSummary(
+        data as BoardPostRow,
+        getUserProfileAuthorName(profile, "익명 사용자"),
+      ),
+    });
   } catch (error) {
     const message =
       error instanceof Error ? error.message : "알 수 없는 서버 오류입니다.";

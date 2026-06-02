@@ -13,16 +13,14 @@ import {
   validateCreateBoardPost,
   type BoardPostDetail,
 } from "@/src/features/reviews/boardPosts";
-import { getDefaultDisplayName } from "@/src/core/userProfiles";
+import {
+  getUserProfileAuthorName,
+  type UserProfileAuthorFields,
+} from "@/src/core/userProfiles";
 
 type BoardPostRow = Database["public"]["Tables"]["board_posts"]["Row"];
 type BoardPostCommentRow =
   Database["public"]["Tables"]["board_post_comments"]["Row"];
-type ProfileRow = Pick<
-  Database["public"]["Tables"]["profiles"]["Row"],
-  "email" | "display_name"
->;
-
 type BoardPostDetailResponse =
   | {
       post: BoardPostDetail;
@@ -38,14 +36,6 @@ const BOARD_POST_DETAIL_COLUMNS =
   "id,user_id,board,filter_tag,title,body,comment_count,view_count,status,created_at,updated_at";
 const BOARD_POST_COMMENT_COLUMNS =
   "id,post_id,user_id,author_name,body,like_count,dislike_count,status,deleted_at,deleted_by,deleted_reason,created_at,updated_at";
-
-function getProfileAuthorName(profile: ProfileRow | null, fallback: string) {
-  return (
-    profile?.display_name?.trim() ||
-    getDefaultDisplayName(profile?.email) ||
-    fallback
-  );
-}
 
 async function getAuthenticatedUser(req: NextApiRequest) {
   const accessToken = getBearerToken(req);
@@ -85,8 +75,7 @@ function toBoardPostDetail(
   comments: BoardPostCommentRow[] = [],
 ): BoardPostDetail {
   return {
-    ...toBoardPostSummary(post),
-    author,
+    ...toBoardPostSummary(post, author),
     body: sanitizeBoardPostHtml(post.body),
     comments: comments.map(toBoardPostComment),
   };
@@ -201,7 +190,10 @@ export default async function handler(
       res.status(200).json({
         post: toBoardPostDetail(
           data as BoardPostRow,
-          getProfileAuthorName(profileData as ProfileRow | null, "익명 사용자"),
+          getUserProfileAuthorName(
+            profileData as UserProfileAuthorFields | null,
+            "익명 사용자",
+          ),
         ),
       });
       return;
@@ -270,8 +262,8 @@ export default async function handler(
       return;
     }
 
-    const author = getProfileAuthorName(
-      profileData as ProfileRow | null,
+    const author = getUserProfileAuthorName(
+      profileData as UserProfileAuthorFields | null,
       "익명 사용자",
     );
 

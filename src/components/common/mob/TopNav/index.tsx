@@ -10,7 +10,6 @@ const MENUS: MenuItem[] = [
   { label: "병원후기", href: "/reviews" },
   { label: "병원제보", action: "report" },
   { label: "마이페이지", href: "/mypage" },
-  { label: "후원하기", href: "/support" },
 ];
 
 const MENU_ICONS: Record<string, React.ReactNode> = {
@@ -45,16 +44,6 @@ const MENU_ICONS: Record<string, React.ReactNode> = {
         stroke="currentColor"
         strokeWidth="2"
         strokeLinecap="round"
-      />
-    </svg>
-  ),
-  후원하기: (
-    <svg className={styles.navIcon} viewBox="0 0 24 24" fill="none" aria-hidden="true">
-      <path
-        d="M12 21C12 21 4 14.5 4 9a4 4 0 0 1 8 0 4 4 0 0 1 8 0c0 5.5-8 12-8 12z"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinejoin="round"
       />
     </svg>
   ),

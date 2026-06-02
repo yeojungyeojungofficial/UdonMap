@@ -11,6 +11,7 @@ export type BoardPostCommentRow =
 export type BoardPostSummary = {
   id: string;
   authorId: string | null;
+  author: string;
   board: BoardTab;
   filterTag: string | null;
   title: string;
