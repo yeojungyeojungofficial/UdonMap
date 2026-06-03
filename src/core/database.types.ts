@@ -153,8 +153,11 @@ export type Database = {
           street_address: string;
           animal_categories: string[];
           animal_species: string | null;
+          contact_info: string | null;
           details: string | null;
           attachment_metadata: Json;
+          marketing_consent: boolean;
+          reporter_email: string | null;
           status: "pending" | "in_review" | "approved" | "rejected";
           admin_notes: string | null;
           reviewed_at: string | null;
@@ -170,8 +173,11 @@ export type Database = {
           street_address: string;
           animal_categories?: string[];
           animal_species?: string | null;
+          contact_info?: string | null;
           details?: string | null;
           attachment_metadata?: Json;
+          marketing_consent?: boolean;
+          reporter_email?: string | null;
           status?: "pending" | "in_review" | "approved" | "rejected";
           admin_notes?: string | null;
           reviewed_at?: string | null;
@@ -187,8 +193,11 @@ export type Database = {
           street_address?: string;
           animal_categories?: string[];
           animal_species?: string | null;
+          contact_info?: string | null;
           details?: string | null;
           attachment_metadata?: Json;
+          marketing_consent?: boolean;
+          reporter_email?: string | null;
           status?: "pending" | "in_review" | "approved" | "rejected";
           admin_notes?: string | null;
           reviewed_at?: string | null;

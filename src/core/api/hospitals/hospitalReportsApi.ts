@@ -6,8 +6,10 @@ export type CreateHospitalReportInput = {
   animalCategories: string[];
   animalSpecies: string;
   attachments: File[];
+  contactInfo: string;
   details: string;
   hospitalName: string;
+  marketingConsent: boolean;
   streetAddress: string;
 };
 
@@ -131,8 +133,10 @@ export async function createHospitalReport(input: CreateHospitalReportInput) {
         animalCategories: input.animalCategories,
         animalSpecies: input.animalSpecies,
         attachments: uploadedAttachments,
+        contactInfo: input.contactInfo,
         details: input.details,
         hospitalName: input.hospitalName,
+        marketingConsent: input.marketingConsent,
         streetAddress: input.streetAddress,
       }),
     });

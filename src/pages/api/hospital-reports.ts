@@ -201,6 +201,7 @@ export default async function handler(
       .from("hospital_reports")
       .insert({
         ...validation.value,
+        reporter_email: user.email ?? null,
         user_id: user.id,
       })
       .select("id,status")

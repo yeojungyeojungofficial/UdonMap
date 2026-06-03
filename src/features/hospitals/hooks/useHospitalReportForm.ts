@@ -34,7 +34,9 @@ export function useHospitalReportForm({
   const [streetAddress, setStreetAddress] = useState(initialStreetAddress);
   const [selectedAnimals, setSelectedAnimals] = useState<string[]>([]);
   const [animalSpecies, setAnimalSpecies] = useState("");
+  const [contactInfo, setContactInfo] = useState("");
   const [details, setDetails] = useState("");
+  const [marketingConsent, setMarketingConsent] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [fileLimitMessage, setFileLimitMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -69,7 +71,9 @@ export function useHospitalReportForm({
     setStreetAddress("");
     setSelectedAnimals([]);
     setAnimalSpecies("");
+    setContactInfo("");
     setDetails("");
+    setMarketingConsent(false);
     setSelectedFiles([]);
     setFileLimitMessage("");
   }, []);
@@ -116,7 +120,9 @@ export function useHospitalReportForm({
           streetAddress,
           animalCategories: selectedAnimals,
           animalSpecies,
+          contactInfo,
           details,
+          marketingConsent,
           attachments: selectedFiles,
         });
 
@@ -137,10 +143,12 @@ export function useHospitalReportForm({
     [
       animalSpecies,
       clearSubmitFeedback,
+      contactInfo,
       details,
       hospitalName,
       isAuthReady,
       isLoggedIn,
+      marketingConsent,
       resetFields,
       selectedAnimals,
       selectedFiles,
@@ -203,6 +211,7 @@ export function useHospitalReportForm({
   return {
     animalSpecies,
     clearSubmitFeedback,
+    contactInfo,
     details,
     fileLimitMessage,
     handleClose,
@@ -211,12 +220,15 @@ export function useHospitalReportForm({
     handleSubmit,
     hospitalName,
     isSubmitting,
+    marketingConsent,
     selectedAnimals,
     selectedFilePreviews,
     selectedFiles,
     setAnimalSpecies,
+    setContactInfo,
     setDetails,
     setHospitalName,
+    setMarketingConsent,
     setStreetAddress,
     streetAddress,
     submitError,
