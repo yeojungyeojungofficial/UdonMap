@@ -7,7 +7,6 @@ import {
   type FormEvent,
 } from "react";
 import { createHospitalReport } from "@/src/core/api/hospitals/hospitalReportsApi";
-import { useAuthSessionState } from "@/src/features/auth/hooks/useAuthSessionState";
 import { convertImageFileToWebp } from "@/src/features/images/convertImageFileToWebp";
 
 export const HOSPITAL_REPORT_ANIMAL_OPTIONS = [
@@ -34,15 +33,14 @@ export function useHospitalReportForm({
   const [streetAddress, setStreetAddress] = useState(initialStreetAddress);
   const [selectedAnimals, setSelectedAnimals] = useState<string[]>([]);
   const [animalSpecies, setAnimalSpecies] = useState("");
+  const [contactInfo, setContactInfo] = useState("");
   const [details, setDetails] = useState("");
+  const [marketingConsent, setMarketingConsent] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [fileLimitMessage, setFileLimitMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitMessage, setSubmitMessage] = useState("");
   const [submitError, setSubmitError] = useState("");
-  const { isAuthReady, isLoggedIn } = useAuthSessionState({
-    onError: setSubmitError,
-  });
 
   const selectedFilePreviews = useMemo(
     () =>
@@ -69,7 +67,9 @@ export function useHospitalReportForm({
     setStreetAddress("");
     setSelectedAnimals([]);
     setAnimalSpecies("");
+    setContactInfo("");
     setDetails("");
+    setMarketingConsent(false);
     setSelectedFiles([]);
     setFileLimitMessage("");
   }, []);
@@ -98,16 +98,6 @@ export function useHospitalReportForm({
       event.preventDefault();
       clearSubmitFeedback();
 
-      if (!isAuthReady) {
-        setSubmitError("로그인 상태를 확인 중입니다.");
-        return;
-      }
-
-      if (!isLoggedIn) {
-        setSubmitError("로그인 후 병원 제보를 할 수 있습니다.");
-        return;
-      }
-
       setIsSubmitting(true);
 
       try {
@@ -116,7 +106,9 @@ export function useHospitalReportForm({
           streetAddress,
           animalCategories: selectedAnimals,
           animalSpecies,
+          contactInfo,
           details,
+          marketingConsent,
           attachments: selectedFiles,
         });
 
@@ -137,10 +129,10 @@ export function useHospitalReportForm({
     [
       animalSpecies,
       clearSubmitFeedback,
+      contactInfo,
       details,
       hospitalName,
-      isAuthReady,
-      isLoggedIn,
+      marketingConsent,
       resetFields,
       selectedAnimals,
       selectedFiles,
@@ -203,6 +195,7 @@ export function useHospitalReportForm({
   return {
     animalSpecies,
     clearSubmitFeedback,
+    contactInfo,
     details,
     fileLimitMessage,
     handleClose,
@@ -211,12 +204,15 @@ export function useHospitalReportForm({
     handleSubmit,
     hospitalName,
     isSubmitting,
+    marketingConsent,
     selectedAnimals,
     selectedFilePreviews,
     selectedFiles,
     setAnimalSpecies,
+    setContactInfo,
     setDetails,
     setHospitalName,
+    setMarketingConsent,
     setStreetAddress,
     streetAddress,
     submitError,

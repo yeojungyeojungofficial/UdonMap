@@ -40,6 +40,7 @@ function HospitalReportSheetContent({
   const {
     animalSpecies,
     clearSubmitFeedback,
+    contactInfo,
     details,
     fileLimitMessage,
     handleClose,
@@ -48,12 +49,15 @@ function HospitalReportSheetContent({
     handleSubmit,
     hospitalName,
     isSubmitting,
+    marketingConsent,
     selectedAnimals,
     selectedFilePreviews,
     selectedFiles,
     setAnimalSpecies,
+    setContactInfo,
     setDetails,
     setHospitalName,
+    setMarketingConsent,
     setStreetAddress,
     streetAddress,
     submitError,
@@ -146,6 +150,31 @@ function HospitalReportSheetContent({
                 clearSubmitFeedback();
               }}
             />
+          </label>
+
+          <label className={styles.field}>
+            <span>연락처</span>
+            <input
+              type="text"
+              placeholder="전화번호 또는 이메일을 입력해주세요. 입력하신 정보는 경품 발송 목적으로만 사용됩니다."
+              value={contactInfo}
+              onChange={(event) => {
+                setContactInfo(event.currentTarget.value);
+                clearSubmitFeedback();
+              }}
+            />
+          </label>
+
+          <label className={styles.checkboxField}>
+            <input
+              type="checkbox"
+              checked={marketingConsent}
+              onChange={(event) => {
+                setMarketingConsent(event.currentTarget.checked);
+                clearSubmitFeedback();
+              }}
+            />
+            <span>마케팅 정보 수신에 동의합니다.</span>
           </label>
 
           <div className={styles.field}>

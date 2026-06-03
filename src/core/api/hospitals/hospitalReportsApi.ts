@@ -6,8 +6,10 @@ export type CreateHospitalReportInput = {
   animalCategories: string[];
   animalSpecies: string;
   attachments: File[];
+  contactInfo: string;
   details: string;
   hospitalName: string;
+  marketingConsent: boolean;
   streetAddress: string;
 };
 
@@ -107,32 +109,50 @@ async function uploadHospitalReportAttachments({
   }
 }
 
-export async function createHospitalReport(input: CreateHospitalReportInput) {
-  const supabase = getSupabaseBrowserClient();
-  const session = await loadAuthSession(supabase);
+async function loadOptionalAuthSession() {
+  try {
+    return await loadAuthSession(getSupabaseBrowserClient());
+  } catch {
+    return null;
+  }
+}
 
-  if (!session) {
-    throw new Error("로그인 후 병원 제보를 할 수 있습니다.");
+export async function createHospitalReport(input: CreateHospitalReportInput) {
+  const session = await loadOptionalAuthSession();
+
+  if (!session && input.attachments.length > 0) {
+    throw new Error(
+      "사진 첨부는 로그인 후 사용할 수 있습니다. 사진 없이 제보하거나 로그인해주세요.",
+    );
   }
 
-  const uploadedAttachments = await uploadHospitalReportAttachments({
-    files: input.attachments,
-    userId: session.user.id,
-  });
+  const uploadedAttachments = session
+    ? await uploadHospitalReportAttachments({
+        files: input.attachments,
+        userId: session.user.id,
+      })
+    : [];
 
   try {
+    const headers: Record<string, string> = {
+      "Content-Type": "application/json",
+    };
+
+    if (session) {
+      headers.Authorization = `Bearer ${session.access_token}`;
+    }
+
     const response = await fetch("/api/hospital-reports", {
       method: "POST",
-      headers: {
-        Authorization: `Bearer ${session.access_token}`,
-        "Content-Type": "application/json",
-      },
+      headers,
       body: JSON.stringify({
         animalCategories: input.animalCategories,
         animalSpecies: input.animalSpecies,
         attachments: uploadedAttachments,
+        contactInfo: input.contactInfo,
         details: input.details,
         hospitalName: input.hospitalName,
+        marketingConsent: input.marketingConsent,
         streetAddress: input.streetAddress,
       }),
     });

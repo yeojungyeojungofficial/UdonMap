@@ -88,6 +88,24 @@
   resize: vertical;
 }
 
+.checkboxField {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  color: var(--color-text);
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.45;
+}
+
+.checkboxField input {
+  width: 18px;
+  height: 18px;
+  margin-top: 1px;
+  accent-color: var(--color-brand);
+  flex: 0 0 auto;
+}
+
 .field input:focus,
 .field textarea:focus {
   border-color: var(--color-brand);

@@ -29,7 +29,9 @@ export type CreateHospitalReportRequest = {
   streetAddress: string;
   animalCategories: string[];
   animalSpecies?: string;
+  contactInfo?: string;
   details?: string;
+  marketingConsent?: boolean;
   attachments?: HospitalReportAttachment[];
 };
 
@@ -44,7 +46,10 @@ export type HospitalReportValidationResult =
     };
 
 const MAX_TEXT_LENGTH = 2000;
+const MAX_CONTACT_INFO_LENGTH = 120;
 const MAX_ATTACHMENT_COUNT = 3;
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const PHONE_PATTERN = /^[+]?[\d\s().-]{7,30}$/;
 
 function normalizeText(value: unknown) {
   return typeof value === "string" ? value.trim() : "";
@@ -58,6 +63,18 @@ function normalizeStringList(value: unknown) {
   return value
     .map((item) => normalizeText(item))
     .filter((item) => item.length > 0);
+}
+
+function isValidContactInfo(value: string) {
+  if (!value) {
+    return true;
+  }
+
+  const digitCount = value.replace(/\D/g, "").length;
+  return (
+    EMAIL_PATTERN.test(value) ||
+    (digitCount >= 7 && PHONE_PATTERN.test(value))
+  );
 }
 
 function normalizeAttachments(value: unknown): HospitalReportAttachment[] {
@@ -124,7 +141,9 @@ export function validateCreateHospitalReport(
   const streetAddress = normalizeText(request.streetAddress);
   const animalCategories = normalizeStringList(request.animalCategories);
   const animalSpecies = normalizeText(request.animalSpecies);
+  const contactInfo = normalizeText(request.contactInfo);
   const details = normalizeText(request.details);
+  const marketingConsent = request.marketingConsent === true;
   const attachments = normalizeAttachments(request.attachments);
 
   if (!hospitalName) {
@@ -143,6 +162,20 @@ export function validateCreateHospitalReport(
     return { ok: false, message: "병원주소는 240자 이하로 입력해주세요." };
   }
 
+  if (contactInfo.length > MAX_CONTACT_INFO_LENGTH) {
+    return {
+      ok: false,
+      message: `연락처는 ${MAX_CONTACT_INFO_LENGTH}자 이하로 입력해주세요.`,
+    };
+  }
+
+  if (!isValidContactInfo(contactInfo)) {
+    return {
+      ok: false,
+      message: "연락처는 전화번호 또는 이메일 형식으로 입력해주세요.",
+    };
+  }
+
   if (details.length > MAX_TEXT_LENGTH) {
     return {
       ok: false,
@@ -157,7 +190,9 @@ export function validateCreateHospitalReport(
       street_address: streetAddress,
       animal_categories: animalCategories,
       animal_species: animalSpecies || null,
+      contact_info: contactInfo || null,
       details: details || null,
+      marketing_consent: marketingConsent,
       attachment_metadata: attachments as unknown as Json,
       status: "pending",
     },
