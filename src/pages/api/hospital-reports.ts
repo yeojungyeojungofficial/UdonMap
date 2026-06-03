@@ -154,38 +154,54 @@ export default async function handler(
   try {
     const supabase = getSupabaseServerClient();
     const accessToken = getBearerToken(req);
+    let authUser: { email?: string | null; id: string } | null = null;
 
-    if (!accessToken) {
-      res.status(401).json({ error: "로그인이 필요합니다." });
-      return;
-    }
+    if (accessToken) {
+      const {
+        data: { user },
+        error: userError,
+      } = await supabase.auth.getUser(accessToken);
 
-    const {
-      data: { user },
-      error: userError,
-    } = await supabase.auth.getUser(accessToken);
+      if (userError || !user) {
+        res.status(401).json({
+          error: getAuthUserErrorMessage(userError),
+        });
+        return;
+      }
 
-    if (userError || !user) {
-      res.status(401).json({
-        error: getAuthUserErrorMessage(userError),
-      });
-      return;
+      authUser = user;
     }
 
     const requestBody =
       req.body && typeof req.body === "object"
         ? (req.body as Partial<CreateHospitalReportRequest>)
         : {};
+
+    if (
+      !authUser &&
+      Array.isArray(requestBody.attachments) &&
+      requestBody.attachments.length > 0
+    ) {
+      res.status(400).json({
+        error:
+          "사진 첨부는 로그인 후 사용할 수 있습니다. 사진 없이 제보하거나 로그인해주세요.",
+      });
+      return;
+    }
+
     const uploadedAttachments = normalizeAttachmentMetadata(
       requestBody.attachments,
-      user.id,
+      authUser?.id ?? "",
     );
 
-    await verifyUploadedAttachments({
-      attachments: uploadedAttachments,
-      supabase,
-      userId: user.id,
-    });
+    if (authUser) {
+      await verifyUploadedAttachments({
+        attachments: uploadedAttachments,
+        supabase,
+        userId: authUser.id,
+      });
+    }
+
     const validation = validateCreateHospitalReport({
       ...requestBody,
       attachments: uploadedAttachments,
@@ -201,8 +217,8 @@ export default async function handler(
       .from("hospital_reports")
       .insert({
         ...validation.value,
-        reporter_email: user.email ?? null,
-        user_id: user.id,
+        reporter_email: authUser?.email ?? null,
+        user_id: authUser?.id ?? null,
       })
       .select("id,status")
       .single();
