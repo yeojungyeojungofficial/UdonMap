@@ -28,6 +28,7 @@ import {
   AUTH_ERROR_TITLE,
   LOGIN_FAILURE_MESSAGE,
 } from "@/src/features/mypage/authMessages";
+import { PRIVACY_POLICY_VERSION } from "@/src/features/mypage/privacyPolicy";
 import type { AuthMode } from "@/src/features/mypage/types";
 import { useAuthStore } from "@/src/store/authStore";
 
@@ -255,11 +256,23 @@ export function useMyPageState() {
           setAuthReady(true);
           setAuthMessage("로그인했습니다.");
         } else {
+          if (!isPrivacyPolicyAgreed) {
+            openAuthDialog("개인정보 처리방침에 동의해주세요.");
+            return;
+          }
+
+          const privacyPolicyAgreedAt = new Date().toISOString();
+
           const { data, error } = await supabase.auth.signUp({
             email: trimmedEmail,
             password,
             options: {
               emailRedirectTo: redirectTo,
+              data: {
+                privacy_policy_agreed: true,
+                privacy_policy_agreed_at: privacyPolicyAgreedAt,
+                privacy_policy_version: PRIVACY_POLICY_VERSION,
+              },
             },
           });
 
@@ -293,6 +306,7 @@ export function useMyPageState() {
       closeAuthDialog,
       email,
       isAutoLoginChecked,
+      isPrivacyPolicyAgreed,
       clearAuth,
       openAuthDialog,
       password,

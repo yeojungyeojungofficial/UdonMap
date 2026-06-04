@@ -3,6 +3,7 @@ import { useState } from "react";
 import TopNav from "@/src/components/common/TopNav";
 import CommonFooter from "@/src/components/common/CommonFooter";
 import MyPageBackLink from "@/src/components/mypage/MyPageBackLink";
+import { PRIVACY_POLICY_EFFECTIVE_DATE_LABEL } from "@/src/features/mypage/privacyPolicy";
 import { useMyPageShellStyles } from "@/src/features/mypage/useMyPageShellStyles";
 
 type PolicyKey = "privacy" | null;
@@ -157,7 +158,9 @@ function PrivacyPolicyContent({ classNames }: { classNames: Record<string, strin
         <p>변경 사항이 있는 경우 웹사이트를 통해 공지합니다.</p>
       </section>
 
-      <p className={classNames.policyEffectiveDate}>시행일자: 2026년 06월 04일</p>
+      <p className={classNames.policyEffectiveDate}>
+        시행일자: {PRIVACY_POLICY_EFFECTIVE_DATE_LABEL}
+      </p>
     </article>
   );
 }
