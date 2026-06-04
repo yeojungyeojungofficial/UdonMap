@@ -26,6 +26,7 @@ export default function AccountPage() {
     email,
     handleAuthModeChange,
     handleAutoLoginChange,
+    handleDeleteAccount,
     handleDisplayNameChange,
     handleEmailChange,
     handleLogout,
@@ -36,6 +37,7 @@ export default function AccountPage() {
     handleSubmit,
     isAuthReady,
     isAutoLoginChecked,
+    isDeletingAccount,
     isPrivacyPolicyAgreed,
     isProfileLoading,
     isProfileSaving,
@@ -52,6 +54,14 @@ export default function AccountPage() {
   const handleLogoutAndRedirect = async () => {
     await handleLogout();
     void router.push("/mypage");
+  };
+
+  const handleDeleteAccountAndRedirect = async () => {
+    const isDeleted = await handleDeleteAccount();
+
+    if (isDeleted) {
+      void router.push("/mypage");
+    }
   };
 
   return (
@@ -136,8 +146,10 @@ export default function AccountPage() {
               <button
                 type="button"
                 className={`${shell.menuItem} ${shell.menuItemDanger}`}
+                onClick={handleDeleteAccountAndRedirect}
+                disabled={isDeletingAccount}
               >
-                <span>회원탈퇴</span>
+                <span>{isDeletingAccount ? "탈퇴 중" : "회원탈퇴"}</span>
               </button>
             </div>
           </>

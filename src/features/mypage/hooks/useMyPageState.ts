@@ -16,6 +16,8 @@ import {
   setCachedAuthSession,
 } from "@/src/core/authSession";
 import { MAX_DISPLAY_NAME_LENGTH } from "@/src/core/userProfiles";
+import { deleteCurrentUserAccount } from "@/src/core/api/mypage/accountApi";
+import { clearCachedCurrentUserProfile } from "@/src/core/api/mypage/profileApi";
 import {
   clearAuthErrorFromUrl,
   getAuthRedirectErrorMessage,
@@ -44,6 +46,7 @@ export function useMyPageState() {
   const [password, setPassword] = useState("");
   const [passwordConfirm, setPasswordConfirm] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isDeletingAccount, setIsDeletingAccount] = useState(false);
   const [isPrivacyPolicyAgreed, setIsPrivacyPolicyAgreed] = useState(false);
   const [isAutoLoginChecked, setIsAutoLoginChecked] = useState(() =>
     hasActiveAutoLogin(),
@@ -355,6 +358,63 @@ export function useMyPageState() {
     resetProfileState,
   ]);
 
+  const clearLocalAccountState = useCallback(() => {
+    clearAuthSessionStorageMode();
+    setCachedAuthSession(null);
+    clearCachedCurrentUserProfile();
+    clearAuth();
+    resetProfileState();
+    resetBookmarks();
+    resetActivity();
+    setPassword("");
+    setPasswordConfirm("");
+    setIsPrivacyPolicyAgreed(false);
+  }, [clearAuth, resetActivity, resetBookmarks, resetProfileState]);
+
+  const handleDeleteAccount = useCallback(async () => {
+    setAuthMessage("");
+    closeAuthDialog();
+    clearProfileFeedback();
+
+    if (!session) {
+      openAuthDialog("로그인 후 회원탈퇴를 진행할 수 있습니다.");
+      return false;
+    }
+
+    const confirmed = window.confirm(
+      "회원탈퇴하면 계정 정보와 개인정보가 삭제됩니다. 계속하시겠습니까?",
+    );
+
+    if (!confirmed) {
+      return false;
+    }
+
+    setIsDeletingAccount(true);
+
+    try {
+      const supabase = getSupabaseBrowserClient();
+      await deleteCurrentUserAccount(session);
+      await supabase.auth.signOut().catch(() => undefined);
+      clearLocalAccountState();
+      return true;
+    } catch (error) {
+      openAuthDialog(
+        error instanceof Error
+          ? error.message
+          : "회원탈퇴 중 알 수 없는 오류가 발생했습니다.",
+      );
+      return false;
+    } finally {
+      setIsDeletingAccount(false);
+    }
+  }, [
+    clearLocalAccountState,
+    clearProfileFeedback,
+    closeAuthDialog,
+    openAuthDialog,
+    session,
+  ]);
+
   const openBookmarkSheet = useCallback(() => {
     openBookmarkSheetWithSession(session);
   }, [openBookmarkSheetWithSession, session]);
@@ -379,6 +439,7 @@ export function useMyPageState() {
     handleActivityTabChange,
     handleAuthModeChange,
     handleAutoLoginChange,
+    handleDeleteAccount,
     handleDisplayNameChange,
     handleEmailChange,
     handleLogout,
@@ -393,6 +454,7 @@ export function useMyPageState() {
     isAutoLoginChecked,
     isBookmarkLoading,
     isBookmarkSheetOpen,
+    isDeletingAccount,
     isPrivacyPolicyAgreed,
     isProfileLoading,
     isProfileSaving,
