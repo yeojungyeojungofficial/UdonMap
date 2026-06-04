@@ -38,7 +38,7 @@ export function validateCreateBoardPost(
   const title = normalizeText(request.title);
   const filterTag = normalizeText(request.filterTag) || null;
   const rawBody = typeof request.body === "string" ? request.body : "";
-  const plainBody = rawBody.replace(/<[^>]*>/g, "").trim();
+  const plainBody = rawBody.replace(/<[^>]*>/g, "").replace(/\u200B/g, "").trim();
 
   if (!isBoardTab(request.board)) {
     return { ok: false, message: "올바른 게시판을 선택해주세요." };

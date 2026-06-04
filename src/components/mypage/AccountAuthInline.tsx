@@ -15,9 +15,11 @@ type AccountAuthInlineProps = {
   handleEmailChange: (value: string) => void;
   handlePasswordChange: (value: string) => void;
   handlePasswordConfirmChange: (value: string) => void;
+  handlePrivacyPolicyAgreementChange: (checked: boolean) => void;
   handleSubmit: (event: FormEvent<HTMLFormElement>) => void | Promise<void>;
   isAuthReady: boolean;
   isAutoLoginChecked: boolean;
+  isPrivacyPolicyAgreed: boolean;
   isSubmitting: boolean;
   password: string;
   passwordConfirm: string;
@@ -34,9 +36,11 @@ export default function AccountAuthInline({
   handleEmailChange,
   handlePasswordChange,
   handlePasswordConfirmChange,
+  handlePrivacyPolicyAgreementChange,
   handleSubmit,
   isAuthReady,
   isAutoLoginChecked,
+  isPrivacyPolicyAgreed,
   isSubmitting,
   password,
   passwordConfirm,
@@ -107,6 +111,29 @@ export default function AccountAuthInline({
               minLength={6}
               required
             />
+          </label>
+        ) : null}
+        {authMode === "signup" ? (
+          <label className={classNames.checkboxField}>
+            <input
+              type="checkbox"
+              checked={isPrivacyPolicyAgreed}
+              onChange={(event) =>
+                handlePrivacyPolicyAgreementChange(event.currentTarget.checked)
+              }
+              required
+            />
+            <span>
+              (필수){" "}
+              <Link
+                href="/mypage/policy"
+                onClick={(event) => event.stopPropagation()}
+              >
+                개인정보 처리방침
+              </Link>
+              에
+              동의합니다.
+            </span>
           </label>
         ) : null}
         {authMode === "login" ? (

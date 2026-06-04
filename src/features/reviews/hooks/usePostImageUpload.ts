@@ -46,6 +46,28 @@ export function usePostImageUpload({
     setPhotoCount(countPhotos());
   }, [countPhotos]);
 
+  const handleEditorPhotoDeleted = useCallback(
+    async (storagePath: string) => {
+      setPhotoCount(countPhotos());
+
+      if (!storagePath) {
+        return;
+      }
+
+      uploadedImagePathsRef.current = uploadedImagePathsRef.current.filter(
+        (path) => path !== storagePath,
+      );
+
+      try {
+        const supabase = getSupabaseBrowserClient();
+        await supabase.storage.from(POST_IMAGE_STORAGE_BUCKET).remove([storagePath]);
+      } catch {
+        // best-effort cleanup; storage policies may reject deletion in local setups
+      }
+    },
+    [countPhotos],
+  );
+
   const handleFileChange = useCallback(
     async (event: ChangeEvent<HTMLInputElement>) => {
       const incoming = Array.from(event.target.files ?? []);
@@ -80,7 +102,6 @@ export function usePostImageUpload({
           ? `사진은 최대 ${MAX_POST_PHOTOS}장까지 첨부할 수 있어요.`
           : "",
       );
-      setUploadingCount((count) => count + accepted.length);
 
       const oversized = accepted.filter(
         (file) => file.size > MAX_POST_IMAGE_SIZE_BYTES,
@@ -89,6 +110,8 @@ export function usePostImageUpload({
         onErrorMessage("사진은 5MB 이하만 첨부할 수 있어요.");
         return;
       }
+
+      setUploadingCount((count) => count + accepted.length);
 
       await Promise.all(
         accepted.map(async (file, index) => {
@@ -117,7 +140,16 @@ export function usePostImageUpload({
               throw new Error(`이미지 업로드 실패: ${error.message}`);
             }
 
+            if (!node.isConnected) {
+              await supabase.storage
+                .from(POST_IMAGE_STORAGE_BUCKET)
+                .remove([path]);
+              URL.revokeObjectURL(blobUrl);
+              return;
+            }
+
             uploadedImagePathsRef.current.push(path);
+            node.setAttribute("data-storage-path", path);
             const { data: urlData } = supabase.storage
               .from(POST_IMAGE_STORAGE_BUCKET)
               .getPublicUrl(path);
@@ -151,6 +183,7 @@ export function usePostImageUpload({
   return {
     cleanupUploadedImages,
     handleFileChange,
+    handleEditorPhotoDeleted,
     photoCount,
     photoLimitMsg,
     syncPhotoCount,

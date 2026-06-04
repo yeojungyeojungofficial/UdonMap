@@ -175,11 +175,12 @@
 }
 
 .postContent img {
-  display: block;
+  display: inline-block;
   max-width: 100%;
   height: auto;
-  margin: 10px 0;
+  margin: 10px 6px 10px 0;
   border-radius: var(--radius-field);
+  vertical-align: bottom;
 }
 
 .postContent a {

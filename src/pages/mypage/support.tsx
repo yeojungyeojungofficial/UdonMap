@@ -1,6 +1,7 @@
 import Head from "next/head";
 import TopNav from "@/src/components/common/TopNav";
 import CommonFooter from "@/src/components/common/CommonFooter";
+import MyPageBackLink from "@/src/components/mypage/MyPageBackLink";
 import { useMyPageShellStyles } from "@/src/features/mypage/useMyPageShellStyles";
 
 export default function SupportPage() {
@@ -12,6 +13,7 @@ export default function SupportPage() {
       </Head>
       <main className={shell.page}>
         <TopNav activeMenu="마이페이지" />
+        <MyPageBackLink />
 
         <section className={shell.heroCard}>
           <h1 className={shell.heroTitle}>고객센터</h1>

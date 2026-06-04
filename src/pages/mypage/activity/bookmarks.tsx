@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import TopNav from "@/src/components/common/TopNav";
 import CommonFooter from "@/src/components/common/CommonFooter";
 import LoadingScreen from "@/src/components/common/LoadingScreen";
+import MyPageBackLink from "@/src/components/mypage/MyPageBackLink";
 import { useBookmarkedHospitals } from "@/src/features/mypage/hooks/useBookmarkedHospitals";
 import { useAuthStore } from "@/src/store/authStore";
 import { useMyPageShellStyles } from "@/src/features/mypage/useMyPageShellStyles";
@@ -37,6 +38,7 @@ export default function BookmarksPage() {
       <Head><title>찜한 병원 | 우동</title></Head>
       <main className={shell.page}>
         <TopNav activeMenu="마이페이지" />
+        <MyPageBackLink />
         <section className={shell.heroCard}>
           <h1 className={shell.heroTitle}>찜한 병원</h1>
           {!isBookmarkLoading && !bookmarkError ? (

@@ -43,6 +43,7 @@ export function useMyPageState() {
   const [password, setPassword] = useState("");
   const [passwordConfirm, setPasswordConfirm] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isPrivacyPolicyAgreed, setIsPrivacyPolicyAgreed] = useState(false);
   const [isAutoLoginChecked, setIsAutoLoginChecked] = useState(() =>
     hasActiveAutoLogin(),
   );
@@ -153,15 +154,17 @@ export function useMyPageState() {
       hasValidEmail &&
       hasValidPassword &&
       passwordConfirm.length >= 6 &&
-      password === passwordConfirm
+      password === passwordConfirm &&
+      isPrivacyPolicyAgreed
     );
-  }, [authMode, email, password, passwordConfirm]);
+  }, [authMode, email, isPrivacyPolicyAgreed, password, passwordConfirm]);
 
   const handleAuthModeChange = useCallback(
     (nextAuthMode: AuthMode) => {
       setAuthMode(nextAuthMode);
       setPassword("");
       setPasswordConfirm("");
+      setIsPrivacyPolicyAgreed(false);
       setAuthMessage("");
       closeAuthDialog();
     },
@@ -198,6 +201,14 @@ export function useMyPageState() {
       closeAuthDialog();
     },
     [closeAuthDialog],
+  );
+
+  const handlePrivacyPolicyAgreementChange = useCallback(
+    (checked: boolean) => {
+      setIsPrivacyPolicyAgreed(checked);
+      clearAuthFeedback();
+    },
+    [clearAuthFeedback],
   );
 
   const handleSubmit = useCallback(
@@ -312,6 +323,7 @@ export function useMyPageState() {
       resetActivity();
       setPassword("");
       setPasswordConfirm("");
+      setIsPrivacyPolicyAgreed(false);
     } catch (error) {
       openAuthDialog(
         error instanceof Error
@@ -358,6 +370,7 @@ export function useMyPageState() {
     handleLogout,
     handlePasswordChange,
     handlePasswordConfirmChange,
+    handlePrivacyPolicyAgreementChange,
     handleProfileSubmit,
     handleSubmit,
     isActivityLoading,
@@ -366,6 +379,7 @@ export function useMyPageState() {
     isAutoLoginChecked,
     isBookmarkLoading,
     isBookmarkSheetOpen,
+    isPrivacyPolicyAgreed,
     isProfileLoading,
     isProfileSaving,
     isSubmitting,
