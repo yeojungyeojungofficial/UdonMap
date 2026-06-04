@@ -1,0 +1,36 @@
+.backLink {
+  display: none;
+}
+
+.backIcon {
+  display: none;
+}
+
+@media (max-width: 670px) {
+  .backLink {
+    display: inline-flex;
+    align-items: center;
+    align-self: flex-start;
+    gap: 4px;
+    min-height: 36px;
+    padding: 0 10px 0 6px;
+    border-radius: var(--radius-pill);
+    color: var(--color-text-muted);
+    font-size: 13px;
+    font-weight: 800;
+    text-decoration: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .backLink:active {
+    background: var(--color-hover);
+    color: var(--color-heading);
+  }
+
+  .backIcon {
+    display: block;
+    width: 19px;
+    height: 19px;
+    flex: 0 0 auto;
+  }
+}

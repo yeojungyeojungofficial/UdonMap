@@ -1,4 +1,10 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type ChangeEvent,
+} from "react";
 import FilterChipGroup from "@/src/components/common/FilterChipGroup";
 import {
   BOARD_TABS,
@@ -6,12 +12,17 @@ import {
   type BoardPostSummary,
   type BoardTab,
 } from "@/src/features/reviews/boardPosts";
-import { usePostComposeEditor } from "@/src/features/reviews/hooks/usePostComposeEditor";
+import {
+  POST_COMPOSE_PHOTO_DELETED_EVENT,
+  usePostComposeEditor,
+} from "@/src/features/reviews/hooks/usePostComposeEditor";
 import { usePostImageUpload } from "@/src/features/reviews/hooks/usePostImageUpload";
 import { usePostComposeSubmit } from "@/src/features/reviews/hooks/usePostComposeSubmit";
 import {
   MAX_POST_BODY,
   MAX_POST_PHOTOS,
+  POST_FONT_SIZE_OPTIONS,
+  POST_FONT_WEIGHT_OPTIONS,
   REVIEW_TAG_OPTIONS,
   TIP_TAG_OPTIONS,
   type ReviewTag,
@@ -50,17 +61,23 @@ export default function MobilePostComposeSheetContent({
   const [bodyLength, setBodyLength] = useState(0);
   const [linkUrl, setLinkUrl] = useState("");
   const [isLinkInputOpen, setIsLinkInputOpen] = useState(false);
+  const [selectedFontSize, setSelectedFontSize] = useState("16px");
+  const [selectedFontWeight, setSelectedFontWeight] = useState("400");
 
   const titleRef = useRef<HTMLInputElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const linkInputRef = useRef<HTMLInputElement>(null);
 
   const {
+    applyTextStyle,
     editorRef,
     buildResizableImage,
     countPhotos,
     getHtml,
     getTextLength,
+    handleEditorDragOver,
+    handleEditorDrop,
+    hydrateEditorImages,
     insertLink,
     insertNodeAtCursor,
     revokeEditorObjectUrls,
@@ -70,7 +87,10 @@ export default function MobilePostComposeSheetContent({
     classNames: {
       imgWrapper: styles.imgWrapper,
       imgEl: styles.imgEl,
+      imgDragHandle: styles.imgDragHandle,
       imgResizeHandle: styles.imgResizeHandle,
+      imgRemoveButton: styles.imgRemoveButton,
+      imgDragging: styles.imgDragging,
       inlineLink: styles.inlineLink,
     },
     onBodyLengthChange: setBodyLength,
@@ -89,6 +109,7 @@ export default function MobilePostComposeSheetContent({
   const {
     cleanupUploadedImages,
     handleFileChange,
+    handleEditorPhotoDeleted,
     photoCount,
     photoLimitMsg,
     syncPhotoCount,
@@ -130,6 +151,24 @@ export default function MobilePostComposeSheetContent({
     }
   };
 
+  const handleFontSizeChange = (e: ChangeEvent<HTMLSelectElement>) => {
+    const nextFontSize = e.target.value;
+    setSelectedFontSize(nextFontSize);
+    applyTextStyle({
+      fontSize: nextFontSize,
+      fontWeight: selectedFontWeight,
+    });
+  };
+
+  const handleFontWeightChange = (e: ChangeEvent<HTMLSelectElement>) => {
+    const nextFontWeight = e.target.value;
+    setSelectedFontWeight(nextFontWeight);
+    applyTextStyle({
+      fontSize: selectedFontSize,
+      fontWeight: nextFontWeight,
+    });
+  };
+
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") handleClose();
@@ -146,13 +185,43 @@ export default function MobilePostComposeSheetContent({
   useEffect(() => {
     if (!editPost || !editorRef.current) return;
     editorRef.current.innerHTML = editPost.body;
+    hydrateEditorImages();
     updateBodyLength();
     syncPhotoCount();
-  }, [editPost, editorRef, syncPhotoCount, updateBodyLength]);
+  }, [
+    editPost,
+    editorRef,
+    hydrateEditorImages,
+    syncPhotoCount,
+    updateBodyLength,
+  ]);
 
   useEffect(() => {
     return revokeEditorObjectUrls;
   }, [revokeEditorObjectUrls]);
+
+  useEffect(() => {
+    const editor = editorRef.current;
+    if (!editor) return;
+
+    const handlePhotoDeleted = (event: Event) => {
+      const storagePath =
+        (event as CustomEvent<{ storagePath?: string }>).detail?.storagePath ??
+        "";
+      void handleEditorPhotoDeleted(storagePath);
+    };
+
+    editor.addEventListener(
+      POST_COMPOSE_PHOTO_DELETED_EVENT,
+      handlePhotoDeleted,
+    );
+    return () => {
+      editor.removeEventListener(
+        POST_COMPOSE_PHOTO_DELETED_EVENT,
+        handlePhotoDeleted,
+      );
+    };
+  }, [editorRef, handleEditorPhotoDeleted]);
 
   const atPhotoLimit = photoCount >= MAX_POST_PHOTOS;
   const isBodyTooLong = bodyLength > MAX_POST_BODY;
@@ -258,6 +327,8 @@ export default function MobilePostComposeSheetContent({
             className={styles.bodyEditor}
             data-placeholder="내용을 입력해 주세요"
             onBlur={saveSelection}
+            onDragOver={handleEditorDragOver}
+            onDrop={handleEditorDrop}
             onKeyUp={updateBodyLength}
             onInput={updateBodyLength}
           />
@@ -330,6 +401,39 @@ export default function MobilePostComposeSheetContent({
                 />
               </svg>
             </button>
+            <span className={styles.toolbarDivider} aria-hidden="true" />
+            <div className={styles.formatGroup}>
+              <select
+                className={styles.formatSelect}
+                aria-label="글씨 크기"
+                value={selectedFontSize}
+                onChange={handleFontSizeChange}
+                onFocus={saveSelection}
+                onMouseDown={saveSelection}
+                onTouchStart={saveSelection}
+              >
+                {POST_FONT_SIZE_OPTIONS.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+              <select
+                className={styles.formatSelect}
+                aria-label="글씨 굵기"
+                value={selectedFontWeight}
+                onChange={handleFontWeightChange}
+                onFocus={saveSelection}
+                onMouseDown={saveSelection}
+                onTouchStart={saveSelection}
+              >
+                {POST_FONT_WEIGHT_OPTIONS.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
           <div className={styles.toolbarRight}>
             {uploadingCount > 0 && (

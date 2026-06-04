@@ -4,6 +4,7 @@ import TopNav from "@/src/components/common/TopNav";
 import CommonFooter from "@/src/components/common/CommonFooter";
 import AccountAuthInline from "@/src/components/mypage/AccountAuthInline";
 import AuthDialog from "@/src/components/mypage/AuthDialog";
+import MyPageBackLink from "@/src/components/mypage/MyPageBackLink";
 import { formatProfileDate } from "@/src/features/mypage/formatters";
 import { useMyPageState } from "@/src/features/mypage/hooks/useMyPageState";
 import { useMyPageShellStyles } from "@/src/features/mypage/useMyPageShellStyles";
@@ -30,10 +31,12 @@ export default function AccountPage() {
     handleLogout,
     handlePasswordChange,
     handlePasswordConfirmChange,
+    handlePrivacyPolicyAgreementChange,
     handleProfileSubmit,
     handleSubmit,
     isAuthReady,
     isAutoLoginChecked,
+    isPrivacyPolicyAgreed,
     isProfileLoading,
     isProfileSaving,
     isSubmitting,
@@ -58,6 +61,7 @@ export default function AccountPage() {
       </Head>
       <main className={shell.page}>
         <TopNav activeMenu="마이페이지" />
+        <MyPageBackLink />
 
         <section className={shell.heroCard}>
           <h1 className={shell.heroTitle}>계정 관리</h1>
@@ -151,9 +155,13 @@ export default function AccountPage() {
               handleEmailChange={handleEmailChange}
               handlePasswordChange={handlePasswordChange}
               handlePasswordConfirmChange={handlePasswordConfirmChange}
+              handlePrivacyPolicyAgreementChange={
+                handlePrivacyPolicyAgreementChange
+              }
               handleSubmit={handleSubmit}
               isAuthReady={isAuthReady}
               isAutoLoginChecked={isAutoLoginChecked}
+              isPrivacyPolicyAgreed={isPrivacyPolicyAgreed}
               isSubmitting={isSubmitting}
               password={password}
               passwordConfirm={passwordConfirm}

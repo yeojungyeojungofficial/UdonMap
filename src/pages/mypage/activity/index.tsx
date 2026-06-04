@@ -4,6 +4,7 @@ import { useRouter } from "next/router";
 import { useEffect } from "react";
 import TopNav from "@/src/components/common/TopNav";
 import CommonFooter from "@/src/components/common/CommonFooter";
+import MyPageBackLink from "@/src/components/mypage/MyPageBackLink";
 import { useAuthStore } from "@/src/store/authStore";
 import { useMyPageShellStyles } from "@/src/features/mypage/useMyPageShellStyles";
 
@@ -38,6 +39,7 @@ export default function ActivityIndexPage() {
       <Head><title>내 활동 | 우동</title></Head>
       <main className={shell.page}>
         <TopNav activeMenu="마이페이지" />
+        <MyPageBackLink />
         <section className={shell.heroCard}>
           <h1 className={shell.heroTitle}>내 활동</h1>
         </section>

@@ -28,6 +28,7 @@ import {
   AUTH_ERROR_TITLE,
   LOGIN_FAILURE_MESSAGE,
 } from "@/src/features/mypage/authMessages";
+import { PRIVACY_POLICY_VERSION } from "@/src/features/mypage/privacyPolicy";
 import type { AuthMode } from "@/src/features/mypage/types";
 import { useAuthStore } from "@/src/store/authStore";
 
@@ -43,6 +44,7 @@ export function useMyPageState() {
   const [password, setPassword] = useState("");
   const [passwordConfirm, setPasswordConfirm] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isPrivacyPolicyAgreed, setIsPrivacyPolicyAgreed] = useState(false);
   const [isAutoLoginChecked, setIsAutoLoginChecked] = useState(() =>
     hasActiveAutoLogin(),
   );
@@ -153,15 +155,17 @@ export function useMyPageState() {
       hasValidEmail &&
       hasValidPassword &&
       passwordConfirm.length >= 6 &&
-      password === passwordConfirm
+      password === passwordConfirm &&
+      isPrivacyPolicyAgreed
     );
-  }, [authMode, email, password, passwordConfirm]);
+  }, [authMode, email, isPrivacyPolicyAgreed, password, passwordConfirm]);
 
   const handleAuthModeChange = useCallback(
     (nextAuthMode: AuthMode) => {
       setAuthMode(nextAuthMode);
       setPassword("");
       setPasswordConfirm("");
+      setIsPrivacyPolicyAgreed(false);
       setAuthMessage("");
       closeAuthDialog();
     },
@@ -198,6 +202,14 @@ export function useMyPageState() {
       closeAuthDialog();
     },
     [closeAuthDialog],
+  );
+
+  const handlePrivacyPolicyAgreementChange = useCallback(
+    (checked: boolean) => {
+      setIsPrivacyPolicyAgreed(checked);
+      clearAuthFeedback();
+    },
+    [clearAuthFeedback],
   );
 
   const handleSubmit = useCallback(
@@ -244,11 +256,23 @@ export function useMyPageState() {
           setAuthReady(true);
           setAuthMessage("로그인했습니다.");
         } else {
+          if (!isPrivacyPolicyAgreed) {
+            openAuthDialog("개인정보 처리방침에 동의해주세요.");
+            return;
+          }
+
+          const privacyPolicyAgreedAt = new Date().toISOString();
+
           const { data, error } = await supabase.auth.signUp({
             email: trimmedEmail,
             password,
             options: {
               emailRedirectTo: redirectTo,
+              data: {
+                privacy_policy_agreed: true,
+                privacy_policy_agreed_at: privacyPolicyAgreedAt,
+                privacy_policy_version: PRIVACY_POLICY_VERSION,
+              },
             },
           });
 
@@ -282,6 +306,7 @@ export function useMyPageState() {
       closeAuthDialog,
       email,
       isAutoLoginChecked,
+      isPrivacyPolicyAgreed,
       clearAuth,
       openAuthDialog,
       password,
@@ -312,6 +337,7 @@ export function useMyPageState() {
       resetActivity();
       setPassword("");
       setPasswordConfirm("");
+      setIsPrivacyPolicyAgreed(false);
     } catch (error) {
       openAuthDialog(
         error instanceof Error
@@ -358,6 +384,7 @@ export function useMyPageState() {
     handleLogout,
     handlePasswordChange,
     handlePasswordConfirmChange,
+    handlePrivacyPolicyAgreementChange,
     handleProfileSubmit,
     handleSubmit,
     isActivityLoading,
@@ -366,6 +393,7 @@ export function useMyPageState() {
     isAutoLoginChecked,
     isBookmarkLoading,
     isBookmarkSheetOpen,
+    isPrivacyPolicyAgreed,
     isProfileLoading,
     isProfileSaving,
     isSubmitting,

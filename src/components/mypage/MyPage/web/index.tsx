@@ -56,9 +56,11 @@ export default function DesktopMyPage() {
     handleEmailChange,
     handlePasswordChange,
     handlePasswordConfirmChange,
+    handlePrivacyPolicyAgreementChange,
     handleSubmit,
     isAuthReady,
     isAutoLoginChecked,
+    isPrivacyPolicyAgreed,
     isSubmitting,
     password,
     passwordConfirm,
@@ -115,9 +117,13 @@ export default function DesktopMyPage() {
               handleEmailChange={handleEmailChange}
               handlePasswordChange={handlePasswordChange}
               handlePasswordConfirmChange={handlePasswordConfirmChange}
+              handlePrivacyPolicyAgreementChange={
+                handlePrivacyPolicyAgreementChange
+              }
               handleSubmit={handleSubmit}
               isAuthReady={isAuthReady}
               isAutoLoginChecked={isAutoLoginChecked}
+              isPrivacyPolicyAgreed={isPrivacyPolicyAgreed}
               isSubmitting={isSubmitting}
               password={password}
               passwordConfirm={passwordConfirm}

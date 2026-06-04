@@ -2,7 +2,7 @@ import type { SupabaseClient, User } from "@supabase/supabase-js";
 import type { Database } from "@/src/core/database.types";
 
 export const USER_PROFILE_COLUMNS =
-  "id,email,display_name,created_at,updated_at";
+  "id,email,display_name,privacy_policy_agreed,privacy_policy_agreed_at,privacy_policy_version,created_at,updated_at";
 export const MAX_DISPLAY_NAME_LENGTH = 40;
 
 export type UserProfile = Database["public"]["Tables"]["profiles"]["Row"];

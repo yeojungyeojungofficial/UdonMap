@@ -599,6 +599,9 @@ export type Database = {
           id: string;
           email: string | null;
           display_name: string | null;
+          privacy_policy_agreed: boolean;
+          privacy_policy_agreed_at: string | null;
+          privacy_policy_version: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -606,6 +609,9 @@ export type Database = {
           id: string;
           email?: string | null;
           display_name?: string | null;
+          privacy_policy_agreed?: boolean;
+          privacy_policy_agreed_at?: string | null;
+          privacy_policy_version?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -613,6 +619,9 @@ export type Database = {
           id?: string;
           email?: string | null;
           display_name?: string | null;
+          privacy_policy_agreed?: boolean;
+          privacy_policy_agreed_at?: string | null;
+          privacy_policy_version?: string | null;
           created_at?: string;
           updated_at?: string;
         };

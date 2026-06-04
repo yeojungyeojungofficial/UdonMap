@@ -174,6 +174,7 @@
   max-width: 100%;
   vertical-align: bottom;
   margin: 4px 2px;
+  cursor: grab;
 }
 
 .imgEl {
@@ -187,6 +188,83 @@
 
 .imgWrapper:hover .imgEl {
   border-color: var(--color-brand);
+}
+
+.imgDragging {
+  opacity: 0.55;
+}
+
+.imgDragHandle,
+.imgRemoveButton {
+  position: absolute;
+  top: 6px;
+  width: 26px;
+  height: 26px;
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: rgb(25 30 36 / 0.78);
+  color: var(--color-surface);
+  opacity: 0;
+  transition: opacity 0.15s ease, background-color 0.15s ease;
+  z-index: 2;
+}
+
+.imgDragHandle {
+  left: 6px;
+  cursor: grab;
+  touch-action: none;
+}
+
+.imgDragHandle::before {
+  content: "";
+  position: absolute;
+  top: 7px;
+  left: 8px;
+  width: 3px;
+  height: 3px;
+  border-radius: var(--radius-pill);
+  background: currentColor;
+  box-shadow:
+    7px 0 0 currentColor,
+    0 7px 0 currentColor,
+    7px 7px 0 currentColor;
+}
+
+.imgRemoveButton {
+  right: 6px;
+  cursor: pointer;
+}
+
+.imgRemoveButton::before,
+.imgRemoveButton::after {
+  content: "";
+  position: absolute;
+  top: 12px;
+  left: 7px;
+  width: 12px;
+  height: 2px;
+  border-radius: 2px;
+  background: currentColor;
+}
+
+.imgRemoveButton::before {
+  transform: rotate(45deg);
+}
+
+.imgRemoveButton::after {
+  transform: rotate(-45deg);
+}
+
+.imgDragHandle:hover,
+.imgRemoveButton:hover {
+  background: rgb(25 30 36 / 0.9);
+}
+
+.imgWrapper:hover .imgDragHandle,
+.imgWrapper:hover .imgRemoveButton,
+.imgWrapper:focus-within .imgDragHandle,
+.imgWrapper:focus-within .imgRemoveButton {
+  opacity: 1;
 }
 
 .imgResizeHandle {
@@ -207,6 +285,14 @@
 
 .imgWrapper:hover .imgResizeHandle {
   opacity: 1;
+}
+
+@media (hover: none) {
+  .imgDragHandle,
+  .imgRemoveButton,
+  .imgResizeHandle {
+    opacity: 1;
+  }
 }
 
 .inlineLink {
@@ -299,6 +385,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 8px;
   padding: 12px 20px 12px 14px;
   padding-bottom: max(12px, env(safe-area-inset-bottom));
   border-top: 1px solid var(--color-border-soft);
@@ -309,7 +396,15 @@
 .toolbarLeft {
   display: flex;
   align-items: center;
+  flex: 1;
   gap: 2px;
+  min-width: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.toolbarLeft::-webkit-scrollbar {
+  display: none;
 }
 
 .toolbarButton {
@@ -356,6 +451,39 @@
   align-items: center;
   gap: 10px;
   min-width: 0;
+  flex: 0 0 auto;
+}
+
+.toolbarDivider {
+  width: 1px;
+  height: 26px;
+  margin: 0 4px;
+  background: var(--color-border-soft);
+  flex: 0 0 auto;
+}
+
+.formatGroup {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: 0 0 auto;
+}
+
+.formatSelect {
+  height: 34px;
+  border: 1px solid var(--color-border-soft);
+  border-radius: 8px;
+  background: var(--color-field-surface);
+  color: var(--color-text);
+  font-size: 12px;
+  font-weight: 800;
+  outline: none;
+  padding: 0 8px;
+  cursor: pointer;
+}
+
+.formatSelect:focus {
+  border-color: var(--color-brand);
 }
 
 .photoBadge {
