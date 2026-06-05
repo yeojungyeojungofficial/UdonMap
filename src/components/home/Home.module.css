@@ -576,14 +576,20 @@
   transition: height 0.2s ease, max-height 0.2s ease;
 }
 
+.bottomSheetDragging {
+  transition: none;
+}
+
 .sheetDragHandle {
   display: flex;
+  align-items: flex-start;
   justify-content: center;
   width: 100%;
+  min-height: 34px;
   margin: 0;
   border: 0;
   border-radius: var(--radius-field);
-  padding: 2px 0 14px;
+  padding: 8px 0 14px;
   background: transparent;
   cursor: grab;
   touch-action: none;
@@ -1416,20 +1422,18 @@
   }
 
   .bottomSheet {
-    height: 50vh;
-    height: 50dvh;
-    max-height: 50vh;
-    max-height: 50dvh;
+    --bottom-sheet-height: 50vh;
+    --bottom-sheet-height: 50dvh;
+    height: var(--bottom-sheet-height);
+    max-height: var(--bottom-sheet-height);
     overflow-y: auto;
     border-radius: 20px 20px 0 0;
     padding: 10px 14px 28px;
   }
 
   .bottomSheetFull {
-    height: calc(100vh - 12px);
-    height: calc(100dvh - 12px);
-    max-height: calc(100vh - 12px);
-    max-height: calc(100dvh - 12px);
+    --bottom-sheet-height: calc(100vh - 12px);
+    --bottom-sheet-height: calc(100dvh - 12px);
   }
 
   .sheetOverlay {
