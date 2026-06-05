@@ -1,5 +1,5 @@
 import Head from "next/head";
-import { useState } from "react";
+import { type FormEvent, useState } from "react";
 import HospitalBottomSheet from "@/src/components/home/HospitalBottomSheet";
 import HospitalList from "@/src/components/home/HospitalList";
 import MapPanel from "@/src/components/home/MapPanel";
@@ -20,7 +20,6 @@ export default function DesktopHomePage() {
   });
   const {
     effectiveSelectedRegion,
-    filteredHospitals,
     handleBookmarkChanged,
     handleCloseHospital,
     handleCommentCreated,
@@ -28,23 +27,38 @@ export default function DesktopHomePage() {
     handleCommentReactionChanged,
     handleCurrentLocationResolved,
     handleHospitalReactionChanged,
+    handleSelectHospitalGroup,
     handleSelectHospital,
     hasHospitalLoadError,
     initialMapFocusRegion,
+    isHospitalGroupFocused,
     isLoadingHospitals,
+    listHospitals,
     loadingCommentsHospitalId,
     mapLevel,
     mapHospitals,
+    mapResetVersion,
     mapSelectedRegion,
     query,
     regionOptions,
+    resetSearch,
+    searchInput,
     selectedHospital,
     selectedHospitalCommentLoadError,
     selectedHospitalId,
     setMapLevel,
     setQuery,
+    setSearchInput,
     setSelectedRegion,
   } = useHospitalDirectory();
+
+  const handleSelectMenu = (menu: string) => {
+    setActiveMenu(menu);
+    if (menu === "병원찾기") {
+      setIsReportSheetOpen(false);
+      setReportInitialValues({ hospitalName: "", streetAddress: "" });
+    }
+  };
 
   const closeReportSheet = () => {
     setIsReportSheetOpen(false);
@@ -70,6 +84,20 @@ export default function DesktopHomePage() {
     setIsReportSheetOpen(true);
   };
 
+  const handleSearchSubmit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setQuery(searchInput.trim());
+  };
+
+  const handleSearchInputChange = (value: string) => {
+    if (value === "") {
+      resetSearch();
+      return;
+    }
+
+    setSearchInput(value);
+  };
+
   return (
     <>
       <Head>
@@ -82,22 +110,27 @@ export default function DesktopHomePage() {
       <div className={styles.page}>
         <TopNav
           activeMenu={activeMenu}
-          onSelectMenu={setActiveMenu}
+          onSelectMenu={handleSelectMenu}
           onOpenReport={openEmptyReportSheet}
         />
-        <div className={styles.searchWrap}>
+        <form
+          className={styles.searchWrap}
+          role="search"
+          onSubmit={handleSearchSubmit}
+        >
           <label htmlFor="hospital-search" className={styles.searchLabel}>
             병원 검색
           </label>
           <input
             id="hospital-search"
             type="search"
+            enterKeyHint="search"
             placeholder="병원명, 주소, 진료동물 검색"
-            value={query}
-            onChange={(event) => setQuery(event.target.value)}
+            value={searchInput}
+            onChange={(event) => handleSearchInputChange(event.target.value)}
             className={styles.searchInput}
           />
-        </div>
+        </form>
         {isLoadingHospitals ? (
           <LoadingScreen
             message="병원 목록을 불러오는 중입니다."
@@ -112,13 +145,17 @@ export default function DesktopHomePage() {
         ) : null}
         <div className={styles.heroSection}>
           <MapPanel
+            key={mapResetVersion}
             hospitals={mapHospitals}
             initialFocusRegion={initialMapFocusRegion}
+            isHospitalGroupFocused={isHospitalGroupFocused}
+            isSearchActive={query.trim().length > 0}
             mapLevel={mapLevel}
             selectedHospitalId={selectedHospitalId}
             selectedRegion={mapSelectedRegion}
             onCurrentLocationResolved={handleCurrentLocationResolved}
             onMapLevelChange={setMapLevel}
+            onSelectHospitalGroup={handleSelectHospitalGroup}
             onSelectHospital={handleSelectHospital}
           />
         </div>
@@ -132,10 +169,10 @@ export default function DesktopHomePage() {
 
           <section className={styles.listSection}>
             <div className={styles.sectionHeader}>
-              <p className={styles.sectionCount}>{filteredHospitals.length}개 병원 표시 중</p>
+              <p className={styles.sectionCount}>{listHospitals.length}개 병원 표시 중</p>
             </div>
             <HospitalList
-              hospitals={filteredHospitals}
+              hospitals={listHospitals}
               selectedHospitalId={selectedHospitalId}
               onSelectHospital={handleSelectHospital}
             />

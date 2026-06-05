@@ -1,5 +1,6 @@
 "use client";
 
+import { useRef, useState, type PointerEvent } from "react";
 import type {
   Hospital,
   HospitalComment,
@@ -47,6 +48,15 @@ type IconName =
   | "star"
   | "thumbsDown"
   | "thumbsUp";
+
+type SheetSize = "half" | "full";
+
+const SHEET_DRAG_THRESHOLD_PX = 44;
+
+type SheetState = {
+  hospitalId: string | null;
+  size: SheetSize;
+};
 
 function getHourSegments(detail: string) {
   return detail
@@ -159,6 +169,12 @@ export default function HospitalBottomSheet({
   isLoadingComments = false,
   commentLoadError = "",
 }: HospitalBottomSheetProps) {
+  const [sheetState, setSheetState] = useState<SheetState>({
+    hospitalId: null,
+    size: "half",
+  });
+  const sheetDragStartYRef = useRef<number | null>(null);
+  const didDragSheetRef = useRef(false);
   const {
     bookmarkError,
     commentContent,
@@ -198,17 +214,104 @@ export default function HospitalBottomSheet({
   const isOpen = operationStatus === "운영중";
   const isClosed = isClosedOperationStatus(operationStatus);
   const isSpecialtyHospital = hospital.isSpecialty || hospital.animals.length > 0;
+  const sheetSize =
+    sheetState.hospitalId === hospital.id ? sheetState.size : "half";
+  const bottomSheetClassName = `${styles.bottomSheet} ${
+    sheetSize === "full" ? styles.bottomSheetFull : ""
+  }`;
+  const setCurrentSheetSize = (
+    nextSize: SheetSize | ((currentSize: SheetSize) => SheetSize),
+  ) => {
+    setSheetState({
+      hospitalId: hospital.id,
+      size: typeof nextSize === "function" ? nextSize(sheetSize) : nextSize,
+    });
+  };
+
+  const handleClose = () => {
+    setSheetState({
+      hospitalId: hospital.id,
+      size: "half",
+    });
+    onClose();
+  };
+
+  const handleSheetDragStart = (event: PointerEvent<HTMLButtonElement>) => {
+    sheetDragStartYRef.current = event.clientY;
+    didDragSheetRef.current = false;
+    event.currentTarget.setPointerCapture(event.pointerId);
+  };
+
+  const handleSheetDragEnd = (event: PointerEvent<HTMLButtonElement>) => {
+    const dragStartY = sheetDragStartYRef.current;
+
+    if (dragStartY === null) {
+      return;
+    }
+
+    const dragDistanceY = event.clientY - dragStartY;
+
+    if (dragDistanceY <= -SHEET_DRAG_THRESHOLD_PX) {
+      didDragSheetRef.current = true;
+      setCurrentSheetSize("full");
+    }
+
+    if (dragDistanceY >= SHEET_DRAG_THRESHOLD_PX) {
+      didDragSheetRef.current = true;
+      setCurrentSheetSize("half");
+    }
+
+    sheetDragStartYRef.current = null;
+
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+      event.currentTarget.releasePointerCapture(event.pointerId);
+    }
+  };
+
+  const handleSheetDragCancel = (event: PointerEvent<HTMLButtonElement>) => {
+    sheetDragStartYRef.current = null;
+
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+      event.currentTarget.releasePointerCapture(event.pointerId);
+    }
+  };
+
+  const handleSheetHandleClick = () => {
+    if (didDragSheetRef.current) {
+      didDragSheetRef.current = false;
+      return;
+    }
+
+    setCurrentSheetSize((currentSheetSize) =>
+      currentSheetSize === "full" ? "half" : "full",
+    );
+  };
 
   return (
-    <div className={styles.sheetOverlay} role="presentation" onClick={onClose}>
+    <div className={styles.sheetOverlay} role="presentation" onClick={handleClose}>
       <section
-        className={styles.bottomSheet}
+        className={bottomSheetClassName}
         role="dialog"
         aria-modal="true"
         aria-label="병원 상세 정보"
         onClick={(event) => event.stopPropagation()}
       >
-        <div className={styles.sheetHandle} />
+        <button
+          type="button"
+          className={styles.sheetDragHandle}
+          onClick={handleSheetHandleClick}
+          onPointerDown={handleSheetDragStart}
+          onPointerUp={handleSheetDragEnd}
+          onPointerCancel={handleSheetDragCancel}
+          aria-label={
+            sheetSize === "full"
+              ? "상세창 50%로 줄이기"
+              : "상세창 전체로 펼치기"
+          }
+          aria-expanded={sheetSize === "full"}
+        >
+          <span className={styles.sheetHandle} aria-hidden="true" />
+        </button>
         <div className={styles.sheetHero}>
           <div className={styles.sheetHeroBadges}>
             <span className={styles.sheetRegion}>{hospital.region}</span>
@@ -243,7 +346,7 @@ export default function HospitalBottomSheet({
             <button
               type="button"
               className={styles.sheetCloseButton}
-              onClick={onClose}
+              onClick={handleClose}
               aria-label="상세 정보 닫기"
             >
               <SheetIcon name="close" />

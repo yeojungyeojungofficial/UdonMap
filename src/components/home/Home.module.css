@@ -249,6 +249,7 @@
   display: inline-flex;
   align-items: center;
   gap: 8px;
+  overflow: visible;
   border: 0;
   background: none;
   padding: 0;
@@ -261,6 +262,8 @@
   display: inline-flex;
   align-items: center;
   gap: 8px;
+  min-width: max-content;
+  overflow: visible;
   border: 0;
   background: none;
   padding: 0;
@@ -298,9 +301,13 @@
   position: absolute;
   transform: translate(-50%, -50%);
   animation: markerReveal 0.38s ease both;
+  cursor: pointer;
 }
 
 .markerDot {
+  position: relative;
+  z-index: 1;
+  flex: 0 0 14px;
   width: 14px;
   height: 14px;
   border-radius: 50%;
@@ -309,12 +316,20 @@
 }
 
 .markerLabel {
+  display: inline-flex;
+  align-items: center;
+  max-width: min(220px, calc(100vw - 88px));
+  overflow: hidden;
   padding: 6px 10px;
   border-radius: var(--radius-pill);
   background: rgba(56, 56, 56, 0.9);
   color: var(--color-surface);
   font-size: 12px;
+  font-weight: 800;
+  line-height: 1.2;
+  text-overflow: ellipsis;
   white-space: nowrap;
+  box-shadow: 0 8px 18px rgba(56, 56, 56, 0.2);
 }
 
 .markerActive .markerDot {
@@ -539,13 +554,12 @@
   position: fixed;
   inset: 0;
   z-index: 200;
-  background: rgba(56, 56, 56, 0.52);
+  background: transparent;
   display: flex;
   align-items: flex-end;
   justify-content: center;
   padding: 24px 20px 0;
   padding-bottom: env(safe-area-inset-bottom);
-  backdrop-filter: blur(2px);
 }
 
 .bottomSheet {
@@ -558,14 +572,40 @@
   padding: 12px 20px 36px;
   box-shadow: var(--shadow-sheet);
   animation: slideUp 0.26s ease;
+  overscroll-behavior: contain;
+  transition: height 0.2s ease, max-height 0.2s ease;
+}
+
+.sheetDragHandle {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  margin: 0;
+  border: 0;
+  border-radius: var(--radius-field);
+  padding: 2px 0 14px;
+  background: transparent;
+  cursor: grab;
+  touch-action: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.sheetDragHandle:active {
+  cursor: grabbing;
+}
+
+.sheetDragHandle:focus-visible {
+  outline: 2px solid rgba(255, 150, 69, 0.55);
+  outline-offset: 2px;
 }
 
 .sheetHandle {
+  flex: 0 0 auto;
   width: 48px;
   height: 5px;
   border-radius: var(--radius-pill);
   background: var(--color-text);
-  margin: 2px auto 14px;
+  margin: 0;
 }
 
 .sheetHero {
@@ -1272,10 +1312,6 @@
     gap: 12px;
   }
 
-  .markerLabel {
-    display: none;
-  }
-
   .heroSection {
     border-radius: 22px;
     padding: 0;
@@ -1287,7 +1323,13 @@
 
   .searchInput {
     padding: 12px 14px;
-    font-size: 14px;
+    font-size: 16px;
+  }
+
+  .markerLabel {
+    max-width: min(170px, calc(100vw - 104px));
+    padding: 5px 8px;
+    font-size: 11px;
   }
 
   .mapPanel {
@@ -1296,16 +1338,27 @@
   }
 
   .mapControlDock {
-    top: 10px;
+    top: auto;
     right: 10px;
-    width: 78px;
+    bottom: 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    width: 54px;
     gap: 7px;
   }
 
   .locationControlButton {
-    height: 38px;
-    padding: 0 8px;
+    order: 2;
+    width: 54px;
+    height: 36px;
+    justify-content: center;
+    padding: 0;
     font-size: 11px;
+  }
+
+  .locationControlButton .mapControlIcon {
+    display: none;
   }
 
   .mapControlIcon {
@@ -1315,12 +1368,13 @@
   }
 
   .zoomControlButton {
-    width: 38px;
-    height: 38px;
+    width: 54px;
+    height: 36px;
   }
 
   .zoomControlGroup {
-    width: 38px;
+    order: 1;
+    width: 54px;
   }
 
   .zoomControlIcon {
@@ -1329,8 +1383,14 @@
   }
 
   .locationStatus {
+    position: absolute;
+    right: 0;
+    bottom: calc(100% + 8px);
+    width: max-content;
+    max-width: min(220px, calc(100vw - 24px));
     padding: 7px;
     font-size: 10px;
+    text-align: right;
   }
 
   .mainSection {
@@ -1356,10 +1416,20 @@
   }
 
   .bottomSheet {
-    max-height: calc(100vh - 12px);
-    max-height: calc(100dvh - 12px);
+    height: 50vh;
+    height: 50dvh;
+    max-height: 50vh;
+    max-height: 50dvh;
+    overflow-y: auto;
     border-radius: 20px 20px 0 0;
     padding: 10px 14px 28px;
+  }
+
+  .bottomSheetFull {
+    height: calc(100vh - 12px);
+    height: calc(100dvh - 12px);
+    max-height: calc(100vh - 12px);
+    max-height: calc(100dvh - 12px);
   }
 
   .sheetOverlay {

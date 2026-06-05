@@ -1,6 +1,7 @@
 import Head from "next/head";
 import Link from "next/link";
-import { useState } from "react";
+import { useRouter } from "next/router";
+import { useMemo, useState } from "react";
 import FilterChipGroup from "@/src/components/common/FilterChipGroup";
 import HospitalReportSheet from "@/src/components/common/HospitalReportSheet";
 import LoadingScreen from "@/src/components/common/LoadingScreen";
@@ -12,6 +13,9 @@ import type { Region } from "@/src/features/hospitals/types";
 import {
   BOARD_TABS,
   TIP_CATEGORIES,
+  getBoardQueryValue,
+  getBoardTabFromQuery,
+  type BoardTab,
 } from "@/src/features/reviews/boardPosts";
 import { useReviewBoardPosts } from "@/src/features/reviews/hooks/useReviewBoardPosts";
 import styles from "./ReviewsPage.module.css";
@@ -19,9 +23,14 @@ import styles from "./ReviewsPage.module.css";
 const REVIEW_REGION_OPTIONS: readonly Region[] = REGION_FILTERS;
 
 export default function DesktopReviewsPage() {
+  const router = useRouter();
   const [activeMenu, setActiveMenu] = useState("병원후기");
   const [isReportSheetOpen, setIsReportSheetOpen] = useState(false);
   const [isComposeOpen, setIsComposeOpen] = useState(false);
+  const initialTab = useMemo(
+    () => getBoardTabFromQuery(router.query.board),
+    [router.query.board],
+  );
   const {
     activeTab,
     handlePostCreated,
@@ -33,11 +42,26 @@ export default function DesktopReviewsPage() {
     selectedTipCategory,
     setSelectedRegion,
     setSelectedTipCategory,
-  } = useReviewBoardPosts();
+  } = useReviewBoardPosts({ initialTab });
 
   const closeReportSheet = () => {
     setIsReportSheetOpen(false);
     setActiveMenu("병원후기");
+  };
+
+  const handleBoardTabChange = (tab: BoardTab) => {
+    handleSelectTab(tab);
+    void router.replace(
+      {
+        pathname: router.pathname,
+        query: {
+          ...router.query,
+          board: getBoardQueryValue(tab),
+        },
+      },
+      undefined,
+      { shallow: true },
+    );
   };
 
   return (
@@ -69,7 +93,7 @@ export default function DesktopReviewsPage() {
                   className={`${styles.tabButton} ${
                     activeTab === tab ? styles.tabButtonActive : ""
                   }`}
-                  onClick={() => handleSelectTab(tab)}
+                  onClick={() => handleBoardTabChange(tab)}
                 >
                   {tab}
                 </button>
@@ -112,7 +136,13 @@ export default function DesktopReviewsPage() {
               <ul className={styles.postList}>
                 {posts.map((post) => (
                   <li key={post.id}>
-                    <Link href={`/reviews/${post.id}`} className={styles.postItem}>
+                    <Link
+                      href={{
+                        pathname: `/reviews/${post.id}`,
+                        query: { board: getBoardQueryValue(post.board) },
+                      }}
+                      className={styles.postItem}
+                    >
                       <span className={styles.postTitle}>{post.title}</span>
                       <span className={styles.postMeta}>
                         <span className={styles.postAuthor}>{post.author}</span>

@@ -9,6 +9,8 @@ import PostComposeSheet from "@/src/components/reviews/PostComposeSheet";
 import ReportReasonDialog from "@/src/components/reviews/ReportReasonDialog";
 import {
   MAX_BOARD_COMMENT_LENGTH,
+  getBoardQueryValue,
+  getBoardTabFromQuery,
   type BoardPostComment,
 } from "@/src/features/reviews/boardPosts";
 import { useBoardPostDetail } from "@/src/features/reviews/hooks/useBoardPostDetail";
@@ -116,6 +118,20 @@ export default function DesktopPostDetailPage() {
   const isMyPost = Boolean(
     post?.authorId && currentUserId && post.authorId === currentUserId,
   );
+  const fallbackBoardTab = useMemo(
+    () => getBoardTabFromQuery(router.query.board),
+    [router.query.board],
+  );
+  const reviewListHref = useMemo(() => {
+    const board = post?.board ?? fallbackBoardTab;
+
+    return board
+      ? {
+          pathname: "/reviews",
+          query: { board: getBoardQueryValue(board) },
+        }
+      : "/reviews";
+  }, [fallbackBoardTab, post?.board]);
 
   const handleAddComment = async () => {
     const isCreated = await submitComment();
@@ -133,7 +149,7 @@ export default function DesktopPostDetailPage() {
 
     const isDeleted = await handleDeletePost();
     if (isDeleted) {
-      await router.push("/reviews");
+      await router.push(reviewListHref);
     }
   };
 
@@ -201,7 +217,7 @@ export default function DesktopPostDetailPage() {
               <p>{postLoadError || "게시글을 찾을 수 없습니다."}</p>
             )}
             {!isLoadingPost ? (
-              <Link href="/reviews" className={styles.backLink}>
+              <Link href={reviewListHref} className={styles.backLink}>
                 목록으로 돌아가기
               </Link>
             ) : null}
@@ -209,7 +225,11 @@ export default function DesktopPostDetailPage() {
         ) : (
           <main className={styles.content}>
             <div className={styles.topRow}>
-              <Link href="/reviews" className={styles.backButton} aria-label="목록으로">
+              <Link
+                href={reviewListHref}
+                className={styles.backButton}
+                aria-label="목록으로"
+              >
                 <svg viewBox="0 0 24 24" aria-hidden="true">
                   <path
                     d="M15.41 7.41 14 6l-6 6 6 6 1.41-1.41L10.83 12z"

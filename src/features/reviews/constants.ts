@@ -22,3 +22,29 @@ export const MAX_BOARD_POST_FONT_SIZE = 50;
 
 export type BoardTab = (typeof BOARD_TABS)[number];
 export type TipCategory = (typeof TIP_CATEGORIES)[number];
+
+const BOARD_QUERY_BY_TAB: Record<BoardTab, string> = {
+  "병원후기 게시판": "hospital",
+  자유게시판: "free",
+  "꿀팁 게시판": "tips",
+};
+
+const BOARD_TAB_BY_QUERY = Object.fromEntries(
+  Object.entries(BOARD_QUERY_BY_TAB).map(([tab, queryValue]) => [
+    queryValue,
+    tab,
+  ]),
+) as Record<string, BoardTab>;
+
+export function getBoardQueryValue(tab: BoardTab) {
+  return BOARD_QUERY_BY_TAB[tab];
+}
+
+export function getBoardTabFromQuery(value: string | string[] | undefined) {
+  const queryValue = Array.isArray(value) ? value[0] : value;
+  if (!queryValue) {
+    return null;
+  }
+
+  return BOARD_TAB_BY_QUERY[queryValue] ?? null;
+}

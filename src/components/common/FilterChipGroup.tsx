@@ -31,6 +31,7 @@ export default function FilterChipGroup<Option extends string>({
               isActive ? styles.chipButtonActive : ""
             }`}
             onClick={() => onSelectOption(option)}
+            aria-pressed={isActive}
           >
             {option}
           </button>

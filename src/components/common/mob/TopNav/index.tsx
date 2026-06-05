@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { useHospitalMapStore } from "@/src/store/hospitalMapStore";
 import styles from "./TopNav.module.css";
 
 type MenuItem =
@@ -60,6 +61,12 @@ export default function MobileTopNav({
   onSelectMenu,
   onOpenReport,
 }: TopNavProps) {
+  const resetHome = useHospitalMapStore((state) => state.resetHome);
+  const handleHomeClick = () => {
+    resetHome();
+    onSelectMenu?.("병원찾기");
+  };
+
   return (
     <>
       <header className={styles.header}>
@@ -67,7 +74,7 @@ export default function MobileTopNav({
           href="/"
           className={styles.logoText}
           aria-label="홈으로 이동"
-          onClick={() => onSelectMenu?.("병원찾기")}
+          onClick={handleHomeClick}
         >
           <span>우</span>리동네 <span>동</span>물병원
         </Link>
@@ -84,7 +91,12 @@ export default function MobileTopNav({
                 key={menu.label}
                 href={menu.href}
                 className={className}
-                onClick={() => onSelectMenu?.(menu.label)}
+                onClick={() => {
+                  if (menu.href === "/") {
+                    resetHome();
+                  }
+                  onSelectMenu?.(menu.label);
+                }}
                 aria-current={isActive ? "page" : undefined}
               >
                 {MENU_ICONS[menu.label]}

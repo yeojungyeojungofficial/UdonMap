@@ -7,7 +7,7 @@ import {
   HOSPITAL_FOCUS_SINGLE_LEVEL,
   INITIAL_HOSPITAL_MAP_LEVEL,
 } from "@/src/constants/map";
-import { ALL_REGION_CLUSTER_GROUPS } from "@/src/constants/regions";
+import { getAllRegionOverlayGroups } from "@/src/features/hospitals/mapViewScope";
 import type { Hospital, Region } from "@/src/features/hospitals/types";
 import styles from "@/src/components/home/Home.module.css";
 
@@ -93,6 +93,8 @@ declare global {
 type MapPanelProps = {
   hospitals: Hospital[];
   initialFocusRegion?: Region | null;
+  isHospitalGroupFocused?: boolean;
+  isSearchActive?: boolean;
   mapLevel: number;
   selectedHospitalId: string | null;
   selectedRegion: Region;
@@ -100,6 +102,7 @@ type MapPanelProps = {
     regionFilter?: Region | null;
   }) => void;
   onMapLevelChange: (mapLevel: number) => void;
+  onSelectHospitalGroup: (groupId: string, hospitals: Hospital[]) => void;
   onSelectHospital: (hospital: Hospital) => void;
 };
 
@@ -146,105 +149,6 @@ type OverlayEntry = {
   onClick: () => void;
   overlay: KakaoCustomOverlay;
 };
-
-type HospitalOverlayGroup = {
-  id: string;
-  hospitals: Hospital[];
-  center: {
-    lat: number;
-    lng: number;
-  };
-};
-
-type RegionOverlayGroup = HospitalOverlayGroup & {
-  label: string;
-  mapPosition: {
-    x: number;
-    y: number;
-  };
-};
-
-function getHospitalCenter(hospitals: Hospital[]) {
-  const total = hospitals.reduce(
-    (accumulator, hospital) => {
-      return {
-        lat: accumulator.lat + hospital.mapCoordinate.lat,
-        lng: accumulator.lng + hospital.mapCoordinate.lng,
-      };
-    },
-    { lat: 0, lng: 0 },
-  );
-
-  return {
-    lat: total.lat / hospitals.length,
-    lng: total.lng / hospitals.length,
-  };
-}
-
-function getHospitalMapPositionCenter(hospitals: Hospital[]) {
-  const total = hospitals.reduce(
-    (accumulator, hospital) => {
-      return {
-        x: accumulator.x + hospital.mapPosition.x,
-        y: accumulator.y + hospital.mapPosition.y,
-      };
-    },
-    { x: 0, y: 0 },
-  );
-
-  return {
-    x: total.x / hospitals.length,
-    y: total.y / hospitals.length,
-  };
-}
-
-function getAllRegionOverlayGroups(hospitals: Hospital[]) {
-  const groupedRegionFilters = new Set<string>(
-    ALL_REGION_CLUSTER_GROUPS.flatMap((group) => group.regions),
-  );
-
-  const regionGroups: RegionOverlayGroup[] = ALL_REGION_CLUSTER_GROUPS.flatMap(
-    (group) => {
-      const regionFilters = new Set<string>(group.regions);
-      const groupHospitals = hospitals.filter((hospital) =>
-        regionFilters.has(hospital.regionFilter),
-      );
-
-      if (groupHospitals.length === 0) {
-        return [];
-      }
-
-      return [
-        {
-          id: group.id,
-          label: group.label,
-          hospitals: groupHospitals,
-          center: getHospitalCenter(groupHospitals),
-          mapPosition: getHospitalMapPositionCenter(groupHospitals),
-        },
-      ];
-    },
-  );
-
-  const ungroupedHospitals = hospitals.filter(
-    (hospital) => !groupedRegionFilters.has(hospital.regionFilter),
-  );
-
-  if (ungroupedHospitals.length === 0) {
-    return regionGroups;
-  }
-
-  return [
-    ...regionGroups,
-    {
-      id: "other",
-      label: "기타",
-      hospitals: ungroupedHospitals,
-      center: getHospitalCenter(ungroupedHospitals),
-      mapPosition: getHospitalMapPositionCenter(ungroupedHospitals),
-    },
-  ];
-}
 
 function getGeolocationErrorMessage(error: GeolocationPositionError) {
   if (error.code === error.PERMISSION_DENIED) {
@@ -307,11 +211,14 @@ function resolveRegionFilterFromCoordinate(location: CurrentLocation) {
 export default function MapPanel({
   hospitals,
   initialFocusRegion,
+  isHospitalGroupFocused = false,
+  isSearchActive = false,
   mapLevel,
   selectedHospitalId,
   selectedRegion,
   onCurrentLocationResolved,
   onMapLevelChange,
+  onSelectHospitalGroup,
   onSelectHospital,
 }: MapPanelProps) {
   const kakaoMapJsKey =
@@ -343,11 +250,24 @@ export default function MapPanel({
   const [locationStatus, setLocationStatus] =
     useState<LocationStatus>("idle");
   const isAllRegions = selectedRegion === "전체";
+  const selectedHospital = useMemo(
+    () =>
+      hospitals.find((hospital) => hospital.id === selectedHospitalId) ?? null,
+    [hospitals, selectedHospitalId],
+  );
+  const allRegionOverlayGroups = useMemo(
+    () => (isAllRegions ? getAllRegionOverlayGroups(hospitals) : []),
+    [hospitals, isAllRegions],
+  );
   const shouldShowRegionClusters =
-    isAllRegions && mapLevel > ALL_REGION_MARKER_MAX_LEVEL;
+    isAllRegions &&
+    !isSearchActive &&
+    !selectedHospital &&
+    !isHospitalGroupFocused &&
+    mapLevel > ALL_REGION_MARKER_MAX_LEVEL;
   const regionOverlayGroups = useMemo(
-    () => (shouldShowRegionClusters ? getAllRegionOverlayGroups(hospitals) : []),
-    [hospitals, shouldShowRegionClusters],
+    () => (shouldShowRegionClusters ? allRegionOverlayGroups : []),
+    [allRegionOverlayGroups, shouldShowRegionClusters],
   );
 
   useEffect(() => {
@@ -584,18 +504,42 @@ export default function MapPanel({
     if (isAllRegions) {
       const padding = HOSPITAL_FOCUS_BOUNDS_PADDING;
       map.setBounds(bounds, padding, padding, padding, padding);
-      map.setLevel(
-        Math.max(
-          map.getLevel() - HOSPITAL_FOCUS_BOUNDS_ZOOM_IN,
-          HOSPITAL_FOCUS_BOUNDS_MIN_LEVEL,
-        ),
-      );
+      if (!isSearchActive) {
+        map.setLevel(
+          Math.max(
+            map.getLevel() - HOSPITAL_FOCUS_BOUNDS_ZOOM_IN,
+            HOSPITAL_FOCUS_BOUNDS_MIN_LEVEL,
+          ),
+        );
+      }
       return;
     }
 
     const padding = HOSPITAL_FOCUS_BOUNDS_PADDING;
     map.setBounds(bounds, padding, padding, padding, padding);
-  }, [hospitals, initialFocusRegion, isAllRegions, isMapReady]);
+  }, [hospitals, initialFocusRegion, isAllRegions, isMapReady, isSearchActive]);
+
+  useEffect(() => {
+    if (!isMapReady || !mapRef.current || !window.kakao || !selectedHospital) {
+      return;
+    }
+
+    const map = mapRef.current;
+    const position = new window.kakao.maps.LatLng(
+      selectedHospital.mapCoordinate.lat,
+      selectedHospital.mapCoordinate.lng,
+    );
+
+    map.setCenter(position);
+
+    if (map.getLevel() > HOSPITAL_FOCUS_SINGLE_LEVEL) {
+      map.setLevel(HOSPITAL_FOCUS_SINGLE_LEVEL, {
+        anchor: position,
+        animate: true,
+      });
+      onMapLevelChange(HOSPITAL_FOCUS_SINGLE_LEVEL);
+    }
+  }, [isMapReady, onMapLevelChange, selectedHospital]);
 
   useEffect(() => {
     const clearOverlays = () => {
@@ -622,6 +566,8 @@ export default function MapPanel({
         );
         const button = document.createElement("button");
         const onClick = () => {
+          onSelectHospitalGroup(group.id, group.hospitals);
+
           if (group.hospitals.length === 1) {
             map.setCenter(position);
             map.setLevel(HOSPITAL_FOCUS_SINGLE_LEVEL, {
@@ -709,7 +655,9 @@ export default function MapPanel({
   }, [
     hospitals,
     isAllRegions,
+    isHospitalGroupFocused,
     isMapReady,
+    onSelectHospitalGroup,
     onSelectHospital,
     regionOverlayGroups,
     selectedHospitalId,
@@ -759,18 +707,20 @@ export default function MapPanel({
 
   const fallbackMarkers = shouldShowRegionClusters
     ? regionOverlayGroups.map((group) => (
-        <span
+        <button
           key={group.id}
+          type="button"
           className={`${styles.regionCluster} ${styles.fallbackRegionCluster}`}
           style={{
             left: `${group.mapPosition.x}%`,
             top: `${group.mapPosition.y}%`,
           }}
+          onClick={() => onSelectHospitalGroup(group.id, group.hospitals)}
           aria-label={`${group.label} ${group.hospitals.length}개 병원 묶음`}
           title={group.label}
         >
           {group.hospitals.length}
-        </span>
+        </button>
       ))
     : hospitals.map((hospital) => {
         const isActive = hospital.id === selectedHospitalId;
@@ -821,7 +771,7 @@ export default function MapPanel({
             <circle cx="12" cy="12" r="5.5" />
             <circle cx="12" cy="12" r="1.8" />
           </svg>
-          <span>{locationStatus === "locating" ? "확인 중" : "내 위치"}</span>
+          <span>{locationStatus === "locating" ? "확인중" : "내위치"}</span>
         </button>
         <div className={styles.zoomControlGroup}>
           <button

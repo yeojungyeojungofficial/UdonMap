@@ -1,6 +1,5 @@
-import { useState } from "react";
 import FilterChipGroup from "@/src/components/common/FilterChipGroup";
-import expandableFilter from "@/src/components/common/mob/expandableFilter.module.css";
+import ExpandableFilterChipGroup from "@/src/components/common/mob/ExpandableFilterChipGroup";
 import type { Region } from "@/src/features/hospitals/types";
 
 type RegionFilterProps = {
@@ -17,49 +16,15 @@ export default function RegionFilter({
   onSelectRegion,
   expandable = false,
 }: RegionFilterProps) {
-  const [isOpen, setIsOpen] = useState(false);
-
   if (expandable) {
     return (
-      <>
-        <div className={expandableFilter.filterRow}>
-          {isOpen ? null : (
-            <span className={expandableFilter.filterHint}>
-              지역 필터링을 할 수 있습니다
-            </span>
-          )}
-          <button
-            type="button"
-            className={`${expandableFilter.filterToggle} ${isOpen ? expandableFilter.filterToggleOpen : ""}`}
-            onClick={() => setIsOpen((v) => !v)}
-            aria-expanded={isOpen}
-          >
-            {isOpen ? "접기" : "전체보기"}
-          </button>
-        </div>
-        {isOpen ? (
-          <div className={expandableFilter.filterChips} aria-label="지역 필터">
-            {regions.map((region) => {
-              const isActive = selectedRegion === region;
-              return (
-                <button
-                  key={region}
-                  type="button"
-                  className={`${expandableFilter.filterChip} ${
-                    isActive ? expandableFilter.filterChipActive : ""
-                  }`}
-                  onClick={() => {
-                    onSelectRegion(region);
-                    setIsOpen(false);
-                  }}
-                >
-                  {region}
-                </button>
-              );
-            })}
-          </div>
-        ) : null}
-      </>
+      <ExpandableFilterChipGroup
+        ariaLabel="지역 필터"
+        hint="지역 필터링을 할 수 있습니다"
+        options={regions}
+        selectedOption={selectedRegion}
+        onSelectOption={onSelectRegion}
+      />
     );
   }
 

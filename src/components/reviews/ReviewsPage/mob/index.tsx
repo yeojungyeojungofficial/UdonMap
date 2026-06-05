@@ -1,7 +1,8 @@
 import Head from "next/head";
 import Link from "next/link";
-import { useState } from "react";
-import expandableFilter from "@/src/components/common/mob/expandableFilter.module.css";
+import { useRouter } from "next/router";
+import { useMemo, useState } from "react";
+import ExpandableFilterChipGroup from "@/src/components/common/mob/ExpandableFilterChipGroup";
 import HospitalReportSheet from "@/src/components/common/HospitalReportSheet";
 import LoadingScreen from "@/src/components/common/LoadingScreen";
 import TopNav from "@/src/components/common/TopNav";
@@ -12,6 +13,9 @@ import type { Region } from "@/src/features/hospitals/types";
 import {
   BOARD_TABS,
   TIP_CATEGORIES,
+  getBoardQueryValue,
+  getBoardTabFromQuery,
+  type BoardTab,
 } from "@/src/features/reviews/boardPosts";
 import { useReviewBoardPosts } from "@/src/features/reviews/hooks/useReviewBoardPosts";
 import styles from "./ReviewsPage.module.css";
@@ -19,11 +23,15 @@ import styles from "./ReviewsPage.module.css";
 const REVIEW_REGION_OPTIONS: readonly Region[] = REGION_FILTERS;
 
 export default function MobileReviewsPage() {
+  const router = useRouter();
   const [activeMenu, setActiveMenu] = useState("병원후기");
   const [isReportSheetOpen, setIsReportSheetOpen] = useState(false);
   const [isComposeOpen, setIsComposeOpen] = useState(false);
-  const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [isTabOpen, setIsTabOpen] = useState(false);
+  const initialTab = useMemo(
+    () => getBoardTabFromQuery(router.query.board),
+    [router.query.board],
+  );
   const {
     activeTab,
     handlePostCreated,
@@ -35,11 +43,26 @@ export default function MobileReviewsPage() {
     selectedTipCategory,
     setSelectedRegion,
     setSelectedTipCategory,
-  } = useReviewBoardPosts();
+  } = useReviewBoardPosts({ initialTab });
 
   const closeReportSheet = () => {
     setIsReportSheetOpen(false);
     setActiveMenu("병원후기");
+  };
+
+  const handleBoardTabChange = (tab: BoardTab) => {
+    handleSelectTab(tab);
+    void router.replace(
+      {
+        pathname: router.pathname,
+        query: {
+          ...router.query,
+          board: getBoardQueryValue(tab),
+        },
+      },
+      undefined,
+      { shallow: true },
+    );
   };
 
   const hasFilter =
@@ -90,7 +113,7 @@ export default function MobileReviewsPage() {
                       type="button"
                       className={styles.tabDropdownItem}
                       onClick={() => {
-                        handleSelectTab(tab);
+                        handleBoardTabChange(tab);
                         setIsTabOpen(false);
                       }}
                     >
@@ -101,71 +124,28 @@ export default function MobileReviewsPage() {
               ) : null}
             </div>
 
-            {hasFilter ? (
-              <div
-                className={`${expandableFilter.filterRow} ${styles.filterRowBelowTabs}`}
-              >
-                {isFilterOpen ? null : (
-                  <span className={expandableFilter.filterHint}>
-                    지역 필터링을 할 수 있습니다
-                  </span>
-                )}
-                <button
-                  type="button"
-                  className={`${expandableFilter.filterToggle} ${isFilterOpen ? expandableFilter.filterToggleOpen : ""}`}
-                  onClick={() => setIsFilterOpen((v) => !v)}
-                  aria-expanded={isFilterOpen}
-                >
-                  {isFilterOpen ? "접기" : "전체보기"}
-                </button>
-              </div>
+            {hasFilter && activeTab === "병원후기 게시판" ? (
+              <ExpandableFilterChipGroup
+                key="review-region-filter"
+                ariaLabel="지역 필터"
+                hint="지역 필터링을 할 수 있습니다"
+                options={REVIEW_REGION_OPTIONS}
+                rowClassName={styles.filterRowBelowTabs}
+                selectedOption={selectedRegion}
+                onSelectOption={setSelectedRegion}
+              />
             ) : null}
 
-            {isFilterOpen && activeTab === "병원후기 게시판" ? (
-              <div className={expandableFilter.filterChips} aria-label="지역 필터">
-                {REVIEW_REGION_OPTIONS.map((region) => (
-                  <button
-                    key={region}
-                    type="button"
-                    className={`${expandableFilter.filterChip} ${
-                      selectedRegion === region
-                        ? expandableFilter.filterChipActive
-                        : ""
-                    }`}
-                    onClick={() => {
-                      setSelectedRegion(region);
-                      setIsFilterOpen(false);
-                    }}
-                  >
-                    {region}
-                  </button>
-                ))}
-              </div>
-            ) : null}
-
-            {isFilterOpen && activeTab === "꿀팁 게시판" ? (
-              <div
-                className={expandableFilter.filterChips}
-                aria-label="동물 카테고리 필터"
-              >
-                {TIP_CATEGORIES.map((category) => (
-                  <button
-                    key={category}
-                    type="button"
-                    className={`${expandableFilter.filterChip} ${
-                      selectedTipCategory === category
-                        ? expandableFilter.filterChipActive
-                        : ""
-                    }`}
-                    onClick={() => {
-                      setSelectedTipCategory(category);
-                      setIsFilterOpen(false);
-                    }}
-                  >
-                    {category}
-                  </button>
-                ))}
-              </div>
+            {hasFilter && activeTab === "꿀팁 게시판" ? (
+              <ExpandableFilterChipGroup
+                key="tip-category-filter"
+                ariaLabel="동물 카테고리 필터"
+                hint="동물 카테고리 필터링을 할 수 있습니다"
+                options={TIP_CATEGORIES}
+                rowClassName={styles.filterRowBelowTabs}
+                selectedOption={selectedTipCategory}
+                onSelectOption={setSelectedTipCategory}
+              />
             ) : null}
 
             {isLoadingPosts ? (
@@ -184,7 +164,13 @@ export default function MobileReviewsPage() {
               <ul className={styles.postList}>
                 {posts.map((post) => (
                   <li key={post.id}>
-                    <Link href={`/reviews/${post.id}`} className={styles.postItem}>
+                    <Link
+                      href={{
+                        pathname: `/reviews/${post.id}`,
+                        query: { board: getBoardQueryValue(post.board) },
+                      }}
+                      className={styles.postItem}
+                    >
                       <span className={styles.postTitle}>{post.title}</span>
                       <span className={styles.postMeta}>
                         <span className={styles.postAuthor}>{post.author}</span>
@@ -194,7 +180,7 @@ export default function MobileReviewsPage() {
                       </span>
                     </Link>
                   </li>
-                ))}ㅌㅈ
+                ))}
               </ul>
             ) : null}
           </section>

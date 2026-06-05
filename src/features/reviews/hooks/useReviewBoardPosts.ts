@@ -7,14 +7,31 @@ import type {
   TipCategory,
 } from "@/src/features/reviews/boardPosts";
 
-export function useReviewBoardPosts() {
-  const [activeTab, setActiveTab] = useState<BoardTab>("병원후기 게시판");
+type UseReviewBoardPostsOptions = {
+  initialTab?: BoardTab | null;
+};
+
+export function useReviewBoardPosts({
+  initialTab = null,
+}: UseReviewBoardPostsOptions = {}) {
+  const [selectedTab, setSelectedTab] = useState<BoardTab | null>(null);
+  const activeTab = selectedTab ?? initialTab ?? "병원후기 게시판";
   const [selectedRegion, setSelectedRegion] = useState<Region>("전체");
   const [selectedTipCategory, setSelectedTipCategory] =
     useState<TipCategory>("전체");
   const [posts, setPosts] = useState<BoardPostSummary[]>([]);
   const [isLoadingPosts, setIsLoadingPosts] = useState(true);
   const [postLoadError, setPostLoadError] = useState("");
+
+  const applyTabSelection = useCallback((tab: BoardTab) => {
+    setSelectedTab(tab);
+    if (tab !== "병원후기 게시판") {
+      setSelectedRegion("전체");
+    }
+    if (tab !== "꿀팁 게시판") {
+      setSelectedTipCategory("전체");
+    }
+  }, []);
 
   useEffect(() => {
     let isMounted = true;
@@ -55,18 +72,15 @@ export function useReviewBoardPosts() {
     };
   }, [activeTab, selectedRegion, selectedTipCategory]);
 
-  const handleSelectTab = useCallback((tab: BoardTab) => {
-    setActiveTab(tab);
-    if (tab !== "병원후기 게시판") {
-      setSelectedRegion("전체");
-    }
-    if (tab !== "꿀팁 게시판") {
-      setSelectedTipCategory("전체");
-    }
-  }, []);
+  const handleSelectTab = useCallback(
+    (tab: BoardTab) => {
+      applyTabSelection(tab);
+    },
+    [applyTabSelection],
+  );
 
   const handlePostCreated = useCallback((post: BoardPostSummary) => {
-    setActiveTab(post.board);
+    setSelectedTab(post.board);
     if (post.board === "병원후기 게시판") {
       setSelectedRegion((post.filterTag as Region | null) ?? "전체");
     }

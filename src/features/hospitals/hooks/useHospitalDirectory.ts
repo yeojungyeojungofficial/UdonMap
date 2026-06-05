@@ -4,6 +4,7 @@ import {
   fetchHospitals,
 } from "@/src/core/api/hospitals/hospitalsApi";
 import { OTHER_REGION_FILTER, REGION_FILTERS } from "@/src/constants/regions";
+import { getHospitalsForScope } from "@/src/features/hospitals/mapViewScope";
 import type {
   Hospital,
   HospitalComment,
@@ -71,10 +72,12 @@ export function useHospitalDirectory() {
   const [isLoadingHospitals, setIsLoadingHospitals] = useState(true);
   const [hasHospitalLoadError, setHasHospitalLoadError] = useState(false);
   const mapLevel = useHospitalMapStore((state) => state.mapLevel);
+  const mapResetVersion = useHospitalMapStore((state) => state.mapResetVersion);
   const query = useHospitalMapStore((state) => state.query);
   const regionSelectionVersion = useHospitalMapStore(
     (state) => state.regionSelectionVersion,
   );
+  const searchInput = useHospitalMapStore((state) => state.searchInput);
   const selectedRegion = useHospitalMapStore((state) => state.selectedRegion);
   const selectedHospitalId = useHospitalMapStore(
     (state) => state.selectedHospitalId,
@@ -82,12 +85,19 @@ export function useHospitalDirectory() {
   const clearSelectedHospital = useHospitalMapStore(
     (state) => state.clearSelectedHospital,
   );
+  const resetHome = useHospitalMapStore((state) => state.resetHome);
+  const resetSearch = useHospitalMapStore((state) => state.resetSearch);
   const selectHospital = useHospitalMapStore((state) => state.selectHospital);
+  const focusHospitalGroup = useHospitalMapStore(
+    (state) => state.focusHospitalGroup,
+  );
   const setQuery = useHospitalMapStore((state) => state.setQuery);
+  const setSearchInput = useHospitalMapStore((state) => state.setSearchInput);
   const setMapLevel = useHospitalMapStore((state) => state.setMapLevel);
   const setSelectedRegion = useHospitalMapStore(
     (state) => state.setSelectedRegion,
   );
+  const viewScope = useHospitalMapStore((state) => state.viewScope);
   const [loadingCommentsHospitalId, setLoadingCommentsHospitalId] = useState<
     string | null
   >(null);
@@ -170,7 +180,12 @@ export function useHospitalDirectory() {
     regionSelectionVersion === 0 && effectiveSelectedRegion === "전체"
       ? INITIAL_MAP_FOCUS_REGION
       : null;
-  const mapHospitals = filteredHospitals;
+  const visibleHospitals = useMemo(
+    () => getHospitalsForScope(filteredHospitals, viewScope),
+    [filteredHospitals, viewScope],
+  );
+  const mapHospitals = visibleHospitals;
+  const listHospitals = visibleHospitals;
   const mapSelectedRegion = effectiveSelectedRegion;
 
   const selectedHospital = useMemo(
@@ -247,6 +262,13 @@ export function useHospitalDirectory() {
       selectHospital(hospital);
     },
     [selectHospital],
+  );
+
+  const handleSelectHospitalGroup = useCallback(
+    (groupId: string, groupHospitals: Hospital[]) => {
+      focusHospitalGroup(groupId, groupHospitals);
+    },
+    [focusHospitalGroup],
   );
 
   const handleCloseHospital = useCallback(() => {
@@ -378,6 +400,7 @@ export function useHospitalDirectory() {
     commentLoadError && commentLoadError.hospitalId === selectedHospital?.id
       ? commentLoadError.message
       : "";
+  const isHospitalGroupFocused = viewScope.mode === "cluster";
 
   return {
     effectiveSelectedRegion,
@@ -389,21 +412,29 @@ export function useHospitalDirectory() {
     handleCommentReactionChanged,
     handleCurrentLocationResolved,
     handleHospitalReactionChanged,
+    handleSelectHospitalGroup,
     handleSelectHospital,
     hasHospitalLoadError,
+    isHospitalGroupFocused,
     isLoadingHospitals,
+    listHospitals,
     loadingCommentsHospitalId,
     initialMapFocusRegion,
     mapLevel,
     mapHospitals,
+    mapResetVersion,
     mapSelectedRegion,
     query,
     regionOptions,
+    resetHome,
+    resetSearch,
+    searchInput,
     selectedHospital,
     selectedHospitalCommentLoadError,
     selectedHospitalId,
     setMapLevel,
     setQuery,
+    setSearchInput,
     setSelectedRegion,
   };
 }
