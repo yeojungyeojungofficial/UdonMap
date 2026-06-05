@@ -47,7 +47,6 @@ export const useHospitalMapStore = create<HospitalMapStore>((set) => ({
     }),
   resetHome: () =>
     set((state) => ({
-      mapLevel: INITIAL_HOSPITAL_MAP_LEVEL,
       mapResetVersion: state.mapResetVersion + 1,
       query: "",
       regionSelectionVersion: 0,

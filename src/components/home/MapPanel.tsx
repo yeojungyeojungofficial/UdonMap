@@ -96,6 +96,7 @@ type MapPanelProps = {
   isHospitalGroupFocused?: boolean;
   isSearchActive?: boolean;
   mapLevel: number;
+  resetVersion?: number;
   selectedHospitalId: string | null;
   selectedRegion: Region;
   onCurrentLocationResolved?: (location: CurrentLocation & {
@@ -214,6 +215,7 @@ export default function MapPanel({
   isHospitalGroupFocused = false,
   isSearchActive = false,
   mapLevel,
+  resetVersion = 0,
   selectedHospitalId,
   selectedRegion,
   onCurrentLocationResolved,
@@ -236,6 +238,7 @@ export default function MapPanel({
   const mapContainerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<KakaoMap | null>(null);
   const hasAppliedInitialFocusRegionRef = useRef(false);
+  const lastResetVersionRef = useRef(resetVersion);
   const currentLocationOverlayRef = useRef<KakaoCustomOverlay | null>(null);
   const overlaysRef = useRef<OverlayEntry[]>([]);
   const shouldFitBoundsWithCurrentLocationRef = useRef(false);
@@ -431,6 +434,28 @@ export default function MapPanel({
   }, [selectedRegion, currentLocation]);
 
   useEffect(() => {
+    if (lastResetVersionRef.current === resetVersion) {
+      return;
+    }
+
+    lastResetVersionRef.current = resetVersion;
+    hasAppliedInitialFocusRegionRef.current = false;
+    shouldFitBoundsWithCurrentLocationRef.current = false;
+    currentLocationForBoundsRef.current = null;
+    currentLocationRegionRef.current = null;
+    currentLocationOverlayRef.current?.setMap(null);
+    currentLocationOverlayRef.current = null;
+    setCurrentLocation(null);
+    setLocationStatus("idle");
+    setLocationMessage("");
+
+    if (mapRef.current) {
+      mapRef.current.relayout();
+      onMapLevelChange(mapRef.current.getLevel());
+    }
+  }, [onMapLevelChange, resetVersion]);
+
+  useEffect(() => {
     if (!isMapReady || !mapRef.current || !window.kakao) {
       return;
     }
@@ -517,7 +542,14 @@ export default function MapPanel({
 
     const padding = HOSPITAL_FOCUS_BOUNDS_PADDING;
     map.setBounds(bounds, padding, padding, padding, padding);
-  }, [hospitals, initialFocusRegion, isAllRegions, isMapReady, isSearchActive]);
+  }, [
+    hospitals,
+    initialFocusRegion,
+    isAllRegions,
+    isMapReady,
+    isSearchActive,
+    resetVersion,
+  ]);
 
   useEffect(() => {
     if (!isMapReady || !mapRef.current || !window.kakao || !selectedHospital) {
