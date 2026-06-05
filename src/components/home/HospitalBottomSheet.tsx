@@ -1,6 +1,11 @@
 "use client";
 
-import { useRef, useState, type PointerEvent } from "react";
+import {
+  useRef,
+  useState,
+  type CSSProperties,
+  type PointerEvent,
+} from "react";
 import type {
   Hospital,
   HospitalComment,
@@ -51,12 +56,40 @@ type IconName =
 
 type SheetSize = "half" | "full";
 
-const SHEET_DRAG_THRESHOLD_PX = 44;
+const SHEET_DRAG_ACTIVATION_PX = 6;
+const SHEET_DRAG_THRESHOLD_PX = 24;
+const SHEET_FULL_TOP_OFFSET_PX = 12;
+const SHEET_HALF_HEIGHT_RATIO = 0.5;
 
 type SheetState = {
   hospitalId: string | null;
   size: SheetSize;
 };
+
+type SheetDragStart = {
+  height: number;
+  viewportHeight: number;
+  y: number;
+};
+
+type BottomSheetStyle = CSSProperties & {
+  "--bottom-sheet-height"?: string;
+};
+
+function clampSheetHeight(height: number, viewportHeight: number) {
+  const minHeight = viewportHeight * SHEET_HALF_HEIGHT_RATIO;
+  const maxHeight = viewportHeight - SHEET_FULL_TOP_OFFSET_PX;
+
+  return Math.min(Math.max(height, minHeight), maxHeight);
+}
+
+function getSheetHeightForSize(size: SheetSize, viewportHeight: number) {
+  if (size === "full") {
+    return viewportHeight - SHEET_FULL_TOP_OFFSET_PX;
+  }
+
+  return viewportHeight * SHEET_HALF_HEIGHT_RATIO;
+}
 
 function getHourSegments(detail: string) {
   return detail
@@ -173,7 +206,8 @@ export default function HospitalBottomSheet({
     hospitalId: null,
     size: "half",
   });
-  const sheetDragStartYRef = useRef<number | null>(null);
+  const [dragHeight, setDragHeight] = useState<number | null>(null);
+  const sheetDragStartRef = useRef<SheetDragStart | null>(null);
   const didDragSheetRef = useRef(false);
   const {
     bookmarkError,
@@ -218,7 +252,40 @@ export default function HospitalBottomSheet({
     sheetState.hospitalId === hospital.id ? sheetState.size : "half";
   const bottomSheetClassName = `${styles.bottomSheet} ${
     sheetSize === "full" ? styles.bottomSheetFull : ""
-  }`;
+  } ${dragHeight !== null ? styles.bottomSheetDragging : ""}`;
+  const bottomSheetStyle: BottomSheetStyle | undefined =
+    dragHeight === null
+      ? undefined
+      : {
+          "--bottom-sheet-height": `${Math.round(dragHeight)}px`,
+        };
+
+  const getNextDragHeight = (clientY: number) => {
+    const dragStart = sheetDragStartRef.current;
+
+    if (!dragStart) {
+      return null;
+    }
+
+    return clampSheetHeight(
+      dragStart.height - (clientY - dragStart.y),
+      dragStart.viewportHeight,
+    );
+  };
+
+  const releaseSheetPointerCapture = (
+    event: PointerEvent<HTMLButtonElement>,
+  ) => {
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+      event.currentTarget.releasePointerCapture(event.pointerId);
+    }
+  };
+
+  const resetSheetDrag = (event: PointerEvent<HTMLButtonElement>) => {
+    sheetDragStartRef.current = null;
+    setDragHeight(null);
+    releaseSheetPointerCapture(event);
+  };
   const setCurrentSheetSize = (
     nextSize: SheetSize | ((currentSize: SheetSize) => SheetSize),
   ) => {
@@ -237,43 +304,65 @@ export default function HospitalBottomSheet({
   };
 
   const handleSheetDragStart = (event: PointerEvent<HTMLButtonElement>) => {
-    sheetDragStartYRef.current = event.clientY;
+    const viewportHeight =
+      typeof window === "undefined" ? 0 : window.innerHeight;
+
+    if (viewportHeight <= 0) {
+      return;
+    }
+
+    sheetDragStartRef.current = {
+      height: getSheetHeightForSize(sheetSize, viewportHeight),
+      viewportHeight,
+      y: event.clientY,
+    };
     didDragSheetRef.current = false;
     event.currentTarget.setPointerCapture(event.pointerId);
   };
 
-  const handleSheetDragEnd = (event: PointerEvent<HTMLButtonElement>) => {
-    const dragStartY = sheetDragStartYRef.current;
+  const handleSheetDragMove = (event: PointerEvent<HTMLButtonElement>) => {
+    const dragStart = sheetDragStartRef.current;
 
-    if (dragStartY === null) {
+    if (!dragStart) {
       return;
     }
 
-    const dragDistanceY = event.clientY - dragStartY;
+    const dragDistanceY = event.clientY - dragStart.y;
 
-    if (dragDistanceY <= -SHEET_DRAG_THRESHOLD_PX) {
+    if (Math.abs(dragDistanceY) >= SHEET_DRAG_ACTIVATION_PX) {
       didDragSheetRef.current = true;
-      setCurrentSheetSize("full");
     }
 
-    if (dragDistanceY >= SHEET_DRAG_THRESHOLD_PX) {
-      didDragSheetRef.current = true;
-      setCurrentSheetSize("half");
-    }
+    const nextDragHeight = getNextDragHeight(event.clientY);
 
-    sheetDragStartYRef.current = null;
-
-    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
-      event.currentTarget.releasePointerCapture(event.pointerId);
+    if (nextDragHeight !== null) {
+      setDragHeight(nextDragHeight);
     }
   };
 
-  const handleSheetDragCancel = (event: PointerEvent<HTMLButtonElement>) => {
-    sheetDragStartYRef.current = null;
+  const handleSheetDragEnd = (event: PointerEvent<HTMLButtonElement>) => {
+    const dragStart = sheetDragStartRef.current;
 
-    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
-      event.currentTarget.releasePointerCapture(event.pointerId);
+    if (!dragStart) {
+      return;
     }
+
+    const dragDistanceY = event.clientY - dragStart.y;
+    const nextDragHeight =
+      getNextDragHeight(event.clientY) ?? dragStart.height;
+    const minHeight = dragStart.viewportHeight * SHEET_HALF_HEIGHT_RATIO;
+    const maxHeight = dragStart.viewportHeight - SHEET_FULL_TOP_OFFSET_PX;
+    const midpoint = minHeight + (maxHeight - minHeight) / 2;
+
+    if (dragDistanceY <= -SHEET_DRAG_THRESHOLD_PX || nextDragHeight >= midpoint) {
+      setCurrentSheetSize("full");
+    }
+
+    if (dragDistanceY >= SHEET_DRAG_THRESHOLD_PX || nextDragHeight < midpoint) {
+      setCurrentSheetSize("half");
+    }
+
+    resetSheetDrag(event);
   };
 
   const handleSheetHandleClick = () => {
@@ -291,6 +380,7 @@ export default function HospitalBottomSheet({
     <div className={styles.sheetOverlay} role="presentation" onClick={handleClose}>
       <section
         className={bottomSheetClassName}
+        style={bottomSheetStyle}
         role="dialog"
         aria-modal="true"
         aria-label="병원 상세 정보"
@@ -301,8 +391,9 @@ export default function HospitalBottomSheet({
           className={styles.sheetDragHandle}
           onClick={handleSheetHandleClick}
           onPointerDown={handleSheetDragStart}
+          onPointerMove={handleSheetDragMove}
           onPointerUp={handleSheetDragEnd}
-          onPointerCancel={handleSheetDragCancel}
+          onPointerCancel={resetSheetDrag}
           aria-label={
             sheetSize === "full"
               ? "상세창 50%로 줄이기"
