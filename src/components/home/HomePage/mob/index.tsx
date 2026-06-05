@@ -174,12 +174,12 @@ export default function MobileHomePage() {
         ) : null}
         <div className={styles.heroSection}>
           <MapPanel
-            key={mapResetVersion}
             hospitals={mapHospitals}
             initialFocusRegion={initialMapFocusRegion}
             isHospitalGroupFocused={isHospitalGroupFocused}
             isSearchActive={query.trim().length > 0}
             mapLevel={mapLevel}
+            resetVersion={mapResetVersion}
             selectedHospitalId={selectedHospitalId}
             selectedRegion={mapSelectedRegion}
             onCurrentLocationResolved={handleCurrentLocationResolved}

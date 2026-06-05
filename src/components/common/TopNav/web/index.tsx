@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { useRouter } from "next/router";
+import type { MouseEvent } from "react";
 import { useHospitalMapStore } from "@/src/store/hospitalMapStore";
 import styles from "./TopNav.module.css";
 
@@ -24,8 +26,13 @@ export default function DesktopTopNav({
   onSelectMenu,
   onOpenReport,
 }: TopNavProps) {
+  const router = useRouter();
   const resetHome = useHospitalMapStore((state) => state.resetHome);
-  const handleHomeClick = () => {
+  const handleHomeClick = (event: MouseEvent<HTMLAnchorElement>) => {
+    if (router.pathname === "/") {
+      event.preventDefault();
+    }
+
     resetHome();
     onSelectMenu?.("병원찾기");
   };
@@ -55,8 +62,11 @@ export default function DesktopTopNav({
                 key={menu.label}
                 href={menu.href}
                 className={className}
-                onClick={() => {
+                onClick={(event) => {
                   if (menu.href === "/") {
+                    if (router.pathname === "/") {
+                      event.preventDefault();
+                    }
                     resetHome();
                   }
                   onSelectMenu?.(menu.label);
