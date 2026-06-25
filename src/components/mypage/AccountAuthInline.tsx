@@ -1,5 +1,6 @@
 import Link from "next/link";
-import type { FormEvent } from "react";
+import { useId, useState, type FormEvent } from "react";
+import PrivacyPolicyDialog from "@/src/components/mypage/PrivacyPolicyDialog";
 import type { AuthMode } from "@/src/features/mypage/types";
 
 type AccountAuthInlineClassNames = Readonly<Record<string, string>>;
@@ -45,6 +46,10 @@ export default function AccountAuthInline({
   password,
   passwordConfirm,
 }: AccountAuthInlineProps) {
+  const privacyPolicyAgreementId = useId();
+  const [isPrivacyPolicyDialogOpen, setIsPrivacyPolicyDialogOpen] =
+    useState(false);
+
   return (
     <div className={classNames.authInline}>
       <div className={classNames.modeTabs} aria-label="인증 방식">
@@ -114,8 +119,9 @@ export default function AccountAuthInline({
           </label>
         ) : null}
         {authMode === "signup" ? (
-          <label className={classNames.checkboxField}>
+          <div className={classNames.checkboxField}>
             <input
+              id={privacyPolicyAgreementId}
               type="checkbox"
               checked={isPrivacyPolicyAgreed}
               onChange={(event) =>
@@ -124,17 +130,16 @@ export default function AccountAuthInline({
               required
             />
             <span>
-              (필수){" "}
-              <Link
-                href="/mypage/policy"
-                onClick={(event) => event.stopPropagation()}
+              <label htmlFor={privacyPolicyAgreementId}>(필수) </label>
+              <button
+                type="button"
+                onClick={() => setIsPrivacyPolicyDialogOpen(true)}
               >
                 개인정보 처리방침
-              </Link>
-              에
-              동의합니다.
+              </button>
+              <label htmlFor={privacyPolicyAgreementId}>에 동의합니다.</label>
             </span>
-          </label>
+          </div>
         ) : null}
         {authMode === "login" ? (
           <label className={classNames.checkboxField}>
@@ -163,6 +168,11 @@ export default function AccountAuthInline({
           비회원으로 둘러보기
         </Link>
       </form>
+      {isPrivacyPolicyDialogOpen ? (
+        <PrivacyPolicyDialog
+          onClose={() => setIsPrivacyPolicyDialogOpen(false)}
+        />
+      ) : null}
     </div>
   );
 }

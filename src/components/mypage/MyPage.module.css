@@ -172,6 +172,18 @@
   accent-color: var(--color-brand);
 }
 
+.checkboxField button {
+  border: 0;
+  padding: 0;
+  background: none;
+  color: var(--color-brand);
+  font: inherit;
+  font-weight: 800;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+}
+
 .submitButton,
 .secondaryButton {
   width: 100%;
@@ -285,7 +297,7 @@
 .dialogBackdrop {
   position: fixed;
   inset: 0;
-  z-index: 40;
+  z-index: 400;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -339,7 +351,6 @@
 
 .bookmarkSheetHeader p {
   margin: 5px 0 0;
-  color: var(--color-brand-deep);
   font-size: 13px;
   font-weight: 800;
 }
@@ -347,11 +358,8 @@
 .sheetCloseButton {
   min-width: 58px;
   height: 38px;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-pill);
-  background: var(--color-brand-surface);
-  color: var(--color-brand-deep);
-  font-weight: 800;
+  color: black;
+  font-weight: 600;
   cursor: pointer;
 }
 
@@ -537,6 +545,85 @@
   line-height: 1.6;
 }
 
+.policyDialog {
+  width: min(640px, 100%);
+  max-height: calc(100vh - 48px);
+  max-height: calc(100dvh - 48px);
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  padding: 22px;
+  background: var(--color-surface);
+  box-shadow: var(--shadow-dialog);
+}
+
+.policyDialogHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.policyDialogHeader h2 {
+  margin: 0;
+  color: var(--color-text);
+  font-size: 22px;
+}
+
+.policyDialogBody {
+  min-height: 0;
+  margin-top: 16px;
+  overflow: auto;
+  border: 1px solid var(--color-border-muted);
+  border-radius: var(--radius-field);
+  background: var(--color-surface-warm);
+}
+
+.policyContent {
+  padding: 0 20px 20px;
+  color: var(--color-text);
+  font-size: 14px;
+  line-height: 1.75;
+}
+
+.policyContent p {
+  margin: 14px 0 0;
+}
+
+.policyContent ul {
+  margin: 10px 0 0;
+  padding-left: 18px;
+}
+
+.policyContent li {
+  margin-top: 6px;
+}
+
+.policyContent a {
+  color: var(--color-brand);
+  font-weight: 800;
+  overflow-wrap: anywhere;
+}
+
+.policySection {
+  margin-top: 22px;
+}
+
+.policySection h2 {
+  margin: 0 0 10px;
+  color: var(--color-heading);
+  font-size: 15px;
+  font-weight: 800;
+  line-height: 1.45;
+}
+
+.policyEffectiveDate {
+  color: var(--color-text-subtle);
+  font-size: 13px;
+  font-weight: 700;
+}
+
 .dialogButton {
   width: 100%;
   min-height: 44px;
@@ -593,5 +680,41 @@
 
   .profileMetaGrid {
     grid-template-columns: 1fr;
+  }
+
+  .policyDialog {
+    max-height: min(620px, calc(100dvh - 128px));
+    padding: 16px;
+  }
+
+  .policyDialogHeader {
+    gap: 10px;
+  }
+
+  .policyDialogHeader h2 {
+    font-size: 19px;
+  }
+
+  .policyDialogBody {
+    margin-top: 12px;
+  }
+
+  .policyDialog .dialogButton {
+    min-height: 40px;
+    margin-top: 12px;
+  }
+
+  .policyContent {
+    padding: 0 14px 16px;
+    font-size: 13px;
+    line-height: 1.65;
+  }
+
+  .policySection {
+    margin-top: 18px;
+  }
+
+  .policySection h2 {
+    font-size: 14px;
   }
 }
