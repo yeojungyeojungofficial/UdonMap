@@ -341,11 +341,17 @@
   accent-color: var(--color-brand);
 }
 
-.checkboxField a {
+.checkboxField a,
+.checkboxField button {
+  border: 0;
+  padding: 0;
+  background: none;
   color: var(--color-brand);
+  font: inherit;
   font-weight: 800;
   text-decoration: underline;
   text-underline-offset: 2px;
+  cursor: pointer;
 }
 
 .submitButton,
