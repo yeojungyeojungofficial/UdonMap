@@ -67,6 +67,9 @@ export default function DesktopPostComposeSheetContent({
   const titleRef = useRef<HTMLInputElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const linkInputRef = useRef<HTMLInputElement>(null);
+  const cleanupDeletedExistingImagesRef = useRef<(() => Promise<void>) | null>(
+    null,
+  );
 
   const {
     applyTextStyle,
@@ -77,6 +80,7 @@ export default function DesktopPostComposeSheetContent({
     getTextLength,
     handleEditorDragOver,
     handleEditorDrop,
+    handleEditorPaste,
     hydrateEditorImages,
     insertLink,
     insertNodeAtCursor,
@@ -103,10 +107,12 @@ export default function DesktopPostComposeSheetContent({
       onBodyLengthChange: setBodyLength,
       onClose,
       onCreated,
+      onSubmitted: () => cleanupDeletedExistingImagesRef.current?.(),
       onUpdated,
     });
 
   const {
+    cleanupDeletedExistingImages,
     cleanupUploadedImages,
     handleFileChange,
     handleEditorPhotoDeleted,
@@ -181,6 +187,10 @@ export default function DesktopPostComposeSheetContent({
     const timeoutId = window.setTimeout(() => titleRef.current?.focus(), 80);
     return () => window.clearTimeout(timeoutId);
   }, []);
+
+  useEffect(() => {
+    cleanupDeletedExistingImagesRef.current = cleanupDeletedExistingImages;
+  }, [cleanupDeletedExistingImages]);
 
   useEffect(() => {
     if (!editPost || !editorRef.current) return;
@@ -329,6 +339,7 @@ export default function DesktopPostComposeSheetContent({
             onBlur={saveSelection}
             onDragOver={handleEditorDragOver}
             onDrop={handleEditorDrop}
+            onPaste={handleEditorPaste}
             onKeyUp={updateBodyLength}
             onInput={updateBodyLength}
           />

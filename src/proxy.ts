@@ -9,7 +9,7 @@ function isAllowedSearchBot(userAgent: string) {
   );
 }
 
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   const userAgent = request.headers.get("user-agent") ?? "";
 
   if (

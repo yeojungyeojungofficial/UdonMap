@@ -14,7 +14,12 @@ import {
   getAuthUserErrorMessage,
   getBearerToken,
 } from "@/src/core/apiRequest";
-import { checkRateLimit } from "@/src/core/rateLimit";
+import {
+  checkRateLimit,
+  checkRateLimitForKey,
+  getClientIp,
+  sendRateLimitResponse,
+} from "@/src/core/rateLimit";
 import {
   getSuspensionBlockedMessage,
   getUserActiveSuspension,
@@ -37,6 +42,10 @@ type HospitalCommentResponse =
 const HOSPITAL_COMMENT_LIST_RATE_LIMIT = {
   keyPrefix: "hospitals:comments:list",
   limit: 120,
+  windowMs: 60 * 1000,
+};
+const HOSPITAL_COMMENT_WRITE_RATE_LIMIT = {
+  limit: 20,
   windowMs: 60 * 1000,
 };
 
@@ -66,10 +75,7 @@ export default async function handler(
   if (req.method === "GET") {
     const rateLimit = checkRateLimit(req, HOSPITAL_COMMENT_LIST_RATE_LIMIT);
     if (!rateLimit.ok) {
-      res.setHeader("Retry-After", String(rateLimit.retryAfterSeconds));
-      res.status(429).json({
-        error: "요청이 너무 많습니다. 잠시 후 다시 시도해주세요.",
-      });
+      sendRateLimitResponse(res, rateLimit);
       return;
     }
 
@@ -119,6 +125,15 @@ export default async function handler(
       res.status(401).json({
         error: getAuthUserErrorMessage(userError),
       });
+      return;
+    }
+
+    const rateLimit = checkRateLimitForKey(
+      `hospitals:comments:${req.method}:${user.id}:${getClientIp(req)}`,
+      HOSPITAL_COMMENT_WRITE_RATE_LIMIT,
+    );
+    if (!rateLimit.ok) {
+      sendRateLimitResponse(res, rateLimit);
       return;
     }
 

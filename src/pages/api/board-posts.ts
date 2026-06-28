@@ -6,6 +6,11 @@ import {
   getBearerToken,
 } from "@/src/core/apiRequest";
 import {
+  checkRateLimitForKey,
+  getClientIp,
+  sendRateLimitResponse,
+} from "@/src/core/rateLimit";
+import {
   isBoardTab,
   toBoardPostSummary,
   validateCreateBoardPost,
@@ -28,6 +33,10 @@ const BOARD_POST_SUMMARY_COLUMNS =
   "id,user_id,board,filter_tag,title,comment_count,view_count,status,created_at,updated_at";
 const DEFAULT_PAGE_SIZE = 30;
 const MAX_PAGE_SIZE = 50;
+const BOARD_POST_CREATE_RATE_LIMIT = {
+  limit: 8,
+  windowMs: 60 * 1000,
+};
 
 type BoardPostListResponse =
   | {
@@ -181,6 +190,15 @@ async function handlePost(
       res.status(401).json({
         error: getAuthUserErrorMessage(userError),
       });
+      return;
+    }
+
+    const rateLimit = checkRateLimitForKey(
+      `board-posts:create:${user.id}:${getClientIp(req)}`,
+      BOARD_POST_CREATE_RATE_LIMIT,
+    );
+    if (!rateLimit.ok) {
+      sendRateLimitResponse(res, rateLimit);
       return;
     }
 

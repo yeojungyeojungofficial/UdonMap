@@ -25,22 +25,34 @@ export function usePostImageUpload({
   const [photoLimitMsg, setPhotoLimitMsg] = useState("");
   const [uploadingCount, setUploadingCount] = useState(0);
   const uploadedImagePathsRef = useRef<string[]>([]);
+  const deletedExistingImagePathsRef = useRef<string[]>([]);
 
-  const cleanupUploadedImages = useCallback(async () => {
-    const paths = uploadedImagePathsRef.current;
+  const removeStoragePaths = useCallback(async (paths: string[]) => {
     if (paths.length === 0) {
       return;
     }
 
-    uploadedImagePathsRef.current = [];
+    const uniquePaths = Array.from(new Set(paths));
 
     try {
       const supabase = getSupabaseBrowserClient();
-      await supabase.storage.from(POST_IMAGE_STORAGE_BUCKET).remove(paths);
+      await supabase.storage.from(POST_IMAGE_STORAGE_BUCKET).remove(uniquePaths);
     } catch {
       // best-effort cleanup; storage policies may reject deletion in local setups
     }
   }, []);
+
+  const cleanupUploadedImages = useCallback(async () => {
+    const paths = uploadedImagePathsRef.current;
+    uploadedImagePathsRef.current = [];
+    await removeStoragePaths(paths);
+  }, [removeStoragePaths]);
+
+  const cleanupDeletedExistingImages = useCallback(async () => {
+    const paths = deletedExistingImagePathsRef.current;
+    deletedExistingImagePathsRef.current = [];
+    await removeStoragePaths(paths);
+  }, [removeStoragePaths]);
 
   const syncPhotoCount = useCallback(() => {
     setPhotoCount(countPhotos());
@@ -54,18 +66,18 @@ export function usePostImageUpload({
         return;
       }
 
+      if (!uploadedImagePathsRef.current.includes(storagePath)) {
+        deletedExistingImagePathsRef.current.push(storagePath);
+        return;
+      }
+
       uploadedImagePathsRef.current = uploadedImagePathsRef.current.filter(
         (path) => path !== storagePath,
       );
 
-      try {
-        const supabase = getSupabaseBrowserClient();
-        await supabase.storage.from(POST_IMAGE_STORAGE_BUCKET).remove([storagePath]);
-      } catch {
-        // best-effort cleanup; storage policies may reject deletion in local setups
-      }
+      await removeStoragePaths([storagePath]);
     },
-    [countPhotos],
+    [countPhotos, removeStoragePaths],
   );
 
   const handleFileChange = useCallback(
@@ -158,6 +170,7 @@ export function usePostImageUpload({
             if (imgEl) {
               imgEl.src = urlData.publicUrl;
               imgEl.removeAttribute("data-object-url");
+              imgEl.setAttribute("data-storage-path", path);
             }
             URL.revokeObjectURL(blobUrl);
           } catch (error) {
@@ -181,6 +194,7 @@ export function usePostImageUpload({
   );
 
   return {
+    cleanupDeletedExistingImages,
     cleanupUploadedImages,
     handleFileChange,
     handleEditorPhotoDeleted,

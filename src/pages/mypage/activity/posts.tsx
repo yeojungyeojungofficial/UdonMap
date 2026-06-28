@@ -1,32 +1,27 @@
 import Head from "next/head";
-import { useRouter } from "next/router";
 import { useEffect } from "react";
 import TopNav from "@/src/components/common/TopNav";
 import CommonFooter from "@/src/components/common/CommonFooter";
 import LoadingScreen from "@/src/components/common/LoadingScreen";
 import MyPageBackLink from "@/src/components/mypage/MyPageBackLink";
+import { useRequireAuthSession } from "@/src/features/auth/hooks/useRequireAuthSession";
 import { useMyActivity } from "@/src/features/mypage/hooks/useMyActivity";
 import { formatProfileDate } from "@/src/features/mypage/formatters";
-import { useAuthStore } from "@/src/store/authStore";
 import { useMyPageShellStyles } from "@/src/features/mypage/useMyPageShellStyles";
 import sheetStyles from "@/src/components/mypage/MyPage.module.css";
 
 export default function PostsPage() {
-  const router = useRouter();
-  const session = useAuthStore((state) => state.session);
+  const { session, shouldRender } = useRequireAuthSession();
   const { myPosts, isActivityLoading, activityError, openActivitySheet } = useMyActivity();
   const shell = useMyPageShellStyles();
 
   useEffect(() => {
-    if (!session) {
-      void router.replace("/mypage");
-      return;
+    if (session) {
+      openActivitySheet("posts");
     }
-    openActivitySheet("posts");
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [openActivitySheet, session]);
 
-  if (!session) return null;
+  if (!shouldRender) return null;
 
   return (
     <>

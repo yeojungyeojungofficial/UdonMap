@@ -1,4 +1,4 @@
-import type { NextApiRequest } from "next";
+import type { NextApiRequest, NextApiResponse } from "next";
 
 type RateLimitBucket = {
   count: number;
@@ -53,8 +53,15 @@ export function checkRateLimit(
   req: NextApiRequest,
   { keyPrefix, limit, windowMs }: RateLimitOptions,
 ): RateLimitResult {
-  const now = Date.now();
   const key = `${keyPrefix}:${getClientIp(req)}`;
+  return checkRateLimitForKey(key, { limit, windowMs });
+}
+
+export function checkRateLimitForKey(
+  key: string,
+  { limit, windowMs }: Pick<RateLimitOptions, "limit" | "windowMs">,
+): RateLimitResult {
+  const now = Date.now();
   const currentBucket = buckets.get(key);
 
   if (!currentBucket || currentBucket.resetAt <= now) {
@@ -84,4 +91,14 @@ export function checkRateLimit(
     remaining: Math.max(limit - currentBucket.count, 0),
     resetAt: currentBucket.resetAt,
   };
+}
+
+export function sendRateLimitResponse(
+  res: NextApiResponse,
+  rateLimit: Extract<RateLimitResult, { ok: false }>,
+) {
+  res.setHeader("Retry-After", String(rateLimit.retryAfterSeconds));
+  res.status(429).json({
+    error: "요청이 너무 많습니다. 잠시 후 다시 시도해주세요.",
+  });
 }

@@ -115,6 +115,14 @@ async function getAccessToken() {
   return session.access_token;
 }
 
+async function loadOptionalAuthSession() {
+  try {
+    return await loadAuthSession(getSupabaseBrowserClient());
+  } catch {
+    return null;
+  }
+}
+
 async function parseJson<T>(response: Response) {
   return (await response.json().catch(() => null)) as T | null;
 }
@@ -171,14 +179,22 @@ export async function fetchBoardPosts(
 }
 
 export async function fetchBoardPostDetail(postId: string) {
-  const pendingRequest = pendingBoardPostDetailRequests.get(postId);
+  const session = await loadOptionalAuthSession();
+  const cacheKey = `${postId}:${session?.user.id ?? "anon"}`;
+  const pendingRequest = pendingBoardPostDetailRequests.get(cacheKey);
 
   if (pendingRequest) {
     return pendingRequest;
   }
 
   const request = (async () => {
-    const response = await fetch(`/api/board-posts/${postId}`);
+    const response = await fetch(`/api/board-posts/${postId}`, {
+      headers: session
+        ? {
+            Authorization: `Bearer ${session.access_token}`,
+          }
+        : undefined,
+    });
     const result = await parseJson<BoardPostDetailResponse>(response);
 
     if (!response.ok || !result || "error" in result) {
@@ -195,10 +211,10 @@ export async function fetchBoardPostDetail(postId: string) {
 
     return result.post;
   })().finally(() => {
-    pendingBoardPostDetailRequests.delete(postId);
+    pendingBoardPostDetailRequests.delete(cacheKey);
   });
 
-  pendingBoardPostDetailRequests.set(postId, request);
+  pendingBoardPostDetailRequests.set(cacheKey, request);
   return request;
 }
 

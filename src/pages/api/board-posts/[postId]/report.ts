@@ -4,6 +4,11 @@ import {
   getBearerToken,
   getQueryValue,
 } from "@/src/core/apiRequest";
+import {
+  checkRateLimitForKey,
+  getClientIp,
+  sendRateLimitResponse,
+} from "@/src/core/rateLimit";
 import { getSupabaseServerClient } from "@/src/core/supabaseServer";
 import { isBoardPostReportReason } from "@/src/features/reviews/reportReasons";
 
@@ -14,6 +19,11 @@ type BoardPostReportResponse =
   | {
       error: string;
     };
+
+const BOARD_POST_REPORT_RATE_LIMIT = {
+  limit: 10,
+  windowMs: 60 * 1000,
+};
 
 export default async function handler(
   req: NextApiRequest,
@@ -56,6 +66,15 @@ export default async function handler(
       res.status(401).json({
         error: getAuthUserErrorMessage(userError),
       });
+      return;
+    }
+
+    const rateLimit = checkRateLimitForKey(
+      `board-post-reports:create:${user.id}:${getClientIp(req)}`,
+      BOARD_POST_REPORT_RATE_LIMIT,
+    );
+    if (!rateLimit.ok) {
+      sendRateLimitResponse(res, rateLimit);
       return;
     }
 

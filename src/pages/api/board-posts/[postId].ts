@@ -4,6 +4,11 @@ import {
   getBearerToken,
   getQueryValue,
 } from "@/src/core/apiRequest";
+import {
+  checkRateLimitForKey,
+  getClientIp,
+  sendRateLimitResponse,
+} from "@/src/core/rateLimit";
 import { getSupabaseServerClient } from "@/src/core/supabaseServer";
 import type { Database } from "@/src/core/database.types";
 import {
@@ -36,6 +41,10 @@ const BOARD_POST_DETAIL_COLUMNS =
   "id,user_id,board,filter_tag,title,body,comment_count,view_count,status,created_at,updated_at";
 const BOARD_POST_COMMENT_COLUMNS =
   "id,post_id,user_id,author_name,body,like_count,dislike_count,status,deleted_at,deleted_by,deleted_reason,created_at,updated_at";
+const BOARD_POST_MUTATION_RATE_LIMIT = {
+  limit: 12,
+  windowMs: 60 * 1000,
+};
 
 async function getAuthenticatedUser(req: NextApiRequest) {
   const accessToken = getBearerToken(req);
@@ -109,6 +118,15 @@ export default async function handler(
         return;
       }
 
+      const rateLimit = checkRateLimitForKey(
+        `board-posts:delete:${auth.userId}:${getClientIp(req)}`,
+        BOARD_POST_MUTATION_RATE_LIMIT,
+      );
+      if (!rateLimit.ok) {
+        sendRateLimitResponse(res, rateLimit);
+        return;
+      }
+
       const { data, error } = await supabase
         .from("board_posts")
         .delete()
@@ -138,6 +156,15 @@ export default async function handler(
 
       if (!auth.userId) {
         res.status(auth.status).json({ error: auth.error });
+        return;
+      }
+
+      const rateLimit = checkRateLimitForKey(
+        `board-posts:update:${auth.userId}:${getClientIp(req)}`,
+        BOARD_POST_MUTATION_RATE_LIMIT,
+      );
+      if (!rateLimit.ok) {
+        sendRateLimitResponse(res, rateLimit);
         return;
       }
 
