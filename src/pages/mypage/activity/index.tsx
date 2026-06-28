@@ -1,11 +1,9 @@
 import Head from "next/head";
 import Link from "next/link";
-import { useRouter } from "next/router";
-import { useEffect } from "react";
 import TopNav from "@/src/components/common/TopNav";
 import CommonFooter from "@/src/components/common/CommonFooter";
 import MyPageBackLink from "@/src/components/mypage/MyPageBackLink";
-import { useAuthStore } from "@/src/store/authStore";
+import { useRequireAuthSession } from "@/src/features/auth/hooks/useRequireAuthSession";
 import { useMyPageShellStyles } from "@/src/features/mypage/useMyPageShellStyles";
 
 function ChevronRight({ className }: { className: string }) {
@@ -24,15 +22,10 @@ const ITEMS = [
 ];
 
 export default function ActivityIndexPage() {
-  const router = useRouter();
-  const session = useAuthStore((state) => state.session);
+  const { shouldRender } = useRequireAuthSession();
   const shell = useMyPageShellStyles();
 
-  useEffect(() => {
-    if (!session) void router.replace("/mypage");
-  }, [session, router]);
-
-  if (!session) return null;
+  if (!shouldRender) return null;
 
   return (
     <>

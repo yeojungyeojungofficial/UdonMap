@@ -1,7 +1,10 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { getBearerToken } from "@/src/core/apiRequest";
 import { getSupabaseServerClient } from "@/src/core/supabaseServer";
-import { checkRateLimit } from "@/src/core/rateLimit";
+import {
+  checkRateLimit,
+  sendRateLimitResponse,
+} from "@/src/core/rateLimit";
 import { isMissingBookmarksTableError } from "@/src/features/hospitals/bookmarkErrors";
 import {
   HOSPITAL_COLUMNS,
@@ -48,10 +51,7 @@ export default async function handler(
 
   const rateLimit = checkRateLimit(req, HOSPITAL_LIST_RATE_LIMIT);
   if (!rateLimit.ok) {
-    res.setHeader("Retry-After", String(rateLimit.retryAfterSeconds));
-    res.status(429).json({
-      error: "요청이 너무 많습니다. 잠시 후 다시 시도해주세요.",
-    });
+    sendRateLimitResponse(res, rateLimit);
     return;
   }
 

@@ -52,6 +52,24 @@ function isSafeUrl(value: string) {
   );
 }
 
+function isSafeImageUrl(value: string) {
+  return value.trim().toLowerCase().startsWith("https://");
+}
+
+function isSafeStoragePath(value: string) {
+  return /^[0-9a-f-]{20,}\/[0-9]+-[0-9]+\.webp$/i.test(value.trim());
+}
+
+function isStoragePathInImageUrl(src: string, storagePath: string) {
+  const normalizedPath = storagePath.trim();
+  const encodedPath = normalizedPath
+    .split("/")
+    .map((segment) => encodeURIComponent(segment))
+    .join("/");
+
+  return src.includes(`/${normalizedPath}`) || src.includes(`/${encodedPath}`);
+}
+
 function getStyleValue(style: string, property: string) {
   const declarations = style
     .split(";")
@@ -147,13 +165,20 @@ export function sanitizeBoardPostHtml(value: string) {
       if (name === "img") {
         const src = getAttributeValue(attributes, "src");
         const alt = getAttributeValue(attributes, "alt");
-        if (!src || !isSafeUrl(src)) {
+        const storagePath = getAttributeValue(attributes, "data-storage-path");
+        if (!src || !isSafeImageUrl(src)) {
           return "";
         }
 
         return `<img src="${escapeAttribute(src)}" alt="${escapeAttribute(
           alt,
-        )}"${sanitizeImageStyle(attributes)} loading="lazy" />`;
+        )}"${
+          storagePath &&
+          isSafeStoragePath(storagePath) &&
+          isStoragePathInImageUrl(src, storagePath)
+            ? ` data-storage-path="${escapeAttribute(storagePath)}"`
+            : ""
+        }${sanitizeImageStyle(attributes)} loading="lazy" />`;
       }
 
       if (name === "br") {

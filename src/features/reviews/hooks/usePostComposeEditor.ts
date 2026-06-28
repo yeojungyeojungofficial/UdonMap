@@ -1,4 +1,10 @@
-import { useCallback, useRef, type DragEvent } from "react";
+import {
+  useCallback,
+  useRef,
+  type ClipboardEvent,
+  type DragEvent,
+} from "react";
+import { sanitizeBoardPostHtml } from "@/src/features/reviews/sanitize";
 
 export const POST_COMPOSE_PHOTO_DELETED_EVENT =
   "post-compose-photo-deleted";
@@ -59,6 +65,22 @@ function getRangeFromPoint(x: number, y: number) {
   return null;
 }
 
+function createPlainTextFragment(value: string) {
+  const fragment = document.createDocumentFragment();
+  const lines = value.split(/\r\n|\r|\n/);
+
+  lines.forEach((line, index) => {
+    if (index > 0) {
+      fragment.appendChild(document.createElement("br"));
+    }
+    if (line) {
+      fragment.appendChild(document.createTextNode(line));
+    }
+  });
+
+  return fragment;
+}
+
 export function usePostComposeEditor({
   classNames,
   onBodyLengthChange,
@@ -90,10 +112,8 @@ export function usePostComposeEditor({
     clone.querySelectorAll("[data-object-url]").forEach((node) => {
       node.removeAttribute("data-object-url");
     });
-    clone.querySelectorAll("[data-storage-path]").forEach((node) => {
-      node.removeAttribute("data-storage-path");
-    });
     clone.querySelectorAll(IMAGE_WRAPPER_SELECTOR).forEach((node) => {
+      node.removeAttribute("data-storage-path");
       node.removeAttribute("data-img-wrapper");
     });
 
@@ -189,6 +209,61 @@ export function usePostComposeEditor({
       updateBodyLength();
     },
     [restoreSelectionOrEnd, updateBodyLength],
+  );
+
+  const insertFragmentAtCursor = useCallback(
+    (fragment: DocumentFragment) => {
+      const editor = editorRef.current;
+      if (!editor) return;
+
+      restoreSelectionOrEnd();
+      const sel = window.getSelection();
+      if (!sel || sel.rangeCount === 0) {
+        editor.appendChild(fragment);
+      } else {
+        const insertedNodes = Array.from(fragment.childNodes);
+        const range = sel.getRangeAt(0);
+        range.deleteContents();
+        range.insertNode(fragment);
+
+        const nextRange = document.createRange();
+        const lastNode = insertedNodes.at(-1);
+        if (lastNode) {
+          nextRange.setStartAfter(lastNode);
+        } else {
+          nextRange.selectNodeContents(editor);
+          nextRange.collapse(false);
+        }
+        nextRange.collapse(true);
+        sel.removeAllRanges();
+        sel.addRange(nextRange);
+        savedRangeRef.current = nextRange.cloneRange();
+      }
+
+      editor.focus();
+      updateBodyLength();
+    },
+    [restoreSelectionOrEnd, updateBodyLength],
+  );
+
+  const handleEditorPaste = useCallback(
+    (event: ClipboardEvent<HTMLDivElement>) => {
+      event.preventDefault();
+
+      const html = event.clipboardData.getData("text/html");
+      if (html) {
+        const template = document.createElement("template");
+        template.innerHTML = sanitizeBoardPostHtml(html);
+        insertFragmentAtCursor(template.content);
+        return;
+      }
+
+      const text = event.clipboardData.getData("text/plain");
+      if (text) {
+        insertFragmentAtCursor(createPlainTextFragment(text));
+      }
+    },
+    [insertFragmentAtCursor],
   );
 
   const moveImageToPoint = useCallback(
@@ -310,6 +385,15 @@ export function usePostComposeEditor({
       wrapper.setAttribute("draggable", "true");
       wrapper.className = classNames.imgWrapper;
 
+      const storagePath =
+        wrapper.getAttribute("data-storage-path") ??
+        img.getAttribute("data-storage-path") ??
+        "";
+      if (storagePath) {
+        wrapper.setAttribute("data-storage-path", storagePath);
+        img.setAttribute("data-storage-path", storagePath);
+      }
+
       img.className = classNames.imgEl;
       img.draggable = false;
       if (!img.style.width) {
@@ -338,7 +422,10 @@ export function usePostComposeEditor({
         event.stopPropagation();
 
         const objectUrl = img.getAttribute("data-object-url");
-        const storagePath = wrapper.getAttribute("data-storage-path") ?? "";
+        const storagePath =
+          wrapper.getAttribute("data-storage-path") ??
+          img.getAttribute("data-storage-path") ??
+          "";
         if (objectUrl) URL.revokeObjectURL(objectUrl);
 
         wrapper.remove();
@@ -551,6 +638,7 @@ export function usePostComposeEditor({
     getTextLength,
     handleEditorDragOver,
     handleEditorDrop,
+    handleEditorPaste,
     hydrateEditorImages,
     insertLink,
     insertNodeAtCursor,

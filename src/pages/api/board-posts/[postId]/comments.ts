@@ -4,6 +4,11 @@ import {
   getBearerToken,
   getQueryValue,
 } from "@/src/core/apiRequest";
+import {
+  checkRateLimitForKey,
+  getClientIp,
+  sendRateLimitResponse,
+} from "@/src/core/rateLimit";
 import { getSupabaseServerClient } from "@/src/core/supabaseServer";
 import type { Database } from "@/src/core/database.types";
 import {
@@ -37,6 +42,10 @@ type BoardPostCommentResponse =
 
 const BOARD_POST_COMMENT_COLUMNS =
   "id,post_id,user_id,author_name,body,like_count,dislike_count,status,deleted_at,deleted_by,deleted_reason,created_at,updated_at";
+const BOARD_POST_COMMENT_WRITE_RATE_LIMIT = {
+  limit: 20,
+  windowMs: 60 * 1000,
+};
 
 function getAuthorName(
   profile: Awaited<ReturnType<typeof ensureUserProfile>>,
@@ -85,6 +94,15 @@ export default async function handler(
       res.status(401).json({
         error: getAuthUserErrorMessage(userError),
       });
+      return;
+    }
+
+    const rateLimit = checkRateLimitForKey(
+      `board-post-comments:${req.method}:${user.id}:${getClientIp(req)}`,
+      BOARD_POST_COMMENT_WRITE_RATE_LIMIT,
+    );
+    if (!rateLimit.ok) {
+      sendRateLimitResponse(res, rateLimit);
       return;
     }
 

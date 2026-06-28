@@ -9,11 +9,20 @@ import {
   getAuthUserErrorMessage,
   getBearerToken,
 } from "@/src/core/apiRequest";
+import {
+  checkRateLimit,
+  sendRateLimitResponse,
+} from "@/src/core/rateLimit";
 
 const HOSPITAL_REPORT_ATTACHMENT_BUCKET = "hospital_report_attachments";
 const MAX_ATTACHMENT_COUNT = 3;
 const MAX_ATTACHMENT_SIZE_BYTES = 5 * 1024 * 1024;
 const WEBP_MIME_TYPE = "image/webp";
+const HOSPITAL_REPORT_CREATE_RATE_LIMIT = {
+  keyPrefix: "hospital-reports:create",
+  limit: 5,
+  windowMs: 10 * 60 * 1000,
+};
 
 type CreateHospitalReportResponse =
   | {
@@ -148,6 +157,12 @@ export default async function handler(
   if (req.method !== "POST") {
     res.setHeader("Allow", "POST");
     res.status(405).json({ error: "POST 요청만 지원합니다." });
+    return;
+  }
+
+  const rateLimit = checkRateLimit(req, HOSPITAL_REPORT_CREATE_RATE_LIMIT);
+  if (!rateLimit.ok) {
+    sendRateLimitResponse(res, rateLimit);
     return;
   }
 

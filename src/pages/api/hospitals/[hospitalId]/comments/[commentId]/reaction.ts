@@ -10,6 +10,11 @@ import {
   getBearerToken,
   getQueryValue,
 } from "@/src/core/apiRequest";
+import {
+  checkRateLimitForKey,
+  getClientIp,
+  sendRateLimitResponse,
+} from "@/src/core/rateLimit";
 
 type HospitalCommentReactionResponse =
   | {
@@ -18,6 +23,11 @@ type HospitalCommentReactionResponse =
   | {
       error: string;
     };
+
+const HOSPITAL_COMMENT_REACTION_RATE_LIMIT = {
+  limit: 60,
+  windowMs: 60 * 1000,
+};
 
 export default async function handler(
   req: NextApiRequest,
@@ -62,6 +72,15 @@ export default async function handler(
       res.status(401).json({
         error: getAuthUserErrorMessage(userError),
       });
+      return;
+    }
+
+    const rateLimit = checkRateLimitForKey(
+      `hospitals:comment-reaction:${user.id}:${getClientIp(req)}`,
+      HOSPITAL_COMMENT_REACTION_RATE_LIMIT,
+    );
+    if (!rateLimit.ok) {
+      sendRateLimitResponse(res, rateLimit);
       return;
     }
 

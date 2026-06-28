@@ -1,18 +1,16 @@
 import Head from "next/head";
-import { useRouter } from "next/router";
 import { useEffect } from "react";
 import TopNav from "@/src/components/common/TopNav";
 import CommonFooter from "@/src/components/common/CommonFooter";
 import LoadingScreen from "@/src/components/common/LoadingScreen";
 import MyPageBackLink from "@/src/components/mypage/MyPageBackLink";
+import { useRequireAuthSession } from "@/src/features/auth/hooks/useRequireAuthSession";
 import { useBookmarkedHospitals } from "@/src/features/mypage/hooks/useBookmarkedHospitals";
-import { useAuthStore } from "@/src/store/authStore";
 import { useMyPageShellStyles } from "@/src/features/mypage/useMyPageShellStyles";
 import sheetStyles from "@/src/components/mypage/MyPage.module.css";
 
 export default function BookmarksPage() {
-  const router = useRouter();
-  const session = useAuthStore((state) => state.session);
+  const { session, shouldRender } = useRequireAuthSession();
   const shell = useMyPageShellStyles();
 
   const {
@@ -23,15 +21,12 @@ export default function BookmarksPage() {
   } = useBookmarkedHospitals();
 
   useEffect(() => {
-    if (!session) {
-      void router.replace("/mypage");
-      return;
+    if (session) {
+      openBookmarkSheet(session);
     }
-    openBookmarkSheet(session);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [openBookmarkSheet, session]);
 
-  if (!session) return null;
+  if (!shouldRender) return null;
 
   return (
     <>

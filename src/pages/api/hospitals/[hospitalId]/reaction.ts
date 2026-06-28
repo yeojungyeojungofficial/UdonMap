@@ -9,6 +9,11 @@ import {
   getAuthUserErrorMessage,
   getBearerToken,
 } from "@/src/core/apiRequest";
+import {
+  checkRateLimitForKey,
+  getClientIp,
+  sendRateLimitResponse,
+} from "@/src/core/rateLimit";
 
 type HospitalReactionResponse =
   | {
@@ -17,6 +22,11 @@ type HospitalReactionResponse =
   | {
       error: string;
     };
+
+const HOSPITAL_REACTION_RATE_LIMIT = {
+  limit: 60,
+  windowMs: 60 * 1000,
+};
 
 function getHospitalId(req: NextApiRequest) {
   return Array.isArray(req.query.hospitalId)
@@ -66,6 +76,15 @@ export default async function handler(
       res.status(401).json({
         error: getAuthUserErrorMessage(userError),
       });
+      return;
+    }
+
+    const rateLimit = checkRateLimitForKey(
+      `hospitals:reaction:${user.id}:${getClientIp(req)}`,
+      HOSPITAL_REACTION_RATE_LIMIT,
+    );
+    if (!rateLimit.ok) {
+      sendRateLimitResponse(res, rateLimit);
       return;
     }
 

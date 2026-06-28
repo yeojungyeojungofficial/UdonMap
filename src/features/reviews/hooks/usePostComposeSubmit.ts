@@ -28,6 +28,7 @@ type UsePostComposeSubmitOptions = {
   onBodyLengthChange: (length: number) => void;
   onClose: () => void;
   onCreated?: (post: BoardPostSummary) => void;
+  onSubmitted?: () => Promise<void> | void;
   onUpdated?: (post: BoardPostDetail) => void;
 };
 
@@ -37,6 +38,7 @@ export function usePostComposeSubmit({
   onBodyLengthChange,
   onClose,
   onCreated,
+  onSubmitted,
   onUpdated,
 }: UsePostComposeSubmitOptions) {
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -108,6 +110,7 @@ export function usePostComposeSubmit({
         } else {
           onCreated?.(post as BoardPostSummary);
         }
+        await onSubmitted?.();
         onClose();
       } catch (error) {
         setSubmitError(
@@ -126,6 +129,7 @@ export function usePostComposeSubmit({
       onBodyLengthChange,
       onClose,
       onCreated,
+      onSubmitted,
       onUpdated,
     ],
   );
