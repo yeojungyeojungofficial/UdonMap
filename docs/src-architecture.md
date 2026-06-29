@@ -1,161 +1,355 @@
 # src 구조 및 상태관리 기준
 
-> Next.js Pages Router 기반. 새 코드를 작성할 때 아래 판단 기준을 먼저 확인한다.
+> Next.js Pages Router 기반. 새 파일을 만들기 전에 이 문서를 먼저 확인한다.
 
----
+## 목표
 
-## 빠른 판단 기준
+이 프로젝트의 구조 목표는 단순합니다.
+
+```txt
+pages      URL 라우트
+features   실제 기능 구현
+common     전역 공통 UI
+core       외부 시스템 경계
+store      전역 클라이언트 상태
+```
+
+`components`에 페이지와 도메인 UI가 뒤섞이면 사람이 구조를 읽기 어렵다. 그래서 도메인별 화면과 도메인 전용 컴포넌트는 `features/<domain>` 안에 둔다.
+
+## 빠른 판단표
 
 | 새 코드가 하는 일 | 위치 |
 |---|---|
-| 화면을 그린다 | `src/components/` |
-| 화면 동작·상태를 조합한다 | `src/features/` |
-| Supabase·fetch·인증 토큰을 직접 다룬다 | `src/core/` |
-| 여러 화면/컴포넌트가 공유하는 클라이언트 UI 상태 | `src/store/` |
-| 한 컴포넌트 안에서만 쓰는 입력값·메시지·플래그 | local `useState` |
+| URL을 만든다 | `src/pages/...` |
+| API Route를 만든다 | `src/pages/api/...` |
+| 페이지 화면을 그린다 | `src/features/<domain>/pages/...` |
+| 특정 도메인에서만 쓰는 UI를 만든다 | `src/features/<domain>/components/...` |
+| 여러 도메인이 공유하는 UI를 만든다 | `src/components/common/...` |
+| 화면 동작, 데이터 로딩, 상태를 조합한다 | `src/features/<domain>/hooks/...` |
+| Supabase, fetch, auth token을 직접 다룬다 | `src/core/...` |
+| 여러 기능이 공유하는 클라이언트 상태를 둔다 | `src/store/...` |
+| 한 컴포넌트 안에서만 쓰는 입력값/메시지를 둔다 | local `useState` |
 
----
+## 최상위 폴더 책임
 
-## 웹/모바일 반응형 기준
+### `src/pages`
 
-뷰포트 너비가 `MOBILE_BREAKPOINT` 이하이면 모바일 트랙, 초과이면 웹 트랙으로 본다.
-푸터는 필요할 때만 `FOOTER_BREAKPOINT`를 따로 조정한다.
+Next.js Pages Router가 URL로 해석하는 폴더다. 사람이 봤을 때 “라우트 목록”처럼 읽혀야 한다.
 
-### 단일 원본
+```txt
+src/pages/
+  index.tsx
+  reviews/
+    index.tsx
+    [postId].tsx
+  mypage/
+    index.tsx
+    account.tsx
+    activity/
+    policy.tsx
+    support.tsx
+  support/
+    index.tsx
+  api/
+```
+
+일반 화면 라우트 파일은 얇게 유지한다.
+
+```ts
+export { default } from "@/src/features/reviews/pages/ReviewsPage";
+```
+
+비즈니스 로직, 화면 상태, JSX가 길어지는 구현은 `features/<domain>/pages`로 옮긴다.
+
+### `src/pages/api`
+
+서버 API Route만 둔다. 이 폴더는 Next.js 라우팅 규칙 때문에 `features`로 옮기지 않는다.
+
+하위 라우트가 있는 API는 폴더형 구조를 선호한다.
+
+```txt
+src/pages/api/board-posts/
+  index.ts                    /api/board-posts
+  [postId]/
+    index.ts                  /api/board-posts/:postId
+    comments/
+      index.ts                /api/board-posts/:postId/comments
+```
+
+API Route는 서버 컨텍스트이므로 `src/core`를 직접 import해도 된다.
+
+### `src/features`
+
+도메인별 실제 구현을 둔다.
+
+```txt
+src/features/
+  home/
+  reviews/
+  mypage/
+  support/
+  hospitals/
+  auth/
+  mapPopups/
+  images/
+  responsive/
+```
+
+도메인 내부 기본 구조는 아래를 따른다.
+
+```txt
+src/features/<domain>/
+  pages/          페이지 단위 화면
+  components/     해당 도메인 전용 UI
+  hooks/          상태/동작 조합
+  *.ts            타입, mapper, validator, formatter, config
+```
+
+모든 feature가 모든 폴더를 가질 필요는 없다. 필요할 때만 만든다.
+
+### `src/components/common`
+
+전역 공통 UI만 둔다.
+
+예시:
+
+```txt
+AppToast
+CommonFooter
+FilterChipGroup
+HospitalReportSheet
+LoadingScreen
+MapPopupModal
+TopNav
+```
+
+`components/common`은 특정 도메인 지식을 가지면 안 된다. 예를 들어 `reviews`, `mypage`, `hospitals` 전용 타입이나 hook을 import하지 않는다.
+
+### `src/core`
+
+외부 시스템과 닿는 경계다.
+
+```txt
+src/core/
+  api/
+  authSession.ts
+  supabase.ts
+  supabaseServer.ts
+  apiRequest.ts
+  rateLimit.ts
+  userProfiles.ts
+```
+
+규칙:
+
+- `pages/api`는 `core`를 직접 import할 수 있다.
+- feature hook/API 래퍼는 `core`를 import할 수 있다.
+- UI 컴포넌트는 가능한 한 `core`를 직접 import하지 않는다.
+
+### `src/store`
+
+Zustand 전역 상태를 둔다. 여러 기능이 동시에 읽고, 라우트 이동 후에도 유지되는 클라이언트 상태만 올린다.
+
+현재 store:
+
+```txt
+authStore.ts          로그인 세션, 현재 유저, 인증 준비 여부
+hospitalMapStore.ts   홈 지도 검색어, 지역 필터, 선택 병원, 지도 레벨
+```
+
+store에 두지 않는 것:
+
+- 폼 입력 임시값
+- 모달 내부 에러/로딩 메시지
+- 서버 데이터 전체 캐시
+- API Route 내부 서버 상태
+
+## 현재 feature 구조
+
+### `features/home`
+
+홈 지도 화면 도메인.
+
+```txt
+features/home/
+  pages/HomePage/
+    index.tsx
+    web/
+    mob/
+  components/
+    HospitalBottomSheet.tsx
+    HospitalList.tsx
+    MapPanel.tsx
+    RegionFilter.tsx
+    Home.module.css
+```
+
+### `features/reviews`
+
+게시판 도메인.
+
+```txt
+features/reviews/
+  pages/
+    ReviewsPage/
+    PostDetailPage/
+  components/
+    PostComposeSheet/
+    ReportReasonDialog.tsx
+  hooks/
+  boardPosts.ts
+  comments.ts
+  constants.ts
+  mappers.ts
+  postComposeConfig.ts
+  reportReasons.ts
+  sanitize.ts
+  validators.ts
+```
+
+`PostComposeSheet`는 웹/모바일 UI를 분리하되, 공통 상태와 제출/업로드 동작은 `usePostComposeSheetController.ts`에서 공유한다.
+
+### `features/mypage`
+
+마이페이지 도메인.
+
+```txt
+features/mypage/
+  pages/
+    MyPage/
+    AccountPage.tsx
+    PolicyPage.tsx
+    MyPageSupportPage.tsx
+    activity/
+  components/
+    AccountAuthInline.tsx
+    ActivitySheet.tsx
+    AuthDialog.tsx
+    BookmarkSheet.tsx
+    MyPageBackLink/
+    PrivacyPolicyContent.tsx
+    PrivacyPolicyDialog.tsx
+  hooks/
+  formatters.ts
+  privacyPolicy.ts
+  types.ts
+```
+
+### `features/support`
+
+지원/문의 화면 도메인.
+
+```txt
+features/support/
+  pages/SupportPage/
+    index.tsx
+    web/
+    mob/
+```
+
+### `features/hospitals`
+
+병원 데이터와 병원 관련 상호작용 로직.
+
+홈 화면에서 많이 쓰지만, 병원 댓글/반응/제보 등 여러 기능과 연결되므로 `home`이 아니라 별도 도메인으로 둔다.
+
+### `features/auth`
+
+전역 인증 세션 상태를 앱에 연결하는 hook과 bootstrap 컴포넌트.
+
+### `features/responsive`
+
+반응형 판단 hook. 현재 `useIsMobile`을 둔다.
+
+## 웹/모바일 분기 기준
+
+뷰포트 너비가 `MOBILE_BREAKPOINT` 이하이면 모바일 트랙, 초과이면 웹 트랙이다.
 
 반응형 숫자는 `src/constants/responsive-values.json`에만 둔다.
-TS에서는 `src/constants/responsive.ts`를 import해서 사용하고, CSS Modules에서는 PostCSS가 아래 미디어 토큰을 실제 px 값으로 변환한다.
+
+TS에서는:
+
+```ts
+import { MOBILE_BREAKPOINT } from "@/src/constants/responsive";
+```
+
+CSS Modules에서는 PostCSS 미디어 토큰을 사용한다.
 
 ```css
 @media --mobile {
-  /* max-width: MOBILE_BREAKPOINT */
 }
 
 @media --desktop {
-  /* min-width: MOBILE_BREAKPOINT + 1 */
-}
-
-@media --footer-mobile {
-  /* max-width: FOOTER_BREAKPOINT */
 }
 ```
 
-스타일 파일에 `640px`, `670px`, `860px`, `960px` 같은 분기 숫자를 직접 쓰지 않는다.
-기준을 바꿔야 하면 `responsive-values.json`만 수정한다.
+웹과 모바일 화면이 크게 다르면 아래 구조를 유지한다.
 
-### 컴포넌트 분기
-
-공통 셸의 헤더/푸터처럼 골격은 같고 일부 컴포넌트만 바뀌는 경우 `useIsMobile`을 사용한다.
-
-```ts
-const isMobileNav = useIsMobile(MOBILE_BREAKPOINT);
-const isMobileFooter = useIsMobile(FOOTER_BREAKPOINT);
+```txt
+SomePage/
+  index.tsx      web/mob 선택
+  web/
+  mob/
 ```
 
-페이지 전체가 웹/모바일에서 완전히 달라질 때만 `index.tsx`가 `web`/`mob` 진입 컴포넌트를 고르는 구조로 분리한다.
-현재 CSS Modules 기반에서는 세부 간격 조정은 `@media --mobile` 토큰으로 처리한다.
+웹/모바일이 다르게 발전할 수 있는 JSX는 합치지 않는다. 대신 데이터 로딩, 제출, 업로드, 선택 상태처럼 양쪽이 공유하는 동작만 hook으로 분리한다.
 
----
+## Import 방향
 
-## 폴더 책임
+권장 방향:
 
-### `src/components/`
-화면에 보이는 UI 컴포넌트.
-- 여러 페이지에서 쓰이면 → `components/common/`
-- 특정 페이지 안에서만 쓰이면 → `components/home/`, `components/mypage/`, `components/reviews/`
-
-**NEVER** `components/`에서 `core/`를 직접 import하지 않는다. 반드시 `features/` hook을 거친다.
-
-### `src/features/`
-기능 단위의 커스텀 hook, 상태 조합, 타입 변환, 유효성 검사, 포맷터.
-
-**규칙**
-- `features/` hook이 `core/`를 import하는 것은 허용한다.
-- `components/`는 `features/` hook만 호출한다. `core/`를 직접 호출하지 않는다.
-- 서버 데이터(fetch 결과)는 hook 내부 `useState`로 관리하고, store에 올리지 않는다.
-
-### `src/core/`
-외부 시스템과 맞닿는 코드. Supabase client, auth session, API request helper, 서버 공통 로직.
-
-**규칙**
-- 클라이언트 `components/`, `pages/`(라우트 파일)는 `core/`를 직접 import하지 않는다.
-- 예외: `pages/api/`(서버 API Route)는 `core/`를 직접 import한다. 서버 컨텍스트이기 때문이다.
-
-### `src/store/`
-Zustand 전역 상태. 아래 기준을 모두 따른다.
-
-**규칙**
-- UI 컴포넌트가 store를 직접 구독하지 않는 것을 기본값으로 한다.
-- store 값은 feature/page hook에서 읽고, 컴포넌트에는 props로 내려준다.
-- 앱 전역 UI처럼 props 전달이 더 복잡하게 만들 때만 예외를 둔다.
-
-### `src/pages/`
-URL 라우트 파일만 둔다. 비즈니스 로직은 `features/` hook으로 분리한다.
-
----
-
-## 라우트 구조
-
-```
-src/pages/
-  index.tsx              # /
-  mypage/
-    index.tsx            # /mypage
-  reviews/
-    index.tsx            # /reviews
-    [postId].tsx         # /reviews/:postId
-  support/
-    index.tsx            # /support
-  api/                   # Next.js API Routes (서버 전용)
+```txt
+pages -> features
+features -> core
+features -> components/common
+features/<domain>/pages -> features/<domain>/components
 ```
 
-홈은 `pages/index.tsx`를 유지한다. `pages/home/index.tsx`를 만들면 URL이 `/home`으로 바뀐다.
+금지 또는 지양:
 
----
-
-## Zustand 사용 기준
-
-### store에 두는 것
-- 로그인 세션, 현재 유저 id, 인증 준비 여부, 유저 프로필 — 여러 기능이 공통으로 읽는 상태
-- 지도 검색어, 지역 필터, 선택 병원 id, 지도 줌 레벨 — 홈 지도·리스트·바텀시트가 같이 보는 상태
-- 라우트 이동 후에도 유지하는 것이 자연스러운 클라이언트 UI 상태
-
-### store에 두지 않는 것 (NEVER)
-- 입력 폼의 임시 값 (email, password 등)
-- 모달 내부 제출 메시지, 에러 메시지, 로딩 플래그 — 컴포넌트 생명주기에 묶인 상태
-- fetch로 가져온 서버 데이터 전체 캐시
-- `pages/api/` 내부 서버 상태
-
-> 서버 데이터 캐싱이 커지면 Zustand 대신 React Query 도입을 검토한다.
-
----
-
-## 현재 store
-
-### `src/store/authStore.ts`
-로그인 세션, 현재 유저 id, 인증 준비 여부(`isAuthReady`), 유저 프로필을 관리한다.
-병원 댓글·찜 액션과 마이페이지가 같은 로그인 상태를 구독한다.
-
-```ts
-// 읽기 예시
-const currentUserId = useAuthStore((state) => state.currentUserId);
-const isLoggedIn = useAuthStore((state) => Boolean(state.session));
+```txt
+components/common -> features
+components/common -> core
+features/<A>/pages -> features/<B>/pages
 ```
 
-### `src/store/hospitalMapStore.ts`
-홈 지도 화면의 검색어(`query`), 지역 필터(`selectedRegion`), 선택 병원 id(`selectedHospitalId`), 지도 줌 레벨(`mapLevel`)을 관리한다.
-`useHospitalDirectory`가 store를 구독하고, `MapPanel`, `HospitalList`, `HospitalBottomSheet`에는 props로 상태와 핸들러를 내려준다.
+도메인 간 공유가 필요하면 다음 중 하나로 옮긴다.
 
----
+- 진짜 전역 UI면 `components/common`
+- 도메인 모델이면 관련 `features/<domain>`
+- 외부 시스템 경계면 `core`
 
-## core API 기준
+## 상태관리 기준
 
-`src/core/api/`는 기능별 API 경계만 둔다. 파일을 너무 잘게 쪼개지 않는다.
-같은 화면/기능에서 항상 같이 쓰이는 API는 하나의 책임 단위로 묶는다.
+### local state
 
-```
-src/core/api/hospitals/
-  hospitalsApi.ts              # 병원 목록, 병원 댓글 조회
-  hospitalInteractionsApi.ts   # 찜, 댓글 작성/삭제, 좋아요/싫어요
-  hospitalReportsApi.ts        # 병원 제보
-```
+컴포넌트 생명주기에 묶인 값은 local state를 쓴다.
+
+- input 값
+- 모달 열림/닫힘
+- 에러 메시지
+- 제출 중 플래그
+
+### feature hook
+
+페이지나 컴포넌트 여러 개가 함께 쓰는 동작 조합은 feature hook으로 뺀다.
+
+- API 호출 후 화면 상태 구성
+- auth/session 확인
+- 업로드/삭제 라이프사이클
+- web/mob 공통 컨트롤러
+
+### Zustand store
+
+앱의 여러 도메인이 동시에 읽거나 라우트 이동 후 유지되어야 하는 상태만 둔다.
+
+서버 데이터 캐싱이 커지면 Zustand가 아니라 React Query 같은 서버 상태 도구 도입을 검토한다.
+
+## 새 코드 추가 체크리스트
+
+1. URL이 필요한가? `src/pages`에 얇은 라우트 파일을 만든다.
+2. 특정 도메인 화면인가? `src/features/<domain>/pages`에 둔다.
+3. 특정 도메인 전용 UI인가? `src/features/<domain>/components`에 둔다.
+4. 여러 도메인이 공유하는 순수 UI인가? `src/components/common`에 둔다.
+5. Supabase/fetch/auth token을 직접 만지는가? `src/core` 또는 feature hook/API 래퍼에 둔다.
+6. 웹/모바일이 앞으로 달라질 가능성이 큰가? JSX는 `web`/`mob`로 분리하고 동작만 hook으로 공유한다.

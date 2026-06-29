@@ -1,0 +1,1502 @@
+.page {
+  position: relative;
+  min-height: 100vh;
+  min-height: 100dvh;
+  padding: 20px;
+  padding-top: 84px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.heroSection {
+  position: relative;
+  padding: 0;
+  background: var(--gradient-brand);
+  border-radius: 30px;
+  box-shadow: 0 20px 40px rgba(135, 75, 31, 0.22);
+  overflow: hidden;
+}
+
+.searchWrap {
+  width: min(680px, 100%);
+  margin: 0 auto;
+}
+
+.searchLabel {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  border: 0;
+}
+
+.searchInput {
+  width: 100%;
+  border: 0;
+  border-radius: var(--radius-card);
+  padding: 14px 18px;
+  font-size: 15px;
+  background: rgba(255, 255, 255, 0.94);
+  color: var(--text-primary);
+  box-shadow: 0 10px 24px rgba(56, 56, 56, 0.16);
+}
+
+.searchInput:focus {
+  outline: 2px solid rgba(255, 150, 69, 0.52);
+  outline-offset: 1px;
+}
+
+.statusBanner {
+  width: min(680px, 100%);
+  margin: 0 auto;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-field);
+  padding: 10px 12px;
+  background: var(--color-brand-surface);
+  color: var(--color-brand-deep);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.mapPanel {
+  position: relative;
+  margin-top: 0;
+  height: 360px;
+  border-radius: inherit;
+  overflow: hidden;
+  background: var(--color-text);
+  border: 0;
+}
+
+.kakaoMap {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.mapControlDock {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  z-index: 8;
+  display: grid;
+  width: 92px;
+  gap: 8px;
+  pointer-events: none;
+}
+
+.mapControlButton,
+.zoomControlButton {
+  border: 1px solid rgba(56, 56, 56, 0.12);
+  background: rgba(255, 255, 255, 0.96);
+  color: var(--color-text);
+  box-shadow: 0 8px 22px rgba(56, 56, 56, 0.16);
+  cursor: pointer;
+  pointer-events: auto;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease,
+    opacity 0.15s ease;
+}
+
+.mapControlButton:hover,
+.zoomControlButton:hover {
+  border-color: rgba(255, 150, 69, 0.58);
+  color: var(--color-brand-strong);
+}
+
+.mapControlButton:disabled,
+.zoomControlButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.mapControlButtonActive {
+  border-color: rgba(255, 150, 69, 0.72);
+  background: var(--color-brand-surface);
+  color: var(--color-brand-strong);
+}
+
+.locationControlButton {
+  height: 42px;
+  border-radius: var(--radius-field);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  padding: 0 9px;
+  font-size: 12px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.mapControlIcon {
+  width: 16px;
+  height: 16px;
+  flex: 0 0 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.zoomControlGroup {
+  display: grid;
+  justify-self: end;
+  width: 42px;
+  overflow: hidden;
+  border: 1px solid rgba(56, 56, 56, 0.12);
+  border-radius: var(--radius-field);
+  box-shadow: 0 8px 22px rgba(56, 56, 56, 0.16);
+  pointer-events: auto;
+}
+
+.zoomControlButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.zoomControlIcon {
+  width: 18px;
+  height: 18px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.zoomControlButton + .zoomControlButton {
+  border-top: 1px solid rgba(56, 56, 56, 0.12);
+}
+
+.locationStatus {
+  margin: 0;
+  border-radius: var(--radius-field);
+  padding: 8px 9px;
+  background: rgba(255, 255, 255, 0.96);
+  color: var(--color-text-muted);
+  box-shadow: 0 8px 22px rgba(56, 56, 56, 0.14);
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 1.35;
+  text-align: center;
+  pointer-events: auto;
+}
+
+.locationStatusError {
+  background: var(--color-danger-surface);
+  color: var(--color-danger-text);
+}
+
+.currentLocationMarker {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  transform: translateY(-4px);
+  pointer-events: none;
+}
+
+.currentLocationPulse,
+.currentLocationDot {
+  border-radius: 50%;
+  background: #2f80ed;
+}
+
+.currentLocationPulse {
+  position: absolute;
+  left: -6px;
+  width: 28px;
+  height: 28px;
+  opacity: 0.22;
+  animation: currentLocationPulse 1.8s ease-out infinite;
+}
+
+.currentLocationDot {
+  position: relative;
+  width: 16px;
+  height: 16px;
+  border: 3px solid var(--color-surface);
+  box-shadow: 0 4px 14px rgba(47, 128, 237, 0.36);
+}
+
+.currentLocationLabel {
+  position: relative;
+  border-radius: var(--radius-pill);
+  padding: 5px 9px;
+  background: rgba(56, 56, 56, 0.92);
+  color: var(--color-surface);
+  font-size: 11px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.marker {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  overflow: visible;
+  border: 0;
+  background: none;
+  padding: 0;
+  cursor: pointer;
+  animation: markerReveal 0.38s ease both;
+}
+
+.kakaoMarker {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-width: max-content;
+  overflow: visible;
+  border: 0;
+  background: none;
+  padding: 0;
+  cursor: pointer;
+}
+
+.kakaoCluster,
+.regionCluster {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 46px;
+  height: 46px;
+  padding: 0;
+  border: 2px solid rgba(255, 255, 255, 0.88);
+  border-radius: 50%;
+  background: rgba(255, 150, 69, 0.92);
+  color: var(--color-surface);
+  font-size: 16px;
+  font-weight: 800;
+  line-height: 1;
+  text-align: center;
+  box-shadow: 0 10px 24px rgba(56, 56, 56, 0.24);
+}
+
+.kakaoCluster {
+  cursor: pointer;
+}
+
+.regionCluster {
+  cursor: default;
+}
+
+.fallbackRegionCluster {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  animation: markerReveal 0.38s ease both;
+  cursor: pointer;
+}
+
+.markerDot {
+  position: relative;
+  z-index: 1;
+  flex: 0 0 14px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 0 5px rgba(255, 150, 69, 0.2);
+}
+
+.markerLabel {
+  display: inline-flex;
+  align-items: center;
+  max-width: min(220px, calc(100vw - 88px));
+  overflow: hidden;
+  padding: 6px 10px;
+  border-radius: var(--radius-pill);
+  background: rgba(56, 56, 56, 0.9);
+  color: var(--color-surface);
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1.2;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  box-shadow: 0 8px 18px rgba(56, 56, 56, 0.2);
+}
+
+.markerActive .markerDot {
+  background: var(--accent-strong);
+  box-shadow: 0 0 0 7px rgba(255, 150, 69, 0.26);
+}
+
+.markerActive .markerLabel {
+  background: rgba(56, 56, 56, 0.98);
+}
+
+.mainSection {
+  background: rgba(255, 255, 255, 0.78);
+  backdrop-filter: blur(8px);
+  border-radius: 24px;
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.listSection {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.sectionHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.sectionTitle {
+  margin: 0;
+  font-size: 26px;
+}
+
+.sectionCount {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+.hospitalList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 12px;
+}
+
+.hospitalCard {
+  width: 100%;
+  text-align: left;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  background: var(--color-surface);
+  padding: 16px;
+  cursor: pointer;
+  transition: transform 0.16s ease, box-shadow 0.16s ease, border-color 0.16s ease;
+}
+
+.hospitalCard:hover {
+  transform: translateY(-2px);
+  border-color: var(--color-brand);
+  box-shadow: var(--shadow-card);
+}
+
+.hospitalCardActive {
+  border-color: var(--accent);
+  box-shadow: var(--shadow-card);
+}
+
+.hospitalCard:focus-visible {
+  outline: 2px solid rgba(255, 150, 69, 0.55);
+  outline-offset: 2px;
+}
+
+.hospitalCardTop {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.hospitalCardBadges {
+  min-width: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.selectedBadge {
+  display: inline-flex;
+  align-items: center;
+  height: 24px;
+  border-radius: var(--radius-pill);
+  padding: 0 10px;
+  background: rgba(255, 150, 69, 0.16);
+  color: var(--accent-strong);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.hospitalRegion {
+  display: inline-flex;
+  align-items: center;
+  height: 24px;
+  border-radius: var(--radius-pill);
+  padding: 0 10px;
+  background: var(--color-brand-surface);
+  color: var(--color-brand-strong);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.hospitalOperationStatus {
+  color: var(--color-text-muted);
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.hospitalOperationStatusOpen {
+  color: var(--color-brand);
+}
+
+.hospitalOperationStatusClosed {
+  color: var(--color-danger);
+}
+
+.hospitalStats {
+  color: var(--color-text-muted);
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.hospitalName {
+  margin: 0;
+  font-size: 23px;
+  color: var(--color-heading);
+}
+
+.hospitalAddress {
+  margin: 4px 0 0;
+  color: var(--color-text-muted);
+  font-size: 14px;
+}
+
+.hospitalSummary {
+  margin: 9px 0 0;
+  color: var(--color-text);
+  font-size: 14px;
+}
+
+.hospitalSummaryEmergency {
+  color: var(--color-danger);
+  font-weight: 800;
+}
+
+.animalTags {
+  margin-top: 12px;
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 5px 10px;
+  border-radius: var(--radius-pill);
+  background: var(--color-neutral-surface);
+  color: var(--color-brand-strong);
+  font-size: 12px;
+}
+
+.animalTagsToggle {
+  display: inline-flex;
+  align-items: center;
+  align-self: center;
+  flex: 0 0 auto;
+  margin: 0;
+  padding: 2px 0;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  color: var(--color-brand);
+  font-size: 13px;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  white-space: nowrap;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.animalTagsToggle:hover {
+  text-decoration: underline;
+}
+
+.animalTagsToggle:focus-visible {
+  outline: 2px solid rgba(255, 150, 69, 0.55);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+.emptyState {
+  border: 1px dashed var(--color-border);
+  border-radius: var(--radius-card);
+  padding: 36px 16px;
+  text-align: center;
+  color: var(--color-text-muted);
+  background: var(--color-page-soft);
+}
+
+.sheetOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  background: transparent;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 24px 20px 0;
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+.bottomSheet {
+  width: min(768px, 100%);
+  max-height: calc(100vh - 32px);
+  max-height: calc(100dvh - 32px);
+  overflow: auto;
+  border-radius: var(--radius-panel) var(--radius-panel) 0 0;
+  background: var(--color-surface);
+  padding: 12px 20px 36px;
+  box-shadow: var(--shadow-sheet);
+  animation: slideUp 0.26s ease;
+  overscroll-behavior: contain;
+  transition: height 0.2s ease, max-height 0.2s ease;
+}
+
+.bottomSheetDragging {
+  transition: none;
+}
+
+.sheetDragHandle {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  width: 100%;
+  min-height: 34px;
+  margin: 0;
+  border: 0;
+  border-radius: var(--radius-field);
+  padding: 8px 0 14px;
+  background: transparent;
+  cursor: grab;
+  touch-action: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.sheetDragHandle:active {
+  cursor: grabbing;
+}
+
+.sheetDragHandle:focus-visible {
+  outline: 2px solid rgba(255, 150, 69, 0.55);
+  outline-offset: 2px;
+}
+
+.sheetHandle {
+  flex: 0 0 auto;
+  width: 48px;
+  height: 5px;
+  border-radius: var(--radius-pill);
+  background: var(--color-text);
+  margin: 0;
+}
+
+.sheetHero {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 2px 0 8px;
+}
+
+.sheetHeroBadges {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  min-width: 0;
+}
+
+.sheetRegion,
+.sheetSpecialtyBadge,
+.sheetEmergencyBadge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  border-radius: var(--radius-pill);
+  padding: 0 11px;
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.sheetRegion {
+  background: rgba(255, 255, 255, 0.9);
+  color: var(--color-text-warm);
+}
+
+.sheetSpecialtyBadge {
+  background: var(--color-brand);
+  color: var(--color-surface);
+}
+
+.sheetEmergencyBadge {
+  background: transparent;
+  color: var(--color-danger);
+}
+
+.sheetHeroActions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.sheetIconButton,
+.sheetCloseButton {
+  border: 0;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.92);
+  color: var(--color-text-muted);
+  box-shadow: var(--shadow-nav);
+  cursor: pointer;
+}
+
+.sheetIconButton {
+  width: 34px;
+  height: 34px;
+}
+
+.sheetCloseButton {
+  width: 38px;
+  height: 38px;
+}
+
+.sheetIconButton:hover,
+.sheetCloseButton:hover {
+  background: var(--color-surface);
+  color: var(--color-heading);
+}
+
+.sheetIconButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.sheetIconButtonActive .sheetIconBookmark {
+  color: var(--color-brand);
+}
+
+.sheetIcon {
+  width: 18px;
+  height: 18px;
+  flex: 0 0 auto;
+  display: inline-block;
+  background-color: currentColor;
+  -webkit-mask-image: var(--sheet-icon-url);
+  -webkit-mask-position: center;
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-size: contain;
+  mask-image: var(--sheet-icon-url);
+  mask-position: center;
+  mask-repeat: no-repeat;
+  mask-size: contain;
+}
+
+.sheetContent {
+  padding: 16px 0 0;
+}
+
+.sheetHeader {
+  display: grid;
+  gap: 12px;
+}
+
+.sheetTitle {
+  margin: 0;
+  font-size: 21px;
+  line-height: 1.25;
+  color: var(--color-heading);
+}
+
+.sheetAddress {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--color-text-muted);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.sheetAddress .sheetIcon {
+  width: 14px;
+  height: 14px;
+}
+
+.sheetMetrics {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin: 14px 0 0;
+}
+
+.sheetMetric {
+  margin: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--color-text-muted);
+  font-size: 13px;
+  line-height: 1;
+}
+
+
+.sheetTags {
+  margin-top: 18px;
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.sheetTag,
+.sheetTagEmergency,
+.sheetTagHighlight {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  border-radius: var(--radius-pill);
+  padding: 0 11px;
+  font-size: 12px;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.sheetTag {
+  background: var(--color-neutral-surface);
+  color: var(--color-text-muted);
+}
+
+.sheetTagEmergency {
+  background: transparent;
+  color: var(--color-danger);
+  font-weight: 800;
+}
+
+.sheetTagHighlight {
+  background: var(--color-brand-surface);
+  color: var(--color-brand-strong);
+  font-weight: 800;
+}
+
+.sheetSummary {
+  margin: 12px 0 0;
+  color: var(--color-text-muted);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.sheetLinks {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 20px;
+}
+
+.sheetLink {
+  min-height: 44px;
+  border-radius: 13px;
+  padding: 0 16px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background: var(--color-neutral-surface);
+  color: var(--color-text);
+  font-size: 14px;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.sheetLink:only-child,
+.sheetLink:nth-last-child(1):nth-child(odd) {
+  grid-column: 1 / -1;
+}
+
+.sheetPrimaryLink {
+  background: var(--color-brand);
+  color: var(--color-surface);
+}
+
+.infoBlock {
+  margin-top: 30px;
+}
+
+.sheetSectionHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.infoList {
+  margin: 12px 0 0;
+  border: 1px solid var(--color-border-muted);
+  border-radius: var(--radius-card);
+  overflow: hidden;
+  color: var(--color-text);
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+.reactionSection {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 24px;
+  padding: 14px 16px;
+  background: var(--color-hover);
+  border-radius: 14px;
+}
+
+.reactionButtons {
+  display: flex;
+  gap: 8px;
+}
+
+.reactionButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  height: 36px;
+  padding: 0 14px;
+  border: 1.5px solid var(--color-border-muted);
+  border-radius: var(--radius-pill);
+  background: var(--color-surface);
+  color: var(--color-text-muted);
+  font-size: 13px;
+  font-weight: 700;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease, color 0.15s ease;
+}
+
+.reactionButton:hover {
+  border-color: var(--color-icon-muted);
+  color: var(--color-heading);
+}
+
+.reactionButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.58;
+}
+
+.reactionButtonLikeActive {
+  border-color: var(--color-brand-strong);
+  background: var(--color-brand-surface);
+  color: var(--color-brand-strong);
+}
+
+.reactionButtonDislikeActive {
+  border-color: #5c7cff;
+  background: #eef1ff;
+  color: #3b5bdb;
+}
+
+.reportButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 36px;
+  padding: 0 14px;
+  border: 1.5px solid var(--color-border-muted);
+  border-radius: var(--radius-pill);
+  background: var(--color-surface);
+  color: var(--color-text-muted);
+  font-size: 13px;
+  font-weight: 700;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: border-color 0.15s ease, color 0.15s ease;
+}
+
+.reportButton:hover {
+  border-color: var(--color-text);
+  color: var(--color-heading);
+}
+
+.commentWrap {
+  margin-top: 30px;
+}
+
+.commentTitle {
+  margin: 0;
+  font-size: 18px;
+  line-height: 1.3;
+  color: var(--color-heading);
+}
+
+.commentCount,
+.commentLength {
+  color: var(--color-text-soft);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.operationBadge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  border: 1px solid var(--color-border-muted);
+  border-radius: var(--radius-field);
+  padding: 0 9px;
+  background: var(--color-neutral-surface);
+  color: var(--color-text-muted);
+  font-size: 12px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.operationBadgeOpen {
+  border-color: var(--color-brand);
+  background: var(--color-brand);
+  color: var(--color-surface);
+}
+
+.operationBadgeClosed {
+  border: 0;
+  padding: 0;
+  background: transparent;
+  color: var(--color-danger);
+}
+
+.hoursRow {
+  min-height: 45px;
+  display: grid;
+  grid-template-columns: 36px minmax(0, 1fr) 42px;
+  align-items: center;
+  gap: 8px;
+  padding: 0 16px;
+  border-bottom: 1px solid var(--color-border-muted);
+}
+
+.hoursRow:last-child {
+  border-bottom: 0;
+}
+
+.hoursRowToday {
+  background: #fff9f3;
+}
+
+.hoursDay {
+  color: var(--color-text-muted);
+  font-weight: 800;
+}
+
+.hoursSaturday {
+  color: #2374ff;
+}
+
+.hoursSunday {
+  color: #ff3c5f;
+}
+
+.hoursDetail {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  color: var(--color-text-muted);
+}
+
+.hourSegment {
+  position: relative;
+  min-width: 0;
+}
+
+.hourSegment:not(:first-child)::before {
+  position: absolute;
+  top: 50%;
+  left: -7px;
+  width: 1px;
+  height: 14px;
+  background: var(--color-border-muted);
+  transform: translateY(-50%);
+  content: "";
+}
+
+.todayLabel {
+  justify-self: end;
+  color: var(--color-brand-strong);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.infoEmpty {
+  margin-top: 12px;
+  border: 1px dashed var(--color-border-muted);
+  border-radius: var(--radius-card);
+  padding: 24px 16px;
+  color: var(--color-text-soft);
+  text-align: center;
+  font-size: 13px;
+}
+
+.commentList {
+  list-style: none;
+  margin: 10px 0 0;
+  padding: 0;
+  display: grid;
+  gap: 10px;
+}
+
+.commentForm {
+  margin-top: 12px;
+  display: grid;
+  gap: 8px;
+}
+
+.commentTextarea {
+  width: 100%;
+  min-height: 88px;
+  resize: vertical;
+  border: 1.5px solid var(--color-border-muted);
+  border-radius: 12px;
+  padding: 12px 14px;
+  background: var(--color-surface);
+  color: var(--color-text);
+  font: inherit;
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+.commentTextarea:focus {
+  border-color: var(--color-brand);
+  outline: 3px solid rgba(255, 138, 69, 0.2);
+}
+
+.commentTextarea:disabled {
+  background: var(--color-neutral-surface);
+  color: var(--color-text-subtle);
+  cursor: not-allowed;
+}
+
+.commentSubmitRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.commentSubmitButton {
+  min-width: 72px;
+  height: 36px;
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: var(--color-brand);
+  color: var(--color-surface);
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.commentSubmitButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.46;
+}
+
+.commentError {
+  margin: 0;
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.commentError {
+  background: var(--color-danger-surface);
+  color: var(--color-danger-text);
+}
+
+.commentItem {
+  border: 1px solid var(--color-border-muted);
+  border-radius: 12px;
+  padding: 14px 16px;
+}
+
+.commentHeader {
+  min-height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.commentAuthor {
+  margin: 0;
+  min-width: 0;
+  color: var(--accent-strong);
+  font-size: 13px;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.commentDeleteButton {
+  flex: 0 0 auto;
+  min-width: 54px;
+  height: 28px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-pill);
+  background: var(--color-surface);
+  color: var(--color-warning-text);
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.commentDeleteButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.commentBody {
+  margin: 6px 0 0;
+  color: var(--color-text);
+  font-size: 14px;
+}
+
+.commentReactionRow {
+  margin-top: 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.commentReactionButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-width: 0;
+  min-height: 30px;
+  border: 1px solid var(--color-border-muted);
+  border-radius: var(--radius-pill);
+  padding: 0 10px;
+  background: var(--color-surface);
+  color: var(--color-text-muted);
+  font-size: 12px;
+  font-weight: 800;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease, color 0.15s ease;
+}
+
+.commentReactionButton:hover {
+  border-color: var(--color-icon-muted);
+  color: var(--color-heading);
+}
+
+.commentReactionButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.58;
+}
+
+.commentReactionButtonLikeActive {
+  border-color: var(--color-brand);
+  background: var(--color-brand-surface);
+  color: var(--color-brand-strong);
+}
+
+.commentReactionButtonDislikeActive {
+  border-color: #8fa2ff;
+  background: #f1f4ff;
+  color: #3b5bdb;
+}
+
+.emptyComment {
+  min-height: 168px;
+  margin: 14px 0 0;
+  border: 1px dashed var(--color-border-muted);
+  border-radius: var(--radius-card);
+  padding: 30px 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-muted);
+  font-size: 13px;
+  text-align: center;
+}
+
+.emptyCommentIcon {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  margin-bottom: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-neutral-surface);
+  color: var(--color-icon-muted);
+}
+
+.emptyComment strong {
+  color: var(--color-text-muted);
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.emptyComment p {
+  margin: 6px 0 0;
+  color: var(--color-text-subtle);
+}
+
+.commentWriteButton {
+  border: 0;
+  padding: 0;
+  background: transparent;
+  color: var(--color-brand-strong);
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+@keyframes markerReveal {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -40%);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%);
+  }
+}
+
+@keyframes currentLocationPulse {
+  from {
+    opacity: 0.28;
+    transform: scale(0.72);
+  }
+  to {
+    opacity: 0;
+    transform: scale(1.65);
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(26px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 670px) {
+  .page {
+    padding: 12px;
+    padding-top: 112px;
+    gap: 12px;
+  }
+
+  .heroSection {
+    border-radius: 22px;
+    padding: 0;
+  }
+
+  .searchWrap {
+    width: 100%;
+  }
+
+  .searchInput {
+    padding: 12px 14px;
+    font-size: 16px;
+  }
+
+  .markerLabel {
+    max-width: min(170px, calc(100vw - 104px));
+    padding: 5px 8px;
+    font-size: 11px;
+  }
+
+  .mapPanel {
+    margin-top: 0;
+    height: 300px;
+  }
+
+  .mapControlDock {
+    top: auto;
+    right: 10px;
+    bottom: 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    width: 54px;
+    gap: 7px;
+  }
+
+  .locationControlButton {
+    order: 2;
+    width: 54px;
+    height: 36px;
+    justify-content: center;
+    padding: 0;
+    font-size: 11px;
+  }
+
+  .locationControlButton .mapControlIcon {
+    display: none;
+  }
+
+  .mapControlIcon {
+    width: 14px;
+    height: 14px;
+    flex-basis: 14px;
+  }
+
+  .zoomControlButton {
+    width: 54px;
+    height: 36px;
+  }
+
+  .zoomControlGroup {
+    order: 1;
+    width: 54px;
+  }
+
+  .zoomControlIcon {
+    width: 17px;
+    height: 17px;
+  }
+
+  .locationStatus {
+    position: absolute;
+    right: 0;
+    bottom: calc(100% + 8px);
+    width: max-content;
+    max-width: min(220px, calc(100vw - 24px));
+    padding: 7px;
+    font-size: 10px;
+    text-align: right;
+  }
+
+  .mainSection {
+    border-radius: 18px;
+    padding: 14px;
+  }
+
+  .sectionHeader {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .sectionTitle {
+    font-size: 23px;
+  }
+
+  .hospitalCard {
+    padding: 14px;
+  }
+
+  .hospitalName {
+    font-size: 20px;
+  }
+
+  .bottomSheet {
+    --bottom-sheet-height: 50vh;
+    --bottom-sheet-height: 50dvh;
+    height: var(--bottom-sheet-height);
+    max-height: var(--bottom-sheet-height);
+    overflow-y: auto;
+    border-radius: 20px 20px 0 0;
+    padding: 10px 14px 28px;
+  }
+
+  .bottomSheetFull {
+    --bottom-sheet-height: calc(100vh - 12px);
+    --bottom-sheet-height: calc(100dvh - 12px);
+  }
+
+  .sheetOverlay {
+    padding: 10px 10px 0;
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  .sheetContent {
+    padding-top: 12px;
+  }
+
+  .sheetTitle {
+    font-size: 21px;
+  }
+
+  .sheetLinks {
+    grid-template-columns: 1fr;
+  }
+
+  .reactionSection {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 10px;
+    padding: 12px;
+  }
+
+  .reactionButtons {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    width: 100%;
+    gap: 8px;
+  }
+
+  .reactionButton,
+  .reportButton {
+    width: 100%;
+    justify-content: center;
+    padding: 0 10px;
+  }
+
+  .reactionButton {
+    font-size: 12px;
+  }
+
+  .hoursRow {
+    min-height: 0;
+    grid-template-columns: 28px minmax(0, 1fr);
+    align-items: start;
+    padding: 12px;
+  }
+
+  .hoursDetail {
+    align-items: flex-start;
+    gap: 6px 12px;
+    font-size: 13px;
+  }
+
+  .todayLabel {
+    grid-column: 2;
+    justify-self: start;
+  }
+}

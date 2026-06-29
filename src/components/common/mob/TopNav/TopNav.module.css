@@ -70,4 +70,14 @@
   width: 22px;
   height: 22px;
   flex: 0 0 auto;
+  display: inline-block;
+  background-color: currentColor;
+  -webkit-mask-image: var(--nav-icon-url);
+  -webkit-mask-position: center;
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-size: contain;
+  mask-image: var(--nav-icon-url);
+  mask-position: center;
+  mask-repeat: no-repeat;
+  mask-size: contain;
 }

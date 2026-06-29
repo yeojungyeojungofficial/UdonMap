@@ -1,6 +1,11 @@
 import Link from "next/link";
 import { useRouter } from "next/router";
-import type { MouseEvent } from "react";
+import type { CSSProperties, MouseEvent } from "react";
+import type { StaticImageData } from "next/image";
+import commentIcon from "@/src/assets/comment.png";
+import mypageIcon from "@/src/assets/mypage.png";
+import pinIcon from "@/src/assets/pin.png";
+import reportIcon from "@/src/assets/report.png";
 import { useHospitalMapStore } from "@/src/store/hospitalMapStore";
 import styles from "./TopNav.module.css";
 
@@ -15,42 +20,25 @@ const MENUS: MenuItem[] = [
   { label: "마이페이지", href: "/mypage" },
 ];
 
-const MENU_ICONS: Record<string, React.ReactNode> = {
-  병원찾기: (
-    <svg className={styles.navIcon} viewBox="0 0 24 24" fill="none" aria-hidden="true">
-      <path
-        d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinejoin="round"
-      />
-      <circle cx="12" cy="9" r="2.5" stroke="currentColor" strokeWidth="2" />
-    </svg>
-  ),
-  병원후기: (
-    <svg className={styles.navIcon} viewBox="0 0 24 24" fill="none" aria-hidden="true">
-      <rect x="4" y="4" width="16" height="16" rx="3" stroke="currentColor" strokeWidth="2" />
-      <path d="M8 9h8M8 13h5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-    </svg>
-  ),
-  병원제보: (
-    <svg className={styles.navIcon} viewBox="0 0 24 24" fill="none" aria-hidden="true">
-      <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="2" />
-      <path d="M12 8v4M12 16h.01" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-    </svg>
-  ),
-  마이페이지: (
-    <svg className={styles.navIcon} viewBox="0 0 24 24" fill="none" aria-hidden="true">
-      <circle cx="12" cy="8" r="3.5" stroke="currentColor" strokeWidth="2" />
-      <path
-        d="M5 20c0-3.314 3.134-6 7-6s7 2.686 7 6"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-      />
-    </svg>
-  ),
+const MENU_ICONS: Record<string, StaticImageData> = {
+  병원찾기: pinIcon,
+  병원후기: commentIcon,
+  병원제보: reportIcon,
+  마이페이지: mypageIcon,
 };
+
+type NavIconStyle = CSSProperties & {
+  "--nav-icon-url"?: string;
+};
+
+function NavIcon({ label }: { label: string }) {
+  const icon = MENU_ICONS[label];
+  const iconStyle: NavIconStyle = {
+    "--nav-icon-url": `url(${icon.src})`,
+  };
+
+  return <span className={styles.navIcon} style={iconStyle} aria-hidden="true" />;
+}
 
 export type TopNavProps = {
   activeMenu: string;
@@ -109,7 +97,7 @@ export default function MobileTopNav({
                 }}
                 aria-current={isActive ? "page" : undefined}
               >
-                {MENU_ICONS[menu.label]}
+                <NavIcon label={menu.label} />
                 {menu.label}
               </Link>
             );
@@ -126,7 +114,7 @@ export default function MobileTopNav({
               }}
               aria-pressed={isActive}
             >
-              {MENU_ICONS[menu.label]}
+              <NavIcon label={menu.label} />
               {menu.label}
             </button>
           );
