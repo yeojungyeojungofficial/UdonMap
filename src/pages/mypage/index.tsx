@@ -1,1 +1,1 @@
-export { default } from "@/src/components/mypage/MyPage";
+export { default } from "@/src/features/mypage/pages/MyPage";
