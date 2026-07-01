@@ -38,9 +38,20 @@
   background: var(--color-neutral-surface);
 }
 
-.backButton svg {
+.backButtonIcon {
   width: 26px;
   height: 26px;
+  flex: 0 0 auto;
+  display: inline-block;
+  background-color: currentColor;
+  -webkit-mask-image: var(--back-icon-url);
+  -webkit-mask-position: center;
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-size: contain;
+  mask-image: var(--back-icon-url);
+  mask-position: center;
+  mask-repeat: no-repeat;
+  mask-size: contain;
 }
 
 .topBadges {

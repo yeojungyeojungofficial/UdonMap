@@ -1,7 +1,8 @@
 import Head from "next/head";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { useMemo, useRef, useState } from "react";
+import { useMemo, useRef, useState, type CSSProperties } from "react";
+import chevronLeftIcon from "@/src/assets/chevronLeft.png";
 import TopNav from "@/src/components/common/TopNav";
 import HospitalReportSheet from "@/src/components/common/HospitalReportSheet";
 import LoadingScreen from "@/src/components/common/LoadingScreen";
@@ -19,6 +20,14 @@ import type {
   BoardPostReportReason,
 } from "@/src/features/reviews/reportReasons";
 import styles from "./PostDetailPage.module.css";
+
+type BackIconStyle = CSSProperties & {
+  "--back-icon-url"?: string;
+};
+
+const backIconStyle: BackIconStyle = {
+  "--back-icon-url": `url(${chevronLeftIcon.src})`,
+};
 
 function formatBoardDate(value: string) {
   const date = new Date(value);
@@ -230,12 +239,11 @@ export default function DesktopPostDetailPage() {
                 className={styles.backButton}
                 aria-label="목록으로"
               >
-                <svg viewBox="0 0 24 24" aria-hidden="true">
-                  <path
-                    d="M15.41 7.41 14 6l-6 6 6 6 1.41-1.41L10.83 12z"
-                    fill="currentColor"
-                  />
-                </svg>
+                <span
+                  className={styles.backButtonIcon}
+                  style={backIconStyle}
+                  aria-hidden="true"
+                />
                 목록으로
               </Link>
               <div className={styles.topActions}>

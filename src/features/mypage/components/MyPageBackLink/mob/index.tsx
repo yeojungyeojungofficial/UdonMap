@@ -1,9 +1,19 @@
 import Link from "next/link";
+import type { CSSProperties } from "react";
+import chevronLeftIcon from "@/src/assets/chevronLeft.png";
 import styles from "./MyPageBackLink.module.css";
 
 type MobileMyPageBackLinkProps = {
   href?: string;
   label?: string;
+};
+
+type BackIconStyle = CSSProperties & {
+  "--back-icon-url"?: string;
+};
+
+const backIconStyle: BackIconStyle = {
+  "--back-icon-url": `url(${chevronLeftIcon.src})`,
 };
 
 export default function MobileMyPageBackLink({
@@ -12,20 +22,11 @@ export default function MobileMyPageBackLink({
 }: MobileMyPageBackLinkProps) {
   return (
     <Link href={href} className={styles.backLink} aria-label={label}>
-      <svg
+      <span
         className={styles.backIcon}
-        viewBox="0 0 24 24"
-        fill="none"
+        style={backIconStyle}
         aria-hidden="true"
-      >
-        <path
-          d="M15 18l-6-6 6-6"
-          stroke="currentColor"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-      </svg>
+      />
       <span>{label}</span>
     </Link>
   );

@@ -1,4 +1,13 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type CSSProperties,
+} from "react";
+import crosshairIcon from "@/src/assets/crosshair.png";
+import zoomInIcon from "@/src/assets/zoomIn.png";
+import zoomOutIcon from "@/src/assets/zoomOut.png";
 import {
   ALL_REGION_MARKER_MAX_LEVEL,
   HOSPITAL_FOCUS_BOUNDS_MIN_LEVEL,
@@ -12,6 +21,22 @@ import type { Hospital, Region } from "@/src/features/hospitals/types";
 import styles from "@/src/features/home/components/Home.module.css";
 
 type KakaoLatLng = object;
+
+type MapControlIconStyle = CSSProperties & {
+  "--map-control-icon-url"?: string;
+};
+
+const currentLocationIconStyle: MapControlIconStyle = {
+  "--map-control-icon-url": `url(${crosshairIcon.src})`,
+};
+
+const zoomInIconStyle: MapControlIconStyle = {
+  "--map-control-icon-url": `url(${zoomInIcon.src})`,
+};
+
+const zoomOutIconStyle: MapControlIconStyle = {
+  "--map-control-icon-url": `url(${zoomOutIcon.src})`,
+};
 
 type KakaoLatLngBounds = {
   extend: (latLng: KakaoLatLng) => void;
@@ -794,15 +819,11 @@ export default function MapPanel({
           disabled={!isMapReady || locationStatus === "locating"}
           aria-label="내 위치 지도에 표시"
         >
-          <svg
+          <span
             className={styles.mapControlIcon}
-            viewBox="0 0 24 24"
+            style={currentLocationIconStyle}
             aria-hidden="true"
-          >
-            <path d="M12 3v3M12 18v3M3 12h3M18 12h3" />
-            <circle cx="12" cy="12" r="5.5" />
-            <circle cx="12" cy="12" r="1.8" />
-          </svg>
+          />
           <span>{locationStatus === "locating" ? "확인중" : "내위치"}</span>
         </button>
         <div className={styles.zoomControlGroup}>
@@ -813,13 +834,11 @@ export default function MapPanel({
             disabled={!isMapReady || mapLevel <= MIN_KAKAO_MAP_LEVEL}
             aria-label="지도 확대"
           >
-            <svg
+            <span
               className={styles.zoomControlIcon}
-              viewBox="0 0 24 24"
+              style={zoomInIconStyle}
               aria-hidden="true"
-            >
-              <path d="M12 5v14M5 12h14" />
-            </svg>
+            />
           </button>
           <button
             type="button"
@@ -828,13 +847,11 @@ export default function MapPanel({
             disabled={!isMapReady || mapLevel >= MAX_KAKAO_MAP_LEVEL}
             aria-label="지도 축소"
           >
-            <svg
+            <span
               className={styles.zoomControlIcon}
-              viewBox="0 0 24 24"
+              style={zoomOutIconStyle}
               aria-hidden="true"
-            >
-              <path d="M5 12h14" />
-            </svg>
+            />
           </button>
         </div>
         {locationStatus !== "idle" ? (
