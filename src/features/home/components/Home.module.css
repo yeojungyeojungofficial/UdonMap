@@ -137,11 +137,16 @@
   width: 16px;
   height: 16px;
   flex: 0 0 16px;
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 2;
-  stroke-linecap: round;
-  stroke-linejoin: round;
+  display: inline-block;
+  background-color: currentColor;
+  -webkit-mask-image: var(--map-control-icon-url);
+  -webkit-mask-position: center;
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-size: contain;
+  mask-image: var(--map-control-icon-url);
+  mask-position: center;
+  mask-repeat: no-repeat;
+  mask-size: contain;
 }
 
 .zoomControlGroup {
@@ -170,11 +175,16 @@
 .zoomControlIcon {
   width: 18px;
   height: 18px;
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 2.4;
-  stroke-linecap: round;
-  stroke-linejoin: round;
+  display: inline-block;
+  background-color: currentColor;
+  -webkit-mask-image: var(--map-control-icon-url);
+  -webkit-mask-position: center;
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-size: contain;
+  mask-image: var(--map-control-icon-url);
+  mask-position: center;
+  mask-repeat: no-repeat;
+  mask-size: contain;
 }
 
 .zoomControlButton + .zoomControlButton {

@@ -28,9 +28,18 @@
   }
 
   .backIcon {
-    display: block;
+    display: inline-block;
     width: 19px;
     height: 19px;
     flex: 0 0 auto;
+    background-color: currentColor;
+    -webkit-mask-image: var(--back-icon-url);
+    -webkit-mask-position: center;
+    -webkit-mask-repeat: no-repeat;
+    -webkit-mask-size: contain;
+    mask-image: var(--back-icon-url);
+    mask-position: center;
+    mask-repeat: no-repeat;
+    mask-size: contain;
   }
 }

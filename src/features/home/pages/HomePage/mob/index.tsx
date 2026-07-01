@@ -1,5 +1,6 @@
 import Head from "next/head";
-import { type FormEvent, useState } from "react";
+import { type CSSProperties, type FormEvent, useState } from "react";
+import searchIcon from "@/src/assets/search.png";
 import HospitalBottomSheet from "@/src/features/home/components/HospitalBottomSheet";
 import HospitalList from "@/src/features/home/components/HospitalList";
 import MapPanel from "@/src/features/home/components/MapPanel";
@@ -10,6 +11,14 @@ import TopNav from "@/src/components/common/TopNav";
 import CommonFooter from "@/src/components/common/CommonFooter";
 import { useHospitalDirectory } from "@/src/features/hospitals/hooks/useHospitalDirectory";
 import styles from "./HomePage.module.css";
+
+type SearchIconStyle = CSSProperties & {
+  "--search-icon-url"?: string;
+};
+
+const searchIconStyle: SearchIconStyle = {
+  "--search-icon-url": `url(${searchIcon.src})`,
+};
 
 export default function MobileHomePage() {
   const [activeMenu, setActiveMenu] = useState("병원찾기");
@@ -136,27 +145,11 @@ export default function MobileHomePage() {
               className={styles.searchIconWrap}
               aria-label="병원 검색"
             >
-              <svg
+              <span
                 className={styles.searchIcon}
-                viewBox="0 0 24 24"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="M10.5 18a7.5 7.5 0 1 1 0-15 7.5 7.5 0 0 1 0 15Z"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-                <path
-                  d="M16.5 16.5 21 21"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
+                style={searchIconStyle}
+                aria-hidden="true"
+              />
             </button>
           </form>
         </div>
