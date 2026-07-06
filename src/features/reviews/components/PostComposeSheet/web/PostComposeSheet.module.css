@@ -108,6 +108,16 @@
   height: 20px;
   color: var(--color-brand);
   pointer-events: none;
+  display: inline-block;
+  background-color: currentColor;
+  -webkit-mask-image: var(--compose-icon-url);
+  -webkit-mask-position: center;
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-size: contain;
+  mask-image: var(--compose-icon-url);
+  mask-position: center;
+  mask-repeat: no-repeat;
+  mask-size: contain;
 }
 
 .titleInput {
@@ -274,6 +284,7 @@
   width: 20px;
   height: 20px;
   background: var(--color-brand);
+  color: var(--color-surface);
   border-radius: 4px 0 6px 0;
   cursor: se-resize;
   display: flex;
@@ -281,6 +292,21 @@
   justify-content: center;
   opacity: 0;
   transition: opacity 0.15s ease;
+}
+
+.imgResizeHandle::before {
+  content: "";
+  width: 12px;
+  height: 12px;
+  background-color: currentColor;
+  -webkit-mask-image: var(--resize-handle-icon-url);
+  -webkit-mask-position: center;
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-size: contain;
+  mask-image: var(--resize-handle-icon-url);
+  mask-position: center;
+  mask-repeat: no-repeat;
+  mask-size: contain;
 }
 
 .imgWrapper:hover .imgResizeHandle {
@@ -317,6 +343,16 @@
   height: 18px;
   color: var(--color-brand);
   flex: 0 0 auto;
+  display: inline-block;
+  background-color: currentColor;
+  -webkit-mask-image: var(--compose-icon-url);
+  -webkit-mask-position: center;
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-size: contain;
+  mask-image: var(--compose-icon-url);
+  mask-position: center;
+  mask-repeat: no-repeat;
+  mask-size: contain;
 }
 
 .linkInput {
@@ -421,9 +457,20 @@
   transition: background-color 0.15s ease, color 0.15s ease;
 }
 
-.toolbarButton svg {
+.toolbarIcon {
   width: 24px;
   height: 24px;
+  flex: 0 0 auto;
+  display: inline-block;
+  background-color: currentColor;
+  -webkit-mask-image: var(--compose-icon-url);
+  -webkit-mask-position: center;
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-size: contain;
+  mask-image: var(--compose-icon-url);
+  mask-position: center;
+  mask-repeat: no-repeat;
+  mask-size: contain;
 }
 
 .toolbarButton:hover:not(:disabled) {

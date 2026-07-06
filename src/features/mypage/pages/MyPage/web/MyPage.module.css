@@ -165,11 +165,21 @@
   height: 18px;
   flex: 0 0 auto;
   color: var(--color-icon-muted);
+  display: inline-block;
+  background-color: currentColor;
+  -webkit-mask-image: var(--mypage-chevron-url);
+  -webkit-mask-position: center;
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-size: contain;
+  mask-image: var(--mypage-chevron-url);
+  mask-position: center;
+  mask-repeat: no-repeat;
+  mask-size: contain;
   transition: transform 0.2s ease;
 }
 
 .chevronDown {
-  transform: rotate(90deg);
+  transform: none;
 }
 
 .contentArea {

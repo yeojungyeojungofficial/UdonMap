@@ -1,5 +1,7 @@
 import Head from "next/head";
-import { useState } from "react";
+import { useState, type CSSProperties } from "react";
+import chevronDownIcon from "@/src/assets/chevronDown.png";
+import chevronRightIcon from "@/src/assets/chevronRight.png";
 import TopNav from "@/src/components/common/TopNav";
 import CommonFooter from "@/src/components/common/CommonFooter";
 import MyPageBackLink from "@/src/features/mypage/components/MyPageBackLink";
@@ -8,22 +10,31 @@ import { useMyPageShellStyles } from "@/src/features/mypage/useMyPageShellStyles
 
 type PolicyKey = "privacy" | null;
 
-function ChevronRight({ className }: { className: string }) {
+type ChevronIconStyle = CSSProperties & {
+  "--mypage-chevron-url"?: string;
+};
+
+const chevronRightIconStyle: ChevronIconStyle = {
+  "--mypage-chevron-url": `url(${chevronRightIcon.src})`,
+};
+
+const chevronDownIconStyle: ChevronIconStyle = {
+  "--mypage-chevron-url": `url(${chevronDownIcon.src})`,
+};
+
+function ChevronIcon({
+  className,
+  isDown = false,
+}: {
+  className: string;
+  isDown?: boolean;
+}) {
   return (
-    <svg
+    <span
       className={className}
-      viewBox="0 0 24 24"
-      fill="none"
+      style={isDown ? chevronDownIconStyle : chevronRightIconStyle}
       aria-hidden="true"
-    >
-      <path
-        d="M9 18l6-6-6-6"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
+    />
   );
 }
 
@@ -56,10 +67,11 @@ export default function PolicyPage() {
             }
           >
             <span>개인정보 처리방침</span>
-            <ChevronRight
+            <ChevronIcon
               className={`${shell.chevron} ${
                 openPolicy === "privacy" ? shell.chevronDown : ""
               }`}
+              isDown={openPolicy === "privacy"}
             />
           </button>
           {openPolicy === "privacy" ? (
@@ -68,7 +80,7 @@ export default function PolicyPage() {
           <div className={shell.divider} />
           <button type="button" className={shell.menuItem}>
             <span>앱 처리방침</span>
-            <ChevronRight className={shell.chevron} />
+            <ChevronIcon className={shell.chevron} />
           </button>
         </div>
 

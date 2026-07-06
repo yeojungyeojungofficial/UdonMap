@@ -1,7 +1,9 @@
 import Head from "next/head";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { useMemo, useState } from "react";
+import { useMemo, useState, type CSSProperties } from "react";
+import chevronDownIcon from "@/src/assets/chevronDown.png";
+import writeIcon from "@/src/assets/write.png";
 import ExpandableFilterChipGroup from "@/src/components/common/mob/ExpandableFilterChipGroup";
 import HospitalReportSheet from "@/src/components/common/HospitalReportSheet";
 import LoadingScreen from "@/src/components/common/LoadingScreen";
@@ -21,6 +23,18 @@ import { useReviewBoardPosts } from "@/src/features/reviews/hooks/useReviewBoard
 import styles from "./ReviewsPage.module.css";
 
 const REVIEW_REGION_OPTIONS: readonly Region[] = REGION_FILTERS;
+
+type ReviewIconStyle = CSSProperties & {
+  "--review-icon-url"?: string;
+};
+
+const tabDropdownIconStyle: ReviewIconStyle = {
+  "--review-icon-url": `url(${chevronDownIcon.src})`,
+};
+
+const writeIconStyle: ReviewIconStyle = {
+  "--review-icon-url": `url(${writeIcon.src})`,
+};
 
 export default function MobileReviewsPage() {
   const router = useRouter();
@@ -97,13 +111,11 @@ export default function MobileReviewsPage() {
                 aria-expanded={isTabOpen}
               >
                 {activeTab}
-                <svg
+                <span
                   className={`${styles.tabDropdownIcon} ${isTabOpen ? styles.tabDropdownIconOpen : ""}`}
-                  viewBox="0 0 24 24"
+                  style={tabDropdownIconStyle}
                   aria-hidden="true"
-                >
-                  <path d="M7 10l5 5 5-5z" fill="currentColor" />
-                </svg>
+                />
               </button>
               {isTabOpen ? (
                 <div className={styles.tabDropdownList}>
@@ -192,21 +204,11 @@ export default function MobileReviewsPage() {
           aria-label={`${activeTab} 글쓰기`}
           onClick={() => setIsComposeOpen(true)}
         >
-          <svg
+          <span
             className={styles.writeFabIcon}
-            viewBox="0 0 24 24"
+            style={writeIconStyle}
             aria-hidden="true"
-            focusable="false"
-          >
-            <path
-              d="M4 17.25V20h2.75L18.81 7.94l-2.75-2.75L4 17.25z"
-              fill="currentColor"
-            />
-            <path
-              d="M20.71 5.04a1 1 0 0 0 0-1.41l-2.34-2.34a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"
-              fill="currentColor"
-            />
-          </svg>
+          />
           <span className={styles.writeFabLabel}>글쓰기</span>
         </button>
 

@@ -1,6 +1,8 @@
 import Head from "next/head";
 import Link from "next/link";
-import { useState } from "react";
+import { useState, type CSSProperties } from "react";
+import chevronDownIcon from "@/src/assets/chevronDown.png";
+import chevronRightIcon from "@/src/assets/chevronRight.png";
 import AuthDialog from "@/src/features/mypage/components/AuthDialog";
 import AccountAuthInline from "@/src/features/mypage/components/AccountAuthInline";
 import HospitalReportSheet from "@/src/components/common/HospitalReportSheet";
@@ -11,19 +13,35 @@ import styles from "./MyPage.module.css";
 
 type SectionKey = "activity" | "account" | "policy" | null;
 
+type ChevronIconStyle = CSSProperties & {
+  "--mypage-chevron-url"?: string;
+};
+
+const chevronRightIconStyle: ChevronIconStyle = {
+  "--mypage-chevron-url": `url(${chevronRightIcon.src})`,
+};
+
+const chevronDownIconStyle: ChevronIconStyle = {
+  "--mypage-chevron-url": `url(${chevronDownIcon.src})`,
+};
+
 function ChevronRight() {
   return (
-    <svg className={styles.chevron} viewBox="0 0 24 24" fill="none" aria-hidden="true">
-      <path d="M9 18l6-6-6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
+    <span
+      className={styles.chevron}
+      style={chevronRightIconStyle}
+      aria-hidden="true"
+    />
   );
 }
 
 function ChevronDown() {
   return (
-    <svg className={`${styles.chevron} ${styles.chevronDown}`} viewBox="0 0 24 24" fill="none" aria-hidden="true">
-      <path d="M9 18l6-6-6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
+    <span
+      className={`${styles.chevron} ${styles.chevronDown}`}
+      style={chevronDownIconStyle}
+      aria-hidden="true"
+    />
   );
 }
 

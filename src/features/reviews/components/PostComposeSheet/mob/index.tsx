@@ -1,3 +1,7 @@
+import type { CSSProperties } from "react";
+import chevronDownIcon from "@/src/assets/chevronDown.png";
+import linkIcon from "@/src/assets/link.png";
+import photoIcon from "@/src/assets/photo.png";
 import FilterChipGroup from "@/src/components/common/FilterChipGroup";
 import {
   BOARD_TABS,
@@ -22,6 +26,22 @@ type PostComposeSheetContentProps = {
   onClose: () => void;
   onCreated?: (post: BoardPostSummary) => void;
   onUpdated?: (post: BoardPostDetail) => void;
+};
+
+type ComposeIconStyle = CSSProperties & {
+  "--compose-icon-url"?: string;
+};
+
+const boardSelectIconStyle: ComposeIconStyle = {
+  "--compose-icon-url": `url(${chevronDownIcon.src})`,
+};
+
+const linkIconStyle: ComposeIconStyle = {
+  "--compose-icon-url": `url(${linkIcon.src})`,
+};
+
+const photoIconStyle: ComposeIconStyle = {
+  "--compose-icon-url": `url(${photoIcon.src})`,
 };
 
 export default function MobilePostComposeSheetContent({
@@ -126,9 +146,11 @@ export default function MobilePostComposeSheetContent({
                 <option key={tab} value={tab}>{tab}</option>
               ))}
             </select>
-            <svg className={styles.boardSelectChevron} viewBox="0 0 24 24" aria-hidden="true">
-              <path d="M7 10l5 5 5-5z" fill="currentColor" />
-            </svg>
+            <span
+              className={styles.boardSelectChevron}
+              style={boardSelectIconStyle}
+              aria-hidden="true"
+            />
           </div>
 
           <input
@@ -185,12 +207,11 @@ export default function MobilePostComposeSheetContent({
 
           {isLinkInputOpen && (
             <div className={styles.linkInputRow}>
-              <svg className={styles.linkIcon} viewBox="0 0 24 24" aria-hidden="true">
-                <path
-                  d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"
-                  fill="currentColor"
-                />
-              </svg>
+              <span
+                className={styles.linkIcon}
+                style={linkIconStyle}
+                aria-hidden="true"
+              />
               <input
                 ref={linkInputRef}
                 className={styles.linkInput}
@@ -231,11 +252,11 @@ export default function MobilePostComposeSheetContent({
               disabled={atPhotoLimit || isSubmitting}
               onClick={() => { saveSelection(); fileInputRef.current?.click(); }}
             >
-              <svg viewBox="0 0 24 24" aria-hidden="true">
-                <rect x="3" y="3" width="18" height="18" rx="3" ry="3" fill="none" stroke="currentColor" strokeWidth="2" />
-                <circle cx="8.5" cy="8.5" r="1.5" fill="currentColor" />
-                <path d="M21 15l-5-5L5 21" stroke="currentColor" strokeWidth="2" fill="none" strokeLinejoin="round" />
-              </svg>
+              <span
+                className={styles.toolbarIcon}
+                style={photoIconStyle}
+                aria-hidden="true"
+              />
               {photoCount > 0 && <span className={styles.photoBadge}>{photoCount}</span>}
             </button>
             <button
@@ -244,12 +265,11 @@ export default function MobilePostComposeSheetContent({
               aria-label="링크 추가"
               onClick={handleOpenLink}
             >
-              <svg viewBox="0 0 24 24" aria-hidden="true">
-                <path
-                  d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"
-                  fill="currentColor"
-                />
-              </svg>
+              <span
+                className={styles.toolbarIcon}
+                style={linkIconStyle}
+                aria-hidden="true"
+              />
             </button>
             <span className={styles.toolbarDivider} aria-hidden="true" />
             <div className={styles.formatGroup}>
