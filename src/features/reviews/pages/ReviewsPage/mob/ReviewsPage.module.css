@@ -62,6 +62,16 @@
   width: 20px;
   height: 20px;
   flex: 0 0 auto;
+  display: inline-block;
+  background-color: currentColor;
+  -webkit-mask-image: var(--review-icon-url);
+  -webkit-mask-position: center;
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-size: contain;
+  mask-image: var(--review-icon-url);
+  mask-position: center;
+  mask-repeat: no-repeat;
+  mask-size: contain;
   transition: transform 0.2s ease;
 }
 
@@ -242,6 +252,16 @@
   width: 22px;
   height: 22px;
   flex: 0 0 auto;
+  display: inline-block;
+  background-color: currentColor;
+  -webkit-mask-image: var(--review-icon-url);
+  -webkit-mask-position: center;
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-size: contain;
+  mask-image: var(--review-icon-url);
+  mask-position: center;
+  mask-repeat: no-repeat;
+  mask-size: contain;
 }
 
 .writeFabLabel {

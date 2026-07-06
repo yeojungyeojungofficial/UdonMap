@@ -4,6 +4,7 @@ import {
   type ClipboardEvent,
   type DragEvent,
 } from "react";
+import resizeHandleIcon from "@/src/assets/resizeHandle.png";
 import { sanitizeBoardPostHtml } from "@/src/features/reviews/sanitize";
 
 export const POST_COMPOSE_PHOTO_DELETED_EVENT =
@@ -441,8 +442,10 @@ export function usePostComposeEditor({
       handle.setAttribute("aria-hidden", "true");
       handle.setAttribute("data-editor-control", "resize");
       handle.className = classNames.imgResizeHandle;
-      handle.innerHTML =
-        '<svg viewBox="0 0 8 8" width="8" height="8" aria-hidden="true"><line x1="1" y1="7" x2="7" y2="1" stroke="white" stroke-width="1.5" stroke-linecap="round"/><line x1="4" y1="7" x2="7" y2="4" stroke="white" stroke-width="1.5" stroke-linecap="round"/></svg>';
+      handle.style.setProperty(
+        "--resize-handle-icon-url",
+        `url(${resizeHandleIcon.src})`,
+      );
 
       const onResizeStart = (clientX: number) => {
         const startX = clientX;
